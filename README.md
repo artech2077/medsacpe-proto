@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Medscape AI Prototyping Workspace
 
-## Getting Started
+Next.js + Tailwind workspace for Figma-driven prototype screens implemented with Codex in Cursor.
 
-First, run the development server:
+## Run locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app/(prototypes)/<slug>/page.tsx`: route for each prototype screen
+- `src/components/ui/`: reusable primitives for prototype screens
+- `src/components/screens/`: composed screen sections
+- `src/styles/tokens.css`: CSS variables generated/mapped from Figma Variables
+- `public/assets/<slug>/`: images and SVG assets returned by Figma MCP
+- `docs/codex-figma-prompts.md`: copy/paste prompts for Codex in Cursor
 
-## Learn More
+## Fonts (exact Figma match)
 
-To learn more about Next.js, take a look at the following resources:
+- Put local `.woff2` files in `src/assets/fonts/`
+- Ask Codex to replace the fallback font setup in `src/styles/fonts.ts` with `next/font/local`
+- Apply the same family/weights used in Figma
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Figma screen implementation workflow (Codex)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Use the prompt templates in `docs/codex-figma-prompts.md`. The required order is:
 
-## Deploy on Vercel
+1. `get_design_context`
+2. `get_screenshot`
+3. asset download/save
+4. token updates (`get_variable_defs` if needed)
+5. page implementation at `src/app/(prototypes)/<slug>/page.tsx`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Push the repo to GitHub/GitLab (private is fine)
+- Import to Vercel and use preview deployments for stakeholder sharing

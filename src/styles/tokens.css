@@ -1,0 +1,61 @@
+:root {
+  color-scheme: light;
+
+  --surface-canvas: #f3f5f8;
+  --surface-panel: #fbfcfe;
+  --surface-muted: #eef2f7;
+
+  --text-primary: #101828;
+  --text-secondary: #475467;
+  --text-muted: #667085;
+
+  --border-subtle: #d0d5dd;
+  --border-strong: #98a2b3;
+
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #2563eb;
+  --color-brand-600: #1d4ed8;
+  --color-brand-700: #1e40af;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --shadow-panel: 0 12px 36px rgba(16, 24, 40, 0.08);
+
+  --font-prototype-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-prototype-mono: "Geist Mono", ui-monospace, monospace;
+
+  --mscp-color-text-primary: #161b1d;
+  --mscp-color-text-tertiary: #435056;
+  --mscp-color-text-body: #2c353a;
+  --mscp-color-text-disabled: #6f8590;
+  --mscp-color-text-informative: #064aa7;
+  --mscp-color-brand-primary: #064aa7;
+  --mscp-color-bg-section: #ecf1f9;
+  --mscp-color-border-primary: #c5ced3;
+  --mscp-color-badge-danger: #8a0f1e;
+  --mscp-color-illustrative-ai-left: #006aff;
+  --mscp-color-illustrative-ai-right: #f600ff;
+
+  --mscp-font-size-label-2: 16px;
+  --mscp-line-height-label-2: 19.2px;
+  --mscp-font-size-label-1: 18px;
+  --mscp-line-height-label-1: 21.6px;
+  --mscp-font-size-legal: 12px;
+  --mscp-line-height-legal: 18px;
+  --mscp-font-size-heading-1: 28px;
+  --mscp-line-height-heading-1: 36.4px;
+  --mscp-font-size-body-1: 20px;
+  --mscp-line-height-body-1: 26px;
+}
