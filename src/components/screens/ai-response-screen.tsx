@@ -116,6 +116,14 @@ function HeaderNavItem({ label, active = false }: { label: string; active?: bool
 
 type AppIconName = "search" | "invitations" | "globe" | "profile" | "history" | "newChat";
 
+const appIconSources: Partial<Record<AppIconName, string>> = {
+  history: uiIcons.history,
+  invitations: uiIcons.invitations,
+  newChat: uiIcons.newChat,
+  profile: uiIcons.avatar,
+  search: uiIcons.search,
+};
+
 function AppIcon({
   name,
   className,
@@ -127,13 +135,7 @@ function AppIcon({
   alt?: string;
   white?: boolean;
 }) {
-  const iconSrc = {
-    history: uiIcons.history,
-    invitations: uiIcons.invitations,
-    newChat: uiIcons.newChat,
-    profile: uiIcons.avatar,
-    search: uiIcons.search,
-  }[name];
+  const iconSrc = appIconSources[name];
 
   if (iconSrc) {
     return (
@@ -469,16 +471,19 @@ export function AiResponseScreen() {
     const newTurnId = nextTurnIdRef.current;
     nextTurnIdRef.current += 1;
     activeTurnIdRef.current = newTurnId;
+    const nextTurn: ChatTurn = {
+      answer: "",
+      id: newTurnId,
+      mode: "streamed",
+      question: trimmedQuestion,
+      status: "preparing",
+    };
 
-    setChatTurns((currentTurns) => [
-      ...currentTurns.map((turn) => (turn.status === "complete" ? turn : { ...turn, status: "complete" })),
-      {
-        answer: "",
-        id: newTurnId,
-        mode: "streamed",
-        question: trimmedQuestion,
-        status: "preparing",
-      },
+    setChatTurns((currentTurns): ChatTurn[] => [
+      ...currentTurns.map((turn): ChatTurn =>
+        turn.status === "complete" ? turn : { ...turn, status: "complete" },
+      ),
+      nextTurn,
     ]);
 
     setComposerDraft("");
@@ -499,8 +504,8 @@ export function AiResponseScreen() {
     responseDelayTimeoutRef.current = setTimeout(() => {
       if (activeTurnIdRef.current !== newTurnId) return;
 
-      setChatTurns((currentTurns) =>
-        currentTurns.map((turn) =>
+      setChatTurns((currentTurns): ChatTurn[] =>
+        currentTurns.map((turn): ChatTurn =>
           turn.id === newTurnId ? { ...turn, status: "streaming" } : turn,
         ),
       );
@@ -515,8 +520,8 @@ export function AiResponseScreen() {
         nextLength = Math.min(nextLength + STREAM_CHUNK_SIZE, mockStreamingAnswer.length);
         const nextAnswer = mockStreamingAnswer.slice(0, nextLength);
 
-        setChatTurns((currentTurns) =>
-          currentTurns.map((turn) =>
+        setChatTurns((currentTurns): ChatTurn[] =>
+          currentTurns.map((turn): ChatTurn =>
             turn.id === newTurnId ? { ...turn, answer: nextAnswer } : turn,
           ),
         );
@@ -527,8 +532,8 @@ export function AiResponseScreen() {
             responseStreamIntervalRef.current = null;
           }
 
-          setChatTurns((currentTurns) =>
-            currentTurns.map((turn) =>
+          setChatTurns((currentTurns): ChatTurn[] =>
+            currentTurns.map((turn): ChatTurn =>
               turn.id === newTurnId ? { ...turn, status: "complete" } : turn,
             ),
           );
@@ -546,8 +551,8 @@ export function AiResponseScreen() {
     clearResponseTimers();
     activeTurnIdRef.current = null;
     setBottomSpacerHeight(0);
-    setChatTurns((currentTurns) =>
-      currentTurns.map((turn) =>
+    setChatTurns((currentTurns): ChatTurn[] =>
+      currentTurns.map((turn): ChatTurn =>
         turn.id === activeTurnId && turn.status !== "complete"
           ? { ...turn, status: "complete" }
           : turn,
