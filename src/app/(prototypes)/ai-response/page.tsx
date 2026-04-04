@@ -1,5 +1,5 @@
-import { AiResponseScreen } from "@/components/screens/ai-response-screen";
+import { AiResponseLanding } from "@/components/screens/ai-response-landing";
 
 export default function AiResponsePage() {
-  return <AiResponseScreen />;
+  return <AiResponseLanding />;
 }

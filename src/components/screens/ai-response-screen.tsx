@@ -1,6 +1,16 @@
 "use client";
 
-import { type FormEvent, type WheelEvent, useEffect, useRef, useState } from "react";
+import {
+  type FormEvent,
+  type WheelEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  buildMockAnswer,
+  defaultInitialQuestion,
+} from "@/components/screens/ai-response-content";
 
 const logoAssets = {
   medscapeLogo: "/assets/logo-medscape.svg",
@@ -22,82 +32,23 @@ const composerIcons = {
   scrollDown: "/assets/arrow-down.svg?v=2",
 } as const;
 
-const initialQuestion =
-  "What is the recommended dosing regimen for vitamin D and calcium in patients with osteoporosis?";
-
-const calciumIntake = [
-  "Younger adults (age 19-50 years): 1,000 mg elemental calcium daily.",
-  "Women >= 51 years and men >= 71 years: 1,200 mg elemental calcium daily.",
-  "Men age 51-70 years: 1,000 mg elemental calcium daily.",
-  "Upper intake level for older adults: 2,000 mg/day to avoid potential adverse effects [1].",
-];
-
-const calciumSupplements = [
-  "Calcium carbonate (40% elemental calcium): first-line; better absorbed with meals and requires fewer tablets [1].",
-  "Calcium citrate (21% elemental calcium): better absorbed fasting; useful in achlorhydria or on acid-suppressing therapy [1].",
-];
-
-const vitaminDIntake = [
-  "Adults age 51-70 years: 600 IU (15 mcg) daily.",
-  "Adults > 70 years: 800 IU (20 mcg) daily.",
-  "Minimum requirement in osteoporosis: 800 IU cholecalciferol daily; many patients require higher doses to maintain serum 25-hydroxyvitamin D >= 32 ng/mL [1].",
-  "Recommended upper level: 4,000 IU/day.",
-];
-
-const combinedSupplements = [
-  "Age 19-50 years: 1,000 mg calcium/600 IU vitamin D daily.",
-  "Men >= 51-70 years: 1,000 mg/600 IU daily; men >= 70 years: 1,200 mg/800 IU daily.",
-  "Women >= 51 years: 1,200 mg calcium/600 IU vitamin D daily.",
-];
-
-const PRE_STREAM_DELAY_MS = 5000;
+const PRE_STREAM_DELAY_MS = 1200;
 const STREAM_TICK_MS = 18;
 const STREAM_CHUNK_SIZE = 4;
 const CHAT_BOTTOM_CONTENT_PADDING_PX = 104;
 const SCROLL_DOWN_VISIBILITY_THRESHOLD_PX = 8;
 
-const mockStreamingAnswer = [
-  "Patients with osteoporosis should maintain adequate daily intakes of elemental calcium and vitamin D, preferably through diet but supplemented as needed.",
-  "",
-  "Calcium Intake",
-  ...calciumIntake.map((item) => `- ${item}`),
-  "",
-  "Common oral supplements:",
-  ...calciumSupplements.map((item) => `- ${item}`),
-  "",
-  "Typical supplementation dosing (combination products, e.g., Caltrate, Os-Cal):",
-  "- 1-2 caplets or tablets twice daily with or without food, titrated to achieve the elemental calcium goal [2].",
-  "",
-  "Vitamin D Intake",
-  ...vitaminDIntake.map((item) => `- ${item}`),
-  "",
-  "Oral formulations (Drisdol, Calciferol):",
-  "- Daily prophylaxis/treatment in patients > 50 years: 800-1,000 IU PO once daily with calcium supplements [3].",
-  "",
-  "Combined Calcium and Vitamin D Supplements",
-  "Preferred in individuals unable to meet targets through diet:",
-  ...combinedSupplements.map((item) => `- ${item}`),
-  "Administration: take with food to optimize calcium carbonate absorption [2].",
-].join("\n");
-
 type ChatTurnStatus = "preparing" | "streaming" | "complete";
-
-type ChatTurnMode = "rich" | "streamed";
 
 type ChatTurn = {
   answer: string;
   id: number;
-  mode: ChatTurnMode;
   question: string;
   status: ChatTurnStatus;
 };
 
-const initialTurn: ChatTurn = {
-  answer: mockStreamingAnswer,
-  id: 0,
-  mode: "rich",
-  question: initialQuestion,
-  status: "complete",
+type AiResponseScreenProps = {
+  initialQuestion?: string;
 };
 
 function HeaderNavItem({ label, active = false }: { label: string; active?: boolean }) {
@@ -233,64 +184,6 @@ function StopSquare() {
   );
 }
 
-function BulletList({ items }: { items: string[] }) {
-  return (
-    <ul className="list-disc pl-5 text-[15px] leading-[1.42] text-[var(--mscp-color-text-body)] md:text-[16px]">
-      {items.map((item) => (
-        <li key={item}>{item}</li>
-      ))}
-    </ul>
-  );
-}
-
-function InitialAnswerContent() {
-  return (
-    <>
-      <p className="mb-7 text-[15px] leading-[1.45] text-[var(--mscp-color-text-body)] md:text-[16px]">
-        Patients with osteoporosis should maintain adequate daily intakes of elemental calcium and vitamin D,
-        preferably through diet but supplemented as needed.
-      </p>
-
-      <section className="mb-7">
-        <h2 className="mb-1.5 text-[15px] leading-[1.3] font-semibold text-black md:text-[16px]">Calcium Intake</h2>
-        <BulletList items={calciumIntake} />
-      </section>
-
-      <section className="mb-7 text-[15px] leading-[1.42] text-[var(--mscp-color-text-body)] md:text-[16px]">
-        <p className="mb-1.5">Common oral supplements:</p>
-        <p>- {calciumSupplements[0]}</p>
-        <p>- {calciumSupplements[1]}</p>
-      </section>
-
-      <section className="mb-7 text-[15px] leading-[1.42] text-[var(--mscp-color-text-body)] md:text-[16px]">
-        <p className="mb-1.5">Typical supplementation dosing (combination products, e.g., Caltrate, Os-Cal):</p>
-        <ul className="list-disc pl-5">
-          <li>1-2 caplets or tablets twice daily with or without food, titrated to achieve the elemental calcium goal [2].</li>
-        </ul>
-      </section>
-
-      <section className="mb-7">
-        <h2 className="mb-1.5 text-[15px] leading-[1.3] font-semibold text-black md:text-[16px]">Vitamin D Intake</h2>
-        <BulletList items={vitaminDIntake} />
-      </section>
-
-      <section className="mb-7 text-[15px] leading-[1.42] text-[var(--mscp-color-text-body)] md:text-[16px]">
-        <p className="mb-1.5">Oral formulations (Drisdol, Calciferol):</p>
-        <p>- Daily prophylaxis/treatment in patients &gt; 50 years: 800-1,000 IU PO once daily with calcium supplements [3].</p>
-      </section>
-
-      <section className="text-[15px] leading-[1.42] text-[var(--mscp-color-text-body)] md:text-[16px]">
-        <h2 className="mb-1.5 text-[15px] leading-[1.3] font-semibold text-black md:text-[16px]">
-          Combined Calcium and Vitamin D Supplements
-        </h2>
-        <p className="mb-1.5">Preferred in individuals unable to meet targets through diet:</p>
-        <BulletList items={combinedSupplements} />
-        <p className="mt-1.5">Administration: take with food to optimize calcium carbonate absorption [2].</p>
-      </section>
-    </>
-  );
-}
-
 function StreamedAnswerContent({ answer, isStreaming }: { answer: string; isStreaming: boolean }) {
   return (
     <div className="whitespace-pre-wrap text-[15px] leading-[1.45] text-[var(--mscp-color-text-body)] md:text-[16px]">
@@ -322,7 +215,9 @@ function PreparingAnswerNotice({ question }: { question: string }) {
   );
 }
 
-export function AiResponseScreen() {
+export function AiResponseScreen({
+  initialQuestion = defaultInitialQuestion,
+}: AiResponseScreenProps) {
   const responseScrollRef = useRef<HTMLDivElement>(null);
   const turnArticleRefs = useRef(new Map<number, HTMLElement>());
   const composerInputRef = useRef<HTMLInputElement>(null);
@@ -330,9 +225,10 @@ export function AiResponseScreen() {
   const responseStreamIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeTurnIdRef = useRef<number | null>(null);
   const nextTurnIdRef = useRef(1);
+  const startedInitialQuestionRef = useRef<string | null>(null);
 
   const [composerDraft, setComposerDraft] = useState("");
-  const [chatTurns, setChatTurns] = useState<ChatTurn[]>([initialTurn]);
+  const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [bottomSpacerHeight, setBottomSpacerHeight] = useState(0);
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
   const hasComposerDraft = composerDraft.trim().length > 0;
@@ -403,11 +299,104 @@ export function AiResponseScreen() {
     turnArticleRefs.current.delete(turnId);
   };
 
+  const startStreamingTurn = (
+    question: string,
+    options: {
+      focusComposer?: boolean;
+    } = {},
+  ) => {
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion) return;
+
+    clearResponseTimers();
+    setBottomSpacerHeight(0);
+
+    const newTurnId = nextTurnIdRef.current;
+    const answerText = buildMockAnswer(trimmedQuestion);
+    nextTurnIdRef.current += 1;
+    activeTurnIdRef.current = newTurnId;
+
+    const nextTurn: ChatTurn = {
+      answer: "",
+      id: newTurnId,
+      question: trimmedQuestion,
+      status: "preparing",
+    };
+
+    setChatTurns((currentTurns): ChatTurn[] => [
+      ...currentTurns.map((turn): ChatTurn =>
+        turn.status === "complete" ? turn : { ...turn, status: "complete" },
+      ),
+      nextTurn,
+    ]);
+
+    setComposerDraft("");
+
+    if (options.focusComposer !== false) {
+      composerInputRef.current?.focus();
+    }
+
+    requestAnimationFrame(() => {
+      const neededBottomSpace = reserveBottomSpaceForTurnTop(newTurnId);
+      if (neededBottomSpace > 0) {
+        setBottomSpacerHeight((current) => Math.max(current, neededBottomSpace));
+        requestAnimationFrame(() => {
+          scrollTurnQuestionToTop(newTurnId, "auto");
+        });
+        return;
+      }
+
+      scrollTurnQuestionToTop(newTurnId, "auto");
+    });
+
+    responseDelayTimeoutRef.current = setTimeout(() => {
+      if (activeTurnIdRef.current !== newTurnId) return;
+
+      setChatTurns((currentTurns): ChatTurn[] =>
+        currentTurns.map((turn): ChatTurn =>
+          turn.id === newTurnId ? { ...turn, status: "streaming" } : turn,
+        ),
+      );
+
+      let nextLength = 0;
+      responseStreamIntervalRef.current = setInterval(() => {
+        if (activeTurnIdRef.current !== newTurnId) {
+          clearResponseTimers();
+          return;
+        }
+
+        nextLength = Math.min(nextLength + STREAM_CHUNK_SIZE, answerText.length);
+        const nextAnswer = answerText.slice(0, nextLength);
+
+        setChatTurns((currentTurns): ChatTurn[] =>
+          currentTurns.map((turn): ChatTurn =>
+            turn.id === newTurnId ? { ...turn, answer: nextAnswer } : turn,
+          ),
+        );
+
+        if (nextLength >= answerText.length) {
+          if (responseStreamIntervalRef.current) {
+            clearInterval(responseStreamIntervalRef.current);
+            responseStreamIntervalRef.current = null;
+          }
+
+          setChatTurns((currentTurns): ChatTurn[] =>
+            currentTurns.map((turn): ChatTurn =>
+              turn.id === newTurnId ? { ...turn, status: "complete" } : turn,
+            ),
+          );
+          setBottomSpacerHeight(0);
+          activeTurnIdRef.current = null;
+        }
+      }, STREAM_TICK_MS);
+    }, PRE_STREAM_DELAY_MS);
+  };
+
   useEffect(() => {
     return () => {
       clearResponseTimers();
     };
-  }, []);
+  }, [clearResponseTimers]);
 
   useEffect(() => {
     const responseScroll = responseScrollRef.current;
@@ -438,6 +427,21 @@ export function AiResponseScreen() {
     };
   }, [bottomSpacerHeight]);
 
+  useEffect(() => {
+    const trimmedInitialQuestion = initialQuestion.trim();
+    if (!trimmedInitialQuestion) return;
+    if (startedInitialQuestionRef.current === trimmedInitialQuestion) return;
+
+    startedInitialQuestionRef.current = trimmedInitialQuestion;
+    const frameId = requestAnimationFrame(() => {
+      startStreamingTurn(trimmedInitialQuestion, { focusComposer: false });
+    });
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [initialQuestion, startStreamingTurn]);
+
   const handleWheelCapture = (event: WheelEvent<HTMLElement>) => {
     if (event.ctrlKey) return;
 
@@ -462,86 +466,8 @@ export function AiResponseScreen() {
 
   const handleComposerSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const trimmedQuestion = composerDraft.trim();
-    if (!trimmedQuestion) return;
-
-    clearResponseTimers();
-    setBottomSpacerHeight(0);
-
-    const newTurnId = nextTurnIdRef.current;
-    nextTurnIdRef.current += 1;
-    activeTurnIdRef.current = newTurnId;
-    const nextTurn: ChatTurn = {
-      answer: "",
-      id: newTurnId,
-      mode: "streamed",
-      question: trimmedQuestion,
-      status: "preparing",
-    };
-
-    setChatTurns((currentTurns): ChatTurn[] => [
-      ...currentTurns.map((turn): ChatTurn =>
-        turn.status === "complete" ? turn : { ...turn, status: "complete" },
-      ),
-      nextTurn,
-    ]);
-
-    setComposerDraft("");
-    composerInputRef.current?.focus();
-    requestAnimationFrame(() => {
-      const neededBottomSpace = reserveBottomSpaceForTurnTop(newTurnId);
-      if (neededBottomSpace > 0) {
-        setBottomSpacerHeight((current) => Math.max(current, neededBottomSpace));
-        requestAnimationFrame(() => {
-          scrollTurnQuestionToTop(newTurnId, "auto");
-        });
-        return;
-      }
-
-      scrollTurnQuestionToTop(newTurnId, "auto");
-    });
-
-    responseDelayTimeoutRef.current = setTimeout(() => {
-      if (activeTurnIdRef.current !== newTurnId) return;
-
-      setChatTurns((currentTurns): ChatTurn[] =>
-        currentTurns.map((turn): ChatTurn =>
-          turn.id === newTurnId ? { ...turn, status: "streaming" } : turn,
-        ),
-      );
-
-      let nextLength = 0;
-      responseStreamIntervalRef.current = setInterval(() => {
-        if (activeTurnIdRef.current !== newTurnId) {
-          clearResponseTimers();
-          return;
-        }
-
-        nextLength = Math.min(nextLength + STREAM_CHUNK_SIZE, mockStreamingAnswer.length);
-        const nextAnswer = mockStreamingAnswer.slice(0, nextLength);
-
-        setChatTurns((currentTurns): ChatTurn[] =>
-          currentTurns.map((turn): ChatTurn =>
-            turn.id === newTurnId ? { ...turn, answer: nextAnswer } : turn,
-          ),
-        );
-
-        if (nextLength >= mockStreamingAnswer.length) {
-          if (responseStreamIntervalRef.current) {
-            clearInterval(responseStreamIntervalRef.current);
-            responseStreamIntervalRef.current = null;
-          }
-
-          setChatTurns((currentTurns): ChatTurn[] =>
-            currentTurns.map((turn): ChatTurn =>
-              turn.id === newTurnId ? { ...turn, status: "complete" } : turn,
-            ),
-          );
-          setBottomSpacerHeight(0);
-          activeTurnIdRef.current = null;
-        }
-      }, STREAM_TICK_MS);
-    }, PRE_STREAM_DELAY_MS);
+    if (!composerDraft.trim()) return;
+    startStreamingTurn(composerDraft);
   };
 
   const handleStopGeneration = () => {
@@ -551,8 +477,8 @@ export function AiResponseScreen() {
     clearResponseTimers();
     activeTurnIdRef.current = null;
     setBottomSpacerHeight(0);
-    setChatTurns((currentTurns): ChatTurn[] =>
-      currentTurns.map((turn): ChatTurn =>
+    setChatTurns((currentTurns) =>
+      currentTurns.map((turn) =>
         turn.id === activeTurnId && turn.status !== "complete"
           ? { ...turn, status: "complete" }
           : turn,
@@ -643,9 +569,7 @@ export function AiResponseScreen() {
                           <PreparingAnswerNotice question={turn.question} />
                         ) : null}
 
-                        {turn.mode === "rich" ? <InitialAnswerContent /> : null}
-
-                        {turn.mode === "streamed" && turn.answer ? (
+                        {turn.answer ? (
                           <StreamedAnswerContent
                             answer={turn.answer}
                             isStreaming={turn.status === "streaming"}
@@ -674,8 +598,8 @@ export function AiResponseScreen() {
                     onClick={handleScrollToBottomClick}
                     className={`inline-flex h-8 w-8 items-center justify-center transition-all duration-200 ease-out ${
                       showScrollToBottomButton
-                        ? "translate-y-0 opacity-100 pointer-events-auto"
-                        : "translate-y-1 opacity-0 pointer-events-none"
+                        ? "pointer-events-auto translate-y-0 opacity-100"
+                        : "pointer-events-none translate-y-1 opacity-0"
                     }`}
                   >
                     <img
@@ -694,7 +618,7 @@ export function AiResponseScreen() {
                 <div className="rounded-t-[22px] bg-gradient-to-b from-transparent via-white/72 to-white px-2 pb-2 pt-3">
                   <form
                     onSubmit={handleComposerSubmit}
-                    className="pointer-events-auto flex min-h-[48px] items-center gap-2 rounded-[999px] border border-[rgba(109,153,206,0.45)] bg-white pl-4 pr-2 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_4px_14px_rgba(16,24,40,0.04)]"
+                    className="pointer-events-auto flex min-h-[48px] items-center gap-2 rounded-[999px] border border-[rgba(109,153,206,0.45)] bg-white px-4 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_4px_14px_rgba(16,24,40,0.04)]"
                     onClick={() => composerInputRef.current?.focus()}
                   >
                     <input
