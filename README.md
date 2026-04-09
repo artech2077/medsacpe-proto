@@ -5,7 +5,7 @@ Next.js + Tailwind workspace for Figma-driven prototype screens implemented with
 ## Run locally
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open `http://localhost:3000`.

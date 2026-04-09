@@ -47,6 +47,12 @@
   --mscp-color-badge-danger: #8a0f1e;
   --mscp-color-illustrative-ai-left: #006aff;
   --mscp-color-illustrative-ai-right: #f600ff;
+  --mscp-color-illustrative-ai-background-left: #20328b;
+  --mscp-color-illustrative-ai-background-right: #032c63;
+  --mscp-color-illustrative-ai-background-bottom: #051d47;
+  --mscp-color-illustrative-ai-glow-blue: rgba(0, 106, 255, 0.58);
+  --mscp-color-illustrative-ai-glow-violet: rgba(95, 39, 194, 0.7);
+  --mscp-color-illustrative-ai-vignette: rgba(1, 10, 31, 0.56);
 
   --mscp-font-size-label-2: 16px;
   --mscp-line-height-label-2: 19.2px;
