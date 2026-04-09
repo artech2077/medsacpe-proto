@@ -19,7 +19,7 @@ Use this after Codex generates a screen from Figma.
 
 ## Runtime checks
 
-- `npm run dev` starts without errors
+- `pnpm dev` starts without errors
 - Page renders at the expected URL
 - Desktop viewport matches the designed frame size
 - Additional breakpoints implemented only if present in Figma

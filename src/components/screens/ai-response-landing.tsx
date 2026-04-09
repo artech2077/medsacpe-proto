@@ -9,7 +9,7 @@ import {
 } from "@/components/screens/ai-response-content";
 
 const landingLogoSrc = "/assets/Medscape-ai-white.png";
-const menuIconSrc = "/assets/Outline (Stroke).png";
+const menuIconSrc = "/assets/kebab-menu.svg";
 const promptIconSources: Record<PromptSectionId, string> = {
   "drug-info": "/assets/Check drug info.png",
   "challenging-questions": "/assets/Ask challenging questions.png",
@@ -21,7 +21,12 @@ const promptIconSources: Record<PromptSectionId, string> = {
 
 function MenuIcon() {
   return (
-    <img src={menuIconSrc} alt="" aria-hidden="true" className="h-5 w-5 object-contain" />
+    <img
+      src={menuIconSrc}
+      alt=""
+      aria-hidden="true"
+      className="h-5 w-5 object-contain brightness-0 invert"
+    />
   );
 }
 
@@ -59,7 +64,7 @@ function PromptSectionIcon({ id }: { id: PromptSectionId }) {
       src={promptIconSources[id]}
       alt=""
       aria-hidden="true"
-      className="h-4 w-4 object-contain"
+      className="h-5 w-5 object-contain"
     />
   );
 }
@@ -72,7 +77,7 @@ function PromptCard({
   onPromptSelect: (prompt: string) => void;
 }) {
   return (
-    <section className="w-full rounded-[8px] bg-white px-4 pb-3 pt-5 shadow-[0_1px_0_rgba(0,0,0,0.05),0_8px_24px_rgba(5,39,90,0.12)]">
+    <section className="w-full rounded-[8px] bg-white px-4 pb-3 pt-5">
       <header className="flex items-center gap-2.5 pb-2 text-[16px] leading-[19px] font-semibold text-[var(--mscp-color-text-tertiary)]">
         <PromptSectionIcon id={section.id} />
         <span>{section.title}</span>
@@ -119,71 +124,89 @@ export function AiResponseLanding() {
   const hasDraft = draft.trim().length > 0;
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[#08285f] text-white">
+    <main className="relative min-h-dvh overflow-x-hidden text-white">
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-[radial-gradient(circle_at_top,#1a57ba_0%,#10479f_34%,#08285f_72%,#051a41_100%)]"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute -left-[18%] bottom-[-12%] h-[58rem] w-[58rem] rounded-full bg-[radial-gradient(circle,rgba(113,39,179,0.74)_0%,rgba(73,34,144,0.32)_42%,rgba(8,40,95,0)_76%)] blur-2xl"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute right-[-12%] top-[-18%] h-[48rem] w-[48rem] rounded-full bg-[radial-gradient(circle,rgba(26,118,255,0.22)_0%,rgba(8,40,95,0)_70%)] blur-3xl"
-      />
+        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: [
+              "radial-gradient(circle at 16% 92%, var(--mscp-color-illustrative-ai-glow-violet) 0%, rgba(76, 39, 173, 0.44) 24%, rgba(5, 29, 71, 0) 56%)",
+              "radial-gradient(circle at 72% 52%, var(--mscp-color-illustrative-ai-glow-blue) 0%, rgba(0, 83, 214, 0.22) 30%, rgba(3, 44, 99, 0) 60%)",
+              "linear-gradient(112deg, var(--mscp-color-illustrative-ai-background-left) 0%, #29379a 26%, #133f8c 54%, var(--mscp-color-illustrative-ai-background-right) 100%)",
+            ].join(", "),
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(ellipse at center, rgba(1, 10, 31, 0) 0%, rgba(1, 10, 31, 0.12) 52%, var(--mscp-color-illustrative-ai-vignette) 100%)",
+            boxShadow: "inset 0 4px 32px rgba(6, 74, 167, 0.12)",
+          }}
+        />
+        <div
+          className="absolute inset-x-0 bottom-0 h-[26vh]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(5, 29, 71, 0) 0%, var(--mscp-color-illustrative-ai-background-bottom) 100%)",
+          }}
+        />
+      </div>
 
       <div className="relative z-10 flex min-h-dvh flex-col">
-        <header className="flex items-center px-4 py-4 md:px-6">
+        <header className="absolute left-3 top-3 z-20 md:left-[22px] md:top-[22px]">
           <button
             type="button"
             aria-label="Open menu"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-white/92 transition hover:bg-white/10"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white/92 transition hover:bg-white/10"
           >
             <MenuIcon />
           </button>
         </header>
 
-        <section className="mx-auto flex w-full max-w-[1120px] flex-1 flex-col items-center px-4 pb-14 pt-10 md:px-6 md:pb-20 md:pt-14">
-          <div className="w-full max-w-[900px]">
-            <div className="flex flex-col items-center">
+        <section className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col items-center px-4 pb-14 pt-28 md:px-6 md:pb-[100px] md:pt-[187px]">
+          <div className="flex w-full max-w-[900px] flex-col items-center">
+            <div className="flex w-full flex-col items-center gap-4">
               <img
                 src={landingLogoSrc}
                 alt="Medscape AI"
                 className="w-[210px] object-contain md:w-[255px]"
               />
+
+              <form onSubmit={handleSubmit} className="w-full">
+                <label className="sr-only" htmlFor="ai-response-landing-input">
+                  Ask anything
+                </label>
+                <div className="flex items-center rounded-[200px] bg-[rgba(255,255,255,0.9)] px-5 py-4 shadow-[0_2px_4px_rgba(0,0,0,0.07),0_7px_28px_rgba(0,0,0,0.1)]">
+                  <input
+                    id="ai-response-landing-input"
+                    type="text"
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    placeholder="Ask anything"
+                    className="min-w-0 flex-1 border-0 bg-transparent text-[17px] leading-[24px] text-[#161b1d] outline-none placeholder:text-[#6f8590] md:text-[20px] md:leading-[26px]"
+                  />
+                  <button
+                    type={hasDraft ? "submit" : "button"}
+                    aria-label={hasDraft ? "Start chat" : "Voice input"}
+                    className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--mscp-color-brand-primary)] transition hover:bg-[rgba(6,74,167,0.08)]"
+                  >
+                    {hasDraft ? <SendIcon /> : <MicrophoneIcon />}
+                  </button>
+                </div>
+              </form>
             </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="mt-7 md:mt-8">
-              <label className="sr-only" htmlFor="ai-response-landing-input">
-                Ask anything
-              </label>
-              <div className="flex items-center rounded-[200px] bg-[rgba(255,255,255,0.92)] px-5 py-3 shadow-[0_2px_4px_rgba(0,0,0,0.08),0_10px_34px_rgba(0,0,0,0.14)]">
-                <input
-                  id="ai-response-landing-input"
-                  type="text"
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Ask anything"
-                  className="min-w-0 flex-1 border-0 bg-transparent text-[17px] leading-[24px] text-[#161b1d] outline-none placeholder:text-[#6f8590] md:text-[20px] md:leading-[26px]"
-                />
-                <button
-                  type={hasDraft ? "submit" : "button"}
-                  aria-label={hasDraft ? "Start chat" : "Voice input"}
-                  className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--mscp-color-brand-primary)] transition hover:bg-[rgba(6,74,167,0.08)]"
-                >
-                  {hasDraft ? <SendIcon /> : <MicrophoneIcon />}
-                </button>
-              </div>
-            </form>
+          <div className="mt-8 flex w-full max-w-[640px] flex-col items-center gap-3">
+            <p className="w-full max-w-[600px] text-center text-[10px] leading-[14px] font-semibold tracking-[0.04em] text-[#e2e7e9] uppercase md:text-[12px] md:leading-[18px]">
+              Discover what you can ask Medscape AI
+            </p>
 
-            <div className="mt-7 text-center">
-              <p className="text-[10px] leading-[14px] font-semibold tracking-[0.04em] text-[#d8e3f6] uppercase md:text-[12px] md:leading-[18px]">
-                Discover what you can ask Medscape AI
-              </p>
-            </div>
-
-            <div className="mt-3 flex flex-col gap-1.5 md:mt-4 md:gap-2">
+            <div className="flex w-full flex-col gap-2">
               {promptSections.map((section) => (
                 <PromptCard key={section.id} section={section} onPromptSelect={navigateToChat} />
               ))}

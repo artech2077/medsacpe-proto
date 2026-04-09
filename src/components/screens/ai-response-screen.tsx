@@ -2,40 +2,78 @@
 
 import {
   type FormEvent,
+  startTransition,
   type WheelEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 import {
   buildMockAnswer,
   defaultInitialQuestion,
 } from "@/components/screens/ai-response-content";
 
 const logoAssets = {
-  medscapeLogo: "/assets/logo-medscape.svg",
-  emblem: "/assets/emblem.svg",
+  medscapeAi: "/assets/medscape-ai.svg",
+  medscapeMini: "/assets/Medscape-mini.svg",
   promptAnimation: "/assets/prompt-animation.gif",
 } as const;
 
+const menuIconSrc = "/assets/kebab-menu.svg";
+
 const uiIcons = {
-  avatar: "/assets/avatar.svg",
+  download: "/assets/Download.svg",
   history: "/assets/history.svg",
-  invitations: "/assets/invitations.svg",
   newChat: "/assets/new-chat.svg",
-  search: "/assets/search.svg",
+  settings: "/assets/settings.svg",
+  share: "/assets/Share.svg",
 } as const;
 
 const composerIcons = {
+  scrollDown: "/assets/arrow-down.svg?v=2",
   send: "/assets/arrow-up.svg",
   stop: "/assets/circle-arrow-up.svg",
-  scrollDown: "/assets/arrow-down.svg?v=2",
 } as const;
+
+const sidebarHistoryGroups = [
+  {
+    label: "This month",
+    items: ["What are the symptoms of afebrile pneumonia"],
+  },
+  {
+    label: "February 2026",
+    items: [
+      "What are the treatment options for type 2 diabetes",
+      "What are traditional risk factors for CVD?",
+      "How does HDL cholesterol affect heart disease risk?",
+    ],
+  },
+  {
+    label: "January 2026",
+    items: [
+      "What are the treatment options for type 2 diabetes",
+      "What are traditional risk factors for CVD?",
+      "How does HDL cholesterol affect heart disease risk?",
+      "What are the treatment options for type 2 diabetes",
+      "What are traditional risk factors for CVD?",
+    ],
+  },
+  {
+    label: "December 2025",
+    items: [
+      "What are the treatment options for type 2 diabetes",
+      "What are traditional risk factors for CVD?",
+      "How does HDL cholesterol affect heart disease risk?",
+    ],
+  },
+] as const;
 
 const PRE_STREAM_DELAY_MS = 1200;
 const STREAM_TICK_MS = 18;
 const STREAM_CHUNK_SIZE = 4;
-const CHAT_BOTTOM_CONTENT_PADDING_PX = 104;
+const CHAT_BOTTOM_CONTENT_PADDING_PX = 116;
 const SCROLL_DOWN_VISIBILITY_THRESHOLD_PX = 8;
 
 type ChatTurnStatus = "preparing" | "streaming" | "complete";
@@ -51,143 +89,160 @@ type AiResponseScreenProps = {
   initialQuestion?: string;
 };
 
-function HeaderNavItem({ label, active = false }: { label: string; active?: boolean }) {
+type AnswerBlock =
+  | { text: string; type: "heading" | "paragraph" }
+  | { items: string[]; type: "list" };
+
+function MenuIcon() {
   return (
-    <button
-      type="button"
-      className="relative h-[56px] px-1 text-[15px] leading-[18px] font-semibold text-[var(--mscp-color-text-tertiary)]"
+    <img
+      src={menuIconSrc}
+      alt=""
+      aria-hidden="true"
+      className="h-5 w-5 object-contain brightness-0"
+    />
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="1.8"
     >
-      <span className="inline-flex h-full items-center">{label}</span>
-      {active ? (
-        <span className="absolute inset-x-0 bottom-0 h-[2px] rounded-full bg-[var(--mscp-color-brand-primary)]" />
-      ) : null}
-    </button>
+      <path d="M4 4 16 16" />
+      <path d="M16 4 4 16" />
+    </svg>
   );
 }
 
-type AppIconName = "search" | "invitations" | "globe" | "profile" | "history" | "newChat";
-
-const appIconSources: Partial<Record<AppIconName, string>> = {
-  history: uiIcons.history,
-  invitations: uiIcons.invitations,
-  newChat: uiIcons.newChat,
-  profile: uiIcons.avatar,
-  search: uiIcons.search,
-};
-
-function AppIcon({
-  name,
-  className,
-  alt = "",
-  white = false,
-}: {
-  name: AppIconName;
-  className: string;
-  alt?: string;
-  white?: boolean;
-}) {
-  const iconSrc = appIconSources[name];
-
-  if (iconSrc) {
-    return (
-      <img
-        alt={alt}
-        src={iconSrc}
-        aria-hidden={alt ? undefined : true}
-        className={`${className}${white ? " brightness-0 invert" : ""}`}
-      />
-    );
-  }
-
+function OverflowDotsIcon() {
   return (
-    <span className={className} role={alt ? "img" : undefined} aria-hidden={alt ? undefined : true}>
-      {name === "globe" ? (
-        <svg
-          viewBox="0 0 20 20"
-          className="h-full w-full"
-          fill="none"
-          stroke={white ? "#ffffff" : "currentColor"}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.8}
-        >
-          <circle cx="10" cy="10" r="7" />
-          <path d="M3.7 10h12.6M10 3c1.8 1.8 2.8 4.3 2.8 7s-1 5.2-2.8 7M10 3c-1.8 1.8-2.8 4.3-2.8 7s1 5.2 2.8 7" />
-        </svg>
-      ) : null}
-    </span>
+    <svg viewBox="0 0 4 16" aria-hidden="true" className="h-4 w-4 fill-current">
+      <circle cx="2" cy="3" r="1.1" />
+      <circle cx="2" cy="8" r="1.1" />
+      <circle cx="2" cy="13" r="1.1" />
+    </svg>
   );
 }
 
-function FigmaChevron({
-  className = "",
-  direction = "down",
-}: {
-  className?: string;
-  direction?: "down" | "up";
-}) {
-  const rotate = direction === "up" ? "rotate-180" : "";
-
-  return (
-    <span className={`inline-flex h-4 w-4 items-center justify-center ${className}`}>
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 10 5.29289"
-        className={`block ${rotate}`}
-        style={{ width: "10px", height: "5.29px" }}
-        fill="currentColor"
-      >
-        <path d="M0.146447 0.146447C0.341709 -0.0488155 0.658291 -0.0488155 0.853553 0.146447L5 4.29289L9.14645 0.146447C9.34171 -0.0488155 9.65829 -0.0488155 9.85355 0.146447C10.0488 0.341709 10.0488 0.658291 9.85355 0.853553L5.70711 5C5.31658 5.39052 4.68342 5.39053 4.29289 5L0.146447 0.853553C-0.0488155 0.658291 -0.0488155 0.341709 0.146447 0.146447Z" />
-      </svg>
-    </span>
-  );
-}
-
-function TopActionLink({
-  kind,
-  label,
-  iconOnly = false,
-}: {
-  kind: "history" | "new";
-  label: string;
-  iconOnly?: boolean;
-}) {
+function TopRailAction({ iconSrc, label }: { iconSrc: string; label: string }) {
   return (
     <button
       type="button"
       aria-label={label}
-      className={`inline-flex items-center whitespace-nowrap text-[var(--mscp-color-brand-primary)] ${
-        iconOnly
-          ? "h-8 w-8 justify-center rounded-full"
-          : "gap-1.5 text-[16px] leading-[19px] font-semibold"
-      }`}
+      className="inline-flex h-9 items-center justify-center gap-2 rounded-full px-2 text-[13px] font-semibold text-[var(--mscp-color-brand-primary)] transition hover:bg-[#e8f0fb] md:px-3 md:text-[16px]"
     >
-      {kind === "history" ? (
-        <AppIcon name="history" className="h-4 w-4 object-contain" />
-      ) : (
-        <AppIcon name="newChat" className="h-4 w-4 object-contain" />
-      )}
-      {!iconOnly ? <span className="whitespace-nowrap">{label}</span> : null}
+      <img src={iconSrc} alt="" aria-hidden="true" className="h-[18px] w-[18px] object-contain" />
+      <span className="hidden md:inline">{label}</span>
     </button>
   );
 }
 
-function CircleArrow() {
+function SidebarAction({
+  iconSrc,
+  label,
+  onClick,
+}: {
+  iconSrc: string;
+  label: string;
+  onClick?: () => void;
+}) {
   return (
-    <img src={composerIcons.send} alt="" aria-hidden="true" className="h-8 w-8 object-contain" />
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-2 rounded-[10px] px-2 py-2 text-left text-[15px] font-semibold text-[var(--mscp-color-brand-primary)] transition hover:bg-white/55"
+    >
+      <img src={iconSrc} alt="" aria-hidden="true" className="h-[18px] w-[18px] object-contain" />
+      <span>{label}</span>
+    </button>
   );
 }
 
-function StopSquare() {
-  return (
-    <img src={composerIcons.stop} alt="" aria-hidden="true" className="h-8 w-8 object-contain" />
-  );
+function buildAnswerBlocks(answer: string) {
+  const lines = answer.split("\n");
+  const blocks: AnswerBlock[] = [];
+  let currentList: string[] = [];
+
+  const flushList = () => {
+    if (currentList.length === 0) return;
+    blocks.push({ items: currentList, type: "list" });
+    currentList = [];
+  };
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+
+    if (!trimmedLine) {
+      flushList();
+      continue;
+    }
+
+    if (/^-\s+/.test(trimmedLine)) {
+      currentList.push(trimmedLine.replace(/^-\s+/, ""));
+      continue;
+    }
+
+    flushList();
+
+    if (
+      /^[A-Z][A-Za-z0-9\s&/]+$/.test(trimmedLine) &&
+      trimmedLine.length <= 40 &&
+      !trimmedLine.endsWith(".")
+    ) {
+      blocks.push({ text: trimmedLine, type: "heading" });
+      continue;
+    }
+
+    blocks.push({ text: trimmedLine, type: "paragraph" });
+  }
+
+  flushList();
+  return blocks;
 }
 
 function StreamedAnswerContent({ answer, isStreaming }: { answer: string; isStreaming: boolean }) {
+  const blocks = buildAnswerBlocks(answer);
+
   return (
-    <div className="whitespace-pre-wrap text-[15px] leading-[1.45] text-[var(--mscp-color-text-body)] md:text-[16px]">
-      {answer}
+    <div className="text-[16px] leading-[1.45] text-[var(--mscp-color-text-body)]">
+      {blocks.map((block, index) => {
+        if (block.type === "heading") {
+          return (
+            <h2
+              key={`${block.type}-${index}`}
+              className="mt-8 text-[16px] font-bold text-[#3c454d] first:mt-0"
+            >
+              {block.text}
+            </h2>
+          );
+        }
+
+        if (block.type === "list") {
+          return (
+            <ul
+              key={`${block.type}-${index}`}
+              className="mt-5 list-disc space-y-3 pl-6 marker:text-[#252c31]"
+            >
+              {block.items.map((item, itemIndex) => (
+                <li key={`${item}-${itemIndex}`}>{item}</li>
+              ))}
+            </ul>
+          );
+        }
+
+        return (
+          <p key={`${block.type}-${index}`} className="mt-5 first:mt-0">
+            {block.text}
+          </p>
+        );
+      })}
       {isStreaming ? (
         <span aria-hidden="true" className="mscp-stream-cursor ml-[1px] align-baseline">
           |
@@ -201,7 +256,7 @@ function PreparingAnswerNotice({ question }: { question: string }) {
   const preview = question.length > 84 ? `${question.slice(0, 84)}...` : question;
 
   return (
-    <div className="mb-7 flex items-center gap-2.5 text-[15px] leading-[1.42] text-[var(--mscp-color-text-body)] md:text-[16px]">
+    <div className="mb-6 inline-flex max-w-full items-center gap-2 rounded-full bg-[#edf5ff] px-4 py-2 text-[14px] leading-[1.35] text-[#4b5a67] md:text-[15px]">
       <span className="inline-flex h-5 w-5 items-center justify-center">
         <img
           src={logoAssets.promptAnimation}
@@ -210,14 +265,26 @@ function PreparingAnswerNotice({ question }: { question: string }) {
           className="h-[18px] w-[18px] object-contain"
         />
       </span>
-      <p>Assessing evidence and outcomes related to {preview}</p>
+      <p className="min-w-0 truncate">Assessing evidence and outcomes related to {preview}</p>
     </div>
+  );
+}
+
+function SendButtonIcon({ generating }: { generating: boolean }) {
+  return (
+    <img
+      src={generating ? composerIcons.stop : composerIcons.send}
+      alt=""
+      aria-hidden="true"
+      className="h-8 w-8 object-contain"
+    />
   );
 }
 
 export function AiResponseScreen({
   initialQuestion = defaultInitialQuestion,
 }: AiResponseScreenProps) {
+  const router = useRouter();
   const responseScrollRef = useRef<HTMLDivElement>(null);
   const turnArticleRefs = useRef(new Map<number, HTMLElement>());
   const composerInputRef = useRef<HTMLInputElement>(null);
@@ -230,13 +297,23 @@ export function AiResponseScreen({
   const [composerDraft, setComposerDraft] = useState("");
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [bottomSpacerHeight, setBottomSpacerHeight] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
   const hasComposerDraft = composerDraft.trim().length > 0;
   const isGenerationInProgress = chatTurns.some(
     (turn) => turn.status === "preparing" || turn.status === "streaming",
   );
 
-  const clearResponseTimers = () => {
+  const navigate = useCallback(
+    (href: string) => {
+      startTransition(() => {
+        router.push(href);
+      });
+    },
+    [router],
+  );
+
+  const clearResponseTimers = useCallback(() => {
     if (responseDelayTimeoutRef.current) {
       clearTimeout(responseDelayTimeoutRef.current);
       responseDelayTimeoutRef.current = null;
@@ -246,37 +323,40 @@ export function AiResponseScreen({
       clearInterval(responseStreamIntervalRef.current);
       responseStreamIntervalRef.current = null;
     }
-  };
+  }, []);
 
-  const scrollResponseToBottom = (behavior: ScrollBehavior) => {
+  const scrollResponseToBottom = useCallback((behavior: ScrollBehavior) => {
     const responseScroll = responseScrollRef.current;
     if (!responseScroll) return;
 
     responseScroll.scrollTo({
+      behavior,
       top: responseScroll.scrollHeight,
-      behavior,
     });
-  };
+  }, []);
 
-  const scrollTurnQuestionToTop = (turnId: number, behavior: ScrollBehavior) => {
-    const responseScroll = responseScrollRef.current;
-    const turnArticle = turnArticleRefs.current.get(turnId);
-    if (!responseScroll || !turnArticle) {
-      scrollResponseToBottom(behavior);
-      return;
-    }
+  const scrollTurnQuestionToTop = useCallback(
+    (turnId: number, behavior: ScrollBehavior) => {
+      const responseScroll = responseScrollRef.current;
+      const turnArticle = turnArticleRefs.current.get(turnId);
+      if (!responseScroll || !turnArticle) {
+        scrollResponseToBottom(behavior);
+        return;
+      }
 
-    const responseRect = responseScroll.getBoundingClientRect();
-    const turnRect = turnArticle.getBoundingClientRect();
-    const turnTop = turnRect.top - responseRect.top + responseScroll.scrollTop;
+      const responseRect = responseScroll.getBoundingClientRect();
+      const turnRect = turnArticle.getBoundingClientRect();
+      const turnTop = turnRect.top - responseRect.top + responseScroll.scrollTop;
 
-    responseScroll.scrollTo({
-      top: Math.max(turnTop - 8, 0),
-      behavior,
-    });
-  };
+      responseScroll.scrollTo({
+        behavior,
+        top: Math.max(turnTop - 12, 0),
+      });
+    },
+    [scrollResponseToBottom],
+  );
 
-  const reserveBottomSpaceForTurnTop = (turnId: number) => {
+  const reserveBottomSpaceForTurnTop = useCallback((turnId: number) => {
     const responseScroll = responseScrollRef.current;
     const turnArticle = turnArticleRefs.current.get(turnId);
     if (!responseScroll || !turnArticle) return 0;
@@ -284,11 +364,11 @@ export function AiResponseScreen({
     const responseRect = responseScroll.getBoundingClientRect();
     const turnRect = turnArticle.getBoundingClientRect();
     const turnTop = turnRect.top - responseRect.top + responseScroll.scrollTop;
-    const targetTop = Math.max(turnTop - 8, 0);
+    const targetTop = Math.max(turnTop - 12, 0);
     const maxScrollTop = Math.max(responseScroll.scrollHeight - responseScroll.clientHeight, 0);
 
     return Math.max(targetTop - maxScrollTop + 16, 0);
-  };
+  }, []);
 
   const registerTurnArticle = (turnId: number, node: HTMLElement | null) => {
     if (node) {
@@ -299,104 +379,130 @@ export function AiResponseScreen({
     turnArticleRefs.current.delete(turnId);
   };
 
-  const startStreamingTurn = (
-    question: string,
-    options: {
-      focusComposer?: boolean;
-    } = {},
-  ) => {
-    const trimmedQuestion = question.trim();
-    if (!trimmedQuestion) return;
+  const startStreamingTurn = useCallback(
+    (
+      question: string,
+      options: {
+        focusComposer?: boolean;
+      } = {},
+    ) => {
+      const trimmedQuestion = question.trim();
+      if (!trimmedQuestion) return;
 
-    clearResponseTimers();
-    setBottomSpacerHeight(0);
+      clearResponseTimers();
+      setBottomSpacerHeight(0);
 
-    const newTurnId = nextTurnIdRef.current;
-    const answerText = buildMockAnswer(trimmedQuestion);
-    nextTurnIdRef.current += 1;
-    activeTurnIdRef.current = newTurnId;
+      const newTurnId = nextTurnIdRef.current;
+      const answerText = buildMockAnswer(trimmedQuestion);
+      nextTurnIdRef.current += 1;
+      activeTurnIdRef.current = newTurnId;
 
-    const nextTurn: ChatTurn = {
-      answer: "",
-      id: newTurnId,
-      question: trimmedQuestion,
-      status: "preparing",
-    };
+      const nextTurn: ChatTurn = {
+        answer: "",
+        id: newTurnId,
+        question: trimmedQuestion,
+        status: "preparing",
+      };
 
-    setChatTurns((currentTurns): ChatTurn[] => [
-      ...currentTurns.map((turn): ChatTurn =>
-        turn.status === "complete" ? turn : { ...turn, status: "complete" },
-      ),
-      nextTurn,
-    ]);
+      setChatTurns((currentTurns): ChatTurn[] => [
+        ...currentTurns.map((turn): ChatTurn =>
+          turn.status === "complete" ? turn : { ...turn, status: "complete" },
+        ),
+        nextTurn,
+      ]);
 
-    setComposerDraft("");
+      setComposerDraft("");
 
-    if (options.focusComposer !== false) {
-      composerInputRef.current?.focus();
-    }
-
-    requestAnimationFrame(() => {
-      const neededBottomSpace = reserveBottomSpaceForTurnTop(newTurnId);
-      if (neededBottomSpace > 0) {
-        setBottomSpacerHeight((current) => Math.max(current, neededBottomSpace));
-        requestAnimationFrame(() => {
-          scrollTurnQuestionToTop(newTurnId, "auto");
-        });
-        return;
+      if (options.focusComposer !== false) {
+        composerInputRef.current?.focus();
       }
 
-      scrollTurnQuestionToTop(newTurnId, "auto");
-    });
-
-    responseDelayTimeoutRef.current = setTimeout(() => {
-      if (activeTurnIdRef.current !== newTurnId) return;
-
-      setChatTurns((currentTurns): ChatTurn[] =>
-        currentTurns.map((turn): ChatTurn =>
-          turn.id === newTurnId ? { ...turn, status: "streaming" } : turn,
-        ),
-      );
-
-      let nextLength = 0;
-      responseStreamIntervalRef.current = setInterval(() => {
-        if (activeTurnIdRef.current !== newTurnId) {
-          clearResponseTimers();
+      requestAnimationFrame(() => {
+        const neededBottomSpace = reserveBottomSpaceForTurnTop(newTurnId);
+        if (neededBottomSpace > 0) {
+          setBottomSpacerHeight((current) => Math.max(current, neededBottomSpace));
+          requestAnimationFrame(() => {
+            scrollTurnQuestionToTop(newTurnId, "auto");
+          });
           return;
         }
 
-        nextLength = Math.min(nextLength + STREAM_CHUNK_SIZE, answerText.length);
-        const nextAnswer = answerText.slice(0, nextLength);
+        scrollTurnQuestionToTop(newTurnId, "auto");
+      });
+
+      responseDelayTimeoutRef.current = setTimeout(() => {
+        if (activeTurnIdRef.current !== newTurnId) return;
 
         setChatTurns((currentTurns): ChatTurn[] =>
           currentTurns.map((turn): ChatTurn =>
-            turn.id === newTurnId ? { ...turn, answer: nextAnswer } : turn,
+            turn.id === newTurnId ? { ...turn, status: "streaming" } : turn,
           ),
         );
 
-        if (nextLength >= answerText.length) {
-          if (responseStreamIntervalRef.current) {
-            clearInterval(responseStreamIntervalRef.current);
-            responseStreamIntervalRef.current = null;
+        let nextLength = 0;
+        responseStreamIntervalRef.current = setInterval(() => {
+          if (activeTurnIdRef.current !== newTurnId) {
+            clearResponseTimers();
+            return;
           }
+
+          nextLength = Math.min(nextLength + STREAM_CHUNK_SIZE, answerText.length);
+          const nextAnswer = answerText.slice(0, nextLength);
 
           setChatTurns((currentTurns): ChatTurn[] =>
             currentTurns.map((turn): ChatTurn =>
-              turn.id === newTurnId ? { ...turn, status: "complete" } : turn,
+              turn.id === newTurnId ? { ...turn, answer: nextAnswer } : turn,
             ),
           );
-          setBottomSpacerHeight(0);
-          activeTurnIdRef.current = null;
-        }
-      }, STREAM_TICK_MS);
-    }, PRE_STREAM_DELAY_MS);
-  };
+
+          if (nextLength >= answerText.length) {
+            if (responseStreamIntervalRef.current) {
+              clearInterval(responseStreamIntervalRef.current);
+              responseStreamIntervalRef.current = null;
+            }
+
+            setChatTurns((currentTurns): ChatTurn[] =>
+              currentTurns.map((turn): ChatTurn =>
+                turn.id === newTurnId ? { ...turn, status: "complete" } : turn,
+              ),
+            );
+            setBottomSpacerHeight(0);
+            activeTurnIdRef.current = null;
+          }
+        }, STREAM_TICK_MS);
+      }, PRE_STREAM_DELAY_MS);
+    },
+    [clearResponseTimers, reserveBottomSpaceForTurnTop, scrollTurnQuestionToTop],
+  );
+
+  const submitQuestion = useCallback(
+    (question: string, options?: { focusComposer?: boolean }) => {
+      setIsSidebarOpen(false);
+      startStreamingTurn(question, options);
+    },
+    [startStreamingTurn],
+  );
 
   useEffect(() => {
     return () => {
       clearResponseTimers();
     };
   }, [clearResponseTimers]);
+
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [isSidebarOpen]);
 
   useEffect(() => {
     const responseScroll = responseScrollRef.current;
@@ -432,15 +538,17 @@ export function AiResponseScreen({
     if (!trimmedInitialQuestion) return;
     if (startedInitialQuestionRef.current === trimmedInitialQuestion) return;
 
-    startedInitialQuestionRef.current = trimmedInitialQuestion;
     const frameId = requestAnimationFrame(() => {
-      startStreamingTurn(trimmedInitialQuestion, { focusComposer: false });
+      if (startedInitialQuestionRef.current === trimmedInitialQuestion) return;
+
+      startedInitialQuestionRef.current = trimmedInitialQuestion;
+      submitQuestion(trimmedInitialQuestion, { focusComposer: false });
     });
 
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [initialQuestion, startStreamingTurn]);
+  }, [initialQuestion, submitQuestion]);
 
   const handleWheelCapture = (event: WheelEvent<HTMLElement>) => {
     if (event.ctrlKey) return;
@@ -458,16 +566,16 @@ export function AiResponseScreen({
 
     event.preventDefault();
     responseScroll.scrollBy({
+      behavior: "auto",
       left: event.deltaX * deltaUnit,
       top: event.deltaY * deltaUnit,
-      behavior: "auto",
     });
   };
 
   const handleComposerSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!composerDraft.trim()) return;
-    startStreamingTurn(composerDraft);
+    submitQuestion(composerDraft);
   };
 
   const handleStopGeneration = () => {
@@ -490,105 +598,194 @@ export function AiResponseScreen({
     scrollResponseToBottom("smooth");
   };
 
+  const handleLandingClick = () => {
+    setIsSidebarOpen(false);
+    navigate("/ai-response");
+  };
+
+  const handleHomeClick = () => {
+    setIsSidebarOpen(false);
+    navigate("/");
+  };
+
   return (
     <main
-      className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[var(--mscp-color-bg-section)] text-[var(--mscp-color-text-primary)]"
+      className="relative flex h-dvh min-h-0 overflow-hidden bg-[#dce8fb] text-[var(--mscp-color-text-primary)]"
       onWheelCapture={handleWheelCapture}
     >
-      <header className="sticky top-0 z-40 shrink-0 border-b border-[var(--mscp-color-border-primary)] bg-white">
-        <div className="mx-auto flex h-[56px] w-full max-w-[1480px] items-center justify-between px-3">
-          <img
-            alt="Medscape"
-            src={logoAssets.medscapeLogo}
-            className="h-[28px] w-[130px] object-contain object-left"
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#d7e6fd_0%,#e9f2ff_34%,#d5e5ff_100%)]" />
+        <div className="absolute inset-x-0 top-0 h-[220px] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.85)_0%,rgba(255,255,255,0)_72%)]" />
+        <div className="absolute -left-20 top-24 h-64 w-64 rounded-full bg-[rgba(114,166,255,0.14)] blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-[rgba(6,74,167,0.10)] blur-3xl" />
+      </div>
+
+      <section className="relative flex min-h-0 flex-1 p-2 md:p-3">
+        <div className="relative flex min-h-0 flex-1 overflow-hidden rounded-[22px] border border-[rgba(109,153,206,0.42)] bg-white shadow-[0_18px_44px_rgba(6,74,167,0.12)]">
+          <button
+            type="button"
+            aria-label="Close sidebar"
+            onClick={() => setIsSidebarOpen(false)}
+            className={`absolute inset-0 z-30 bg-[rgba(217,230,249,0.66)] transition md:hidden ${
+              isSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
+            }`}
           />
 
-          <nav className="hidden items-center gap-4 lg:flex">
-            <HeaderNavItem label="For You" />
-            <HeaderNavItem label="News & Perspective" active />
-            <HeaderNavItem label="Tools & Reference" />
-            <HeaderNavItem label="CME/CE" />
-            <div className="flex items-center gap-1">
-              <HeaderNavItem label="More" />
-              <FigmaChevron />
-            </div>
-          </nav>
+          <div
+            className={`hidden shrink-0 transition-[width] duration-300 ease-out md:block ${
+              isSidebarOpen ? "w-[244px]" : "w-0"
+            }`}
+          />
 
-          <div className="flex items-center gap-4 text-[15px] leading-[18px] font-semibold text-[var(--mscp-color-text-tertiary)]">
-            <AppIcon name="search" className="h-4 w-4 object-contain" />
-            <div className="relative hidden items-center md:flex">
-              <AppIcon name="invitations" className="h-4 w-4 object-contain" />
-              <span className="absolute -right-1 top-0 h-1.5 w-1.5 rounded-full bg-[#9b1627]" />
-            </div>
-            <div className="hidden items-center gap-2 md:flex">
-              <AppIcon name="globe" className="h-4 w-4 object-contain" />
-              <span>EN</span>
-            </div>
-            <AppIcon name="profile" className="h-4 w-4 object-contain" />
-          </div>
-        </div>
-      </header>
+          <aside
+            className={`absolute inset-y-0 left-0 z-40 flex w-[244px] flex-col border-r border-[#d6e0ef] bg-[#edf4ff] transition-transform duration-300 ease-out ${
+              isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <div className="flex items-center justify-between px-4 pb-3 pt-4">
+              <button
+                type="button"
+                onClick={handleHomeClick}
+                className="inline-flex items-center gap-2 rounded-full pr-2 text-[14px] font-semibold text-[var(--mscp-color-brand-primary)] transition hover:opacity-80"
+              >
+                <img
+                  src={logoAssets.medscapeMini}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-[18px] w-[18px] object-contain"
+                />
+                <span>Return to Medscape</span>
+              </button>
 
-      <section className="min-h-0 flex-1 overflow-hidden px-[4px] pb-[10px] pt-[10px] md:px-[8px]">
-        <div className="mx-auto h-full min-h-0 w-full rounded-[18px] border border-[rgba(6,74,167,0.05)] bg-white shadow-[0_2px_16px_rgba(6,74,167,0.08)] md:min-h-[620px]">
-          <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[18px]">
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden h-9 bg-gradient-to-b from-white via-white/92 to-transparent md:block" />
-            <div className="pointer-events-none absolute left-8 top-3 z-30 hidden md:block">
-              <div className="pointer-events-auto flex items-center gap-6">
-                <TopActionLink kind="history" label="History" />
-                <TopActionLink kind="new" label="New Chat" />
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setIsSidebarOpen(false)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#495661] transition hover:bg-white/70"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-5">
+              <div className="flex flex-col gap-1">
+                <SidebarAction iconSrc={uiIcons.newChat} label="New Chat" onClick={handleLandingClick} />
+                <SidebarAction iconSrc={uiIcons.settings} label="Settings" />
               </div>
-            </div>
 
-            <div ref={responseScrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              <div className="mx-auto w-full max-w-[1380px] px-3 md:px-6">
-                <div className="grid grid-cols-1 gap-4 pb-[104px] pt-0 md:grid-cols-[minmax(180px,1fr)_minmax(0,920px)_minmax(180px,1fr)] md:pt-3">
-                  <div className="hidden md:block" />
-                  <div>
-                    <div className="sticky top-0 z-20 mb-3 flex items-center justify-end gap-3 bg-gradient-to-b from-white via-white/94 to-transparent px-1 pb-3 pt-2 md:hidden">
-                      <TopActionLink kind="history" label="History" iconOnly />
-                      <TopActionLink kind="new" label="New Chat" iconOnly />
-                    </div>
-                    <div className="mb-5 mt-3 flex items-center justify-center md:mt-9">
-                      <div className="flex items-center gap-2">
-                        <img src={logoAssets.emblem} alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
-                        <span className="text-[18px] leading-[22px] font-semibold">Medscape AI</span>
+              <div className="mt-5 border-t border-[#d7e2f1] pt-4">
+                <div className="mb-3 flex items-center gap-2 px-2 text-[15px] font-semibold text-[#28323b]">
+                  <img
+                    src={uiIcons.history}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-4 w-4 object-contain"
+                  />
+                  <span>History</span>
+                </div>
+
+                <div className="space-y-5">
+                  {sidebarHistoryGroups.map((group, groupIndex) => (
+                    <section key={`${group.label}-${groupIndex}`}>
+                      <h2 className="px-2 text-[11px] font-extrabold tracking-[0.04em] text-[#55616c] uppercase">
+                        {group.label}
+                      </h2>
+                      <div className="mt-1 space-y-1">
+                        {group.items.map((item, itemIndex) => (
+                          <button
+                            key={`${group.label}-${itemIndex}-${item}`}
+                            type="button"
+                            className="flex w-full items-start justify-between gap-3 rounded-[10px] px-2 py-1.5 text-left transition hover:bg-white/55"
+                          >
+                            <span className="text-[13px] leading-[1.35] text-[var(--mscp-color-brand-primary)]">
+                              {item}
+                            </span>
+                            <span className="pt-0.5 text-[#2c3740]">
+                              <OverflowDotsIcon />
+                            </span>
+                          </button>
+                        ))}
                       </div>
-                    </div>
-                    {chatTurns.map((turn) => (
-                      <article
-                        key={turn.id}
-                        ref={(node) => registerTurnArticle(turn.id, node)}
-                        className="mb-12 last:mb-0"
-                      >
-                        <h1 className="mb-6 text-[26px] leading-[1.28] font-semibold tracking-[-0.01em] text-black md:text-[28px]">
-                          {turn.question}
-                        </h1>
-
-                        {turn.status === "preparing" ? (
-                          <PreparingAnswerNotice question={turn.question} />
-                        ) : null}
-
-                        {turn.answer ? (
-                          <StreamedAnswerContent
-                            answer={turn.answer}
-                            isStreaming={turn.status === "streaming"}
-                          />
-                        ) : null}
-                      </article>
-                    ))}
-                    {bottomSpacerHeight > 0 ? (
-                      <div aria-hidden="true" style={{ height: `${bottomSpacerHeight}px` }} />
-                    ) : null}
-                  </div>
-                  <div className="hidden md:block" />
+                    </section>
+                  ))}
                 </div>
               </div>
             </div>
+          </aside>
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-[82px] z-20 bg-transparent">
-              <div className="relative mx-auto w-full max-w-[980px] px-2 md:px-4">
-                <div className="flex justify-center">
+          <section className="relative flex min-h-0 flex-1 flex-col">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[108px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_68%,rgba(255,255,255,0)_100%)]"
+            />
+
+            <div className="relative z-20 flex min-h-0 flex-1 flex-col">
+              <div className="sticky top-0 z-30">
+                <div className="absolute inset-x-0 top-0 h-[104px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_72%,rgba(255,255,255,0)_100%)]" />
+                <div className="relative flex min-h-[72px] items-start justify-between gap-3 px-3 pb-3 pt-3 md:min-h-[78px] md:px-5 md:pb-4 md:pt-3">
+                  <button
+                    type="button"
+                    aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
+                    aria-expanded={isSidebarOpen}
+                    onClick={() => setIsSidebarOpen((current) => !current)}
+                    className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full text-[#687680] transition hover:bg-white/70"
+                  >
+                    <MenuIcon />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleLandingClick}
+                    className="absolute left-1/2 top-2.5 -translate-x-1/2 rounded-full px-3 py-2 transition hover:opacity-85 md:top-3"
+                    aria-label="Go to new chat"
+                  >
+                    <img
+                      src={logoAssets.medscapeAi}
+                      alt="Medscape AI"
+                      className="h-[24px] w-auto object-contain md:h-[28px]"
+                    />
+                  </button>
+
+                  <div className="relative z-10 ml-auto flex items-center gap-0.5 md:gap-1">
+                    <TopRailAction iconSrc={uiIcons.share} label="Share" />
+                    <TopRailAction iconSrc={uiIcons.download} label="Download" />
+                  </div>
+                </div>
+              </div>
+
+              <div ref={responseScrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                <div className="mx-auto w-full max-w-[980px] px-5 pb-[124px] pt-3 md:px-7 md:pb-[136px] md:pt-6">
+                  {chatTurns.map((turn) => (
+                    <article
+                      key={turn.id}
+                      ref={(node) => registerTurnArticle(turn.id, node)}
+                      className="mx-auto mb-10 max-w-[900px] last:mb-0"
+                    >
+                      <h1 className="mb-6 text-[24px] leading-[1.24] font-extrabold tracking-[-0.02em] text-[#22282d] md:text-[30px]">
+                        {turn.question}
+                      </h1>
+
+                      {turn.status === "preparing" ? (
+                        <PreparingAnswerNotice question={turn.question} />
+                      ) : null}
+
+                      {turn.answer ? (
+                        <StreamedAnswerContent
+                          answer={turn.answer}
+                          isStreaming={turn.status === "streaming"}
+                        />
+                      ) : null}
+                    </article>
+                  ))}
+
+                  {bottomSpacerHeight > 0 ? (
+                    <div aria-hidden="true" style={{ height: `${bottomSpacerHeight}px` }} />
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="pointer-events-none absolute inset-x-0 bottom-[71px] z-10 md:bottom-[76px]">
+                <div className="mx-auto flex w-full max-w-[980px] justify-center px-5 md:px-7">
                   <button
                     type="button"
                     aria-label="Scroll to latest"
@@ -611,52 +808,52 @@ export function AiResponseScreen({
                   </button>
                 </div>
               </div>
-            </div>
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-transparent pt-1">
-              <div className="relative mx-auto w-full max-w-[980px] px-2 md:px-4">
-                <div className="rounded-t-[22px] bg-gradient-to-b from-transparent via-white/72 to-white px-2 pb-2 pt-3">
-                  <form
-                    onSubmit={handleComposerSubmit}
-                    className="pointer-events-auto flex min-h-[48px] items-center gap-2 rounded-[999px] border border-[rgba(109,153,206,0.45)] bg-white px-4 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_4px_14px_rgba(16,24,40,0.04)]"
-                    onClick={() => composerInputRef.current?.focus()}
-                  >
-                    <input
-                      ref={composerInputRef}
-                      type="text"
-                      value={composerDraft}
-                      onChange={(event) => setComposerDraft(event.target.value)}
-                      placeholder="Ask anything"
-                      className="h-8 flex-1 border-0 bg-transparent text-[16px] leading-[20px] text-[#1b2b3a] outline-none placeholder:text-[#6d8397]"
-                    />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
+                <div className="mx-auto w-full max-w-[980px] px-4 pb-0 md:px-6">
+                  <div className="rounded-t-[28px] bg-gradient-to-b from-transparent via-white/82 to-white px-2 pb-[max(env(safe-area-inset-bottom),6px)] pt-3 md:pt-4">
+                    <form
+                      onSubmit={handleComposerSubmit}
+                      className="pointer-events-auto flex min-h-[48px] items-center gap-2 rounded-[999px] border border-[rgba(109,153,206,0.45)] bg-white px-4 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_8px_22px_rgba(16,24,40,0.06)]"
+                      onClick={() => composerInputRef.current?.focus()}
+                    >
+                      <input
+                        ref={composerInputRef}
+                        type="text"
+                        value={composerDraft}
+                        onChange={(event) => setComposerDraft(event.target.value)}
+                        placeholder="Ask anything"
+                        className="h-8 flex-1 border-0 bg-transparent text-[16px] leading-[20px] text-[#1b2b3a] outline-none placeholder:text-[#93a2ae]"
+                      />
 
-                    {isGenerationInProgress ? (
-                      <button
-                        type="button"
-                        aria-label="Stop generating"
-                        onClick={handleStopGeneration}
-                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center"
-                      >
-                        <StopSquare />
-                      </button>
-                    ) : hasComposerDraft ? (
-                      <button
-                        type="submit"
-                        aria-label="Send"
-                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center"
-                      >
-                        <CircleArrow />
-                      </button>
-                    ) : null}
-                  </form>
+                      {isGenerationInProgress ? (
+                        <button
+                          type="button"
+                          aria-label="Stop generating"
+                          onClick={handleStopGeneration}
+                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center"
+                        >
+                          <SendButtonIcon generating />
+                        </button>
+                      ) : hasComposerDraft ? (
+                        <button
+                          type="submit"
+                          aria-label="Send"
+                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center"
+                        >
+                          <SendButtonIcon generating={false} />
+                        </button>
+                      ) : null}
+                    </form>
 
-                  <p className="pointer-events-auto mt-2 text-center text-[10px] leading-[13px] text-[#647484]">
-                    AI may make mistakes. Always apply your clinical judgment.
-                  </p>
+                    <p className="pointer-events-auto mt-1 text-center text-[10px] leading-[13px] text-[#647484]">
+                      AI may make mistakes. Always apply your clinical judgment.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
         </div>
       </section>
 
