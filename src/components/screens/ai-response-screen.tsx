@@ -14,6 +14,7 @@ import {
   buildMockAnswer,
   defaultInitialQuestion,
 } from "@/components/screens/ai-response-content";
+import { AiResponseSidebar } from "@/components/screens/ai-response-sidebar";
 
 const logoAssets = {
   medscapeAi: "/assets/medscape-ai.svg",
@@ -37,39 +38,6 @@ const composerIcons = {
   stop: "/assets/circle-arrow-up.svg",
 } as const;
 
-const sidebarHistoryGroups = [
-  {
-    label: "This month",
-    items: ["What are the symptoms of afebrile pneumonia"],
-  },
-  {
-    label: "February 2026",
-    items: [
-      "What are the treatment options for type 2 diabetes",
-      "What are traditional risk factors for CVD?",
-      "How does HDL cholesterol affect heart disease risk?",
-    ],
-  },
-  {
-    label: "January 2026",
-    items: [
-      "What are the treatment options for type 2 diabetes",
-      "What are traditional risk factors for CVD?",
-      "How does HDL cholesterol affect heart disease risk?",
-      "What are the treatment options for type 2 diabetes",
-      "What are traditional risk factors for CVD?",
-    ],
-  },
-  {
-    label: "December 2025",
-    items: [
-      "What are the treatment options for type 2 diabetes",
-      "What are traditional risk factors for CVD?",
-      "How does HDL cholesterol affect heart disease risk?",
-    ],
-  },
-] as const;
-
 const PRE_STREAM_DELAY_MS = 1200;
 const STREAM_TICK_MS = 18;
 const STREAM_CHUNK_SIZE = 4;
@@ -86,6 +54,7 @@ type ChatTurn = {
 };
 
 type AiResponseScreenProps = {
+  initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
 };
 
@@ -104,33 +73,6 @@ function MenuIcon() {
   );
 }
 
-function CloseIcon() {
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      aria-hidden="true"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeWidth="1.8"
-    >
-      <path d="M4 4 16 16" />
-      <path d="M16 4 4 16" />
-    </svg>
-  );
-}
-
-function OverflowDotsIcon() {
-  return (
-    <svg viewBox="0 0 4 16" aria-hidden="true" className="h-4 w-4 fill-current">
-      <circle cx="2" cy="3" r="1.1" />
-      <circle cx="2" cy="8" r="1.1" />
-      <circle cx="2" cy="13" r="1.1" />
-    </svg>
-  );
-}
-
 function TopRailAction({ iconSrc, label }: { iconSrc: string; label: string }) {
   return (
     <button
@@ -140,27 +82,6 @@ function TopRailAction({ iconSrc, label }: { iconSrc: string; label: string }) {
     >
       <img src={iconSrc} alt="" aria-hidden="true" className="h-[18px] w-[18px] object-contain" />
       <span className="hidden md:inline">{label}</span>
-    </button>
-  );
-}
-
-function SidebarAction({
-  iconSrc,
-  label,
-  onClick,
-}: {
-  iconSrc: string;
-  label: string;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-2 rounded-[10px] px-2 py-2 text-left text-[15px] font-semibold text-[var(--mscp-color-brand-primary)] transition hover:bg-white/55"
-    >
-      <img src={iconSrc} alt="" aria-hidden="true" className="h-[18px] w-[18px] object-contain" />
-      <span>{label}</span>
     </button>
   );
 }
@@ -207,7 +128,7 @@ function buildAnswerBlocks(answer: string) {
   return blocks;
 }
 
-function StreamedAnswerContent({ answer, isStreaming }: { answer: string; isStreaming: boolean }) {
+function StreamedAnswerContent({ answer }: { answer: string }) {
   const blocks = buildAnswerBlocks(answer);
 
   return (
@@ -243,11 +164,6 @@ function StreamedAnswerContent({ answer, isStreaming }: { answer: string; isStre
           </p>
         );
       })}
-      {isStreaming ? (
-        <span aria-hidden="true" className="mscp-stream-cursor ml-[1px] align-baseline">
-          |
-        </span>
-      ) : null}
     </div>
   );
 }
@@ -256,7 +172,7 @@ function PreparingAnswerNotice({ question }: { question: string }) {
   const preview = question.length > 84 ? `${question.slice(0, 84)}...` : question;
 
   return (
-    <div className="mb-6 inline-flex max-w-full items-center gap-2 rounded-full bg-[#edf5ff] px-4 py-2 text-[14px] leading-[1.35] text-[#4b5a67] md:text-[15px]">
+    <div className="mb-6 inline-flex max-w-full items-center gap-2 text-[14px] leading-[1.35] text-[#4b5a67] md:text-[15px]">
       <span className="inline-flex h-5 w-5 items-center justify-center">
         <img
           src={logoAssets.promptAnimation}
@@ -282,6 +198,7 @@ function SendButtonIcon({ generating }: { generating: boolean }) {
 }
 
 export function AiResponseScreen({
+  initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
 }: AiResponseScreenProps) {
   const router = useRouter();
@@ -292,7 +209,7 @@ export function AiResponseScreen({
   const responseStreamIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeTurnIdRef = useRef<number | null>(null);
   const nextTurnIdRef = useRef(1);
-  const startedInitialQuestionRef = useRef<string | null>(null);
+  const startedInitialConversationRef = useRef<string | null>(null);
 
   const [composerDraft, setComposerDraft] = useState("");
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
@@ -475,6 +392,32 @@ export function AiResponseScreen({
     [clearResponseTimers, reserveBottomSpaceForTurnTop, scrollTurnQuestionToTop],
   );
 
+  const showCompletedTurn = useCallback((question: string) => {
+    const trimmedQuestion = question.trim();
+    if (!trimmedQuestion) return;
+
+    clearResponseTimers();
+    activeTurnIdRef.current = null;
+    setBottomSpacerHeight(0);
+    setComposerDraft("");
+
+    const nextTurnId = nextTurnIdRef.current;
+    nextTurnIdRef.current += 1;
+
+    setChatTurns([
+      {
+        answer: buildMockAnswer(trimmedQuestion),
+        id: nextTurnId,
+        question: trimmedQuestion,
+        status: "complete",
+      },
+    ]);
+
+    requestAnimationFrame(() => {
+      scrollTurnQuestionToTop(nextTurnId, "auto");
+    });
+  }, [clearResponseTimers, scrollTurnQuestionToTop]);
+
   const submitQuestion = useCallback(
     (question: string, options?: { focusComposer?: boolean }) => {
       setIsSidebarOpen(false);
@@ -536,19 +479,27 @@ export function AiResponseScreen({
   useEffect(() => {
     const trimmedInitialQuestion = initialQuestion.trim();
     if (!trimmedInitialQuestion) return;
-    if (startedInitialQuestionRef.current === trimmedInitialQuestion) return;
+
+    const initialConversationKey = `${initialConversationMode}:${trimmedInitialQuestion}`;
+    if (startedInitialConversationRef.current === initialConversationKey) return;
 
     const frameId = requestAnimationFrame(() => {
-      if (startedInitialQuestionRef.current === trimmedInitialQuestion) return;
+      if (startedInitialConversationRef.current === initialConversationKey) return;
 
-      startedInitialQuestionRef.current = trimmedInitialQuestion;
+      startedInitialConversationRef.current = initialConversationKey;
+
+      if (initialConversationMode === "complete") {
+        showCompletedTurn(trimmedInitialQuestion);
+        return;
+      }
+
       submitQuestion(trimmedInitialQuestion, { focusComposer: false });
     });
 
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [initialQuestion, submitQuestion]);
+  }, [initialConversationMode, initialQuestion, showCompletedTurn, submitQuestion]);
 
   const handleWheelCapture = (event: WheelEvent<HTMLElement>) => {
     if (event.ctrlKey) return;
@@ -556,8 +507,13 @@ export function AiResponseScreen({
     const responseScroll = responseScrollRef.current;
     if (!responseScroll) return;
 
-    const target = event.target as Node | null;
-    if (target && responseScroll.contains(target)) return;
+    const target = event.target;
+    if (
+      target instanceof HTMLElement &&
+      (responseScroll.contains(target) || target.closest('[data-ai-response-sidebar="true"]'))
+    ) {
+      return;
+    }
 
     const deltaUnit =
       event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? responseScroll.clientHeight : 1;
@@ -608,6 +564,11 @@ export function AiResponseScreen({
     navigate("/");
   };
 
+  const handleHistoryConversationClick = (question: string) => {
+    setIsSidebarOpen(false);
+    navigate(`/ai-response/chat?q=${encodeURIComponent(question)}&mode=complete`);
+  };
+
   return (
     <main
       className="relative flex h-dvh min-h-0 overflow-hidden bg-[#dce8fb] text-[var(--mscp-color-text-primary)]"
@@ -633,85 +594,17 @@ export function AiResponseScreen({
 
           <div
             className={`hidden shrink-0 transition-[width] duration-300 ease-out md:block ${
-              isSidebarOpen ? "w-[244px]" : "w-0"
+              isSidebarOpen ? "w-[272px]" : "w-0"
             }`}
           />
 
-          <aside
-            className={`absolute inset-y-0 left-0 z-40 flex w-[244px] flex-col border-r border-[#d6e0ef] bg-[#edf4ff] transition-transform duration-300 ease-out ${
-              isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-          >
-            <div className="flex items-center justify-between px-4 pb-3 pt-4">
-              <button
-                type="button"
-                onClick={handleHomeClick}
-                className="inline-flex items-center gap-2 rounded-full pr-2 text-[14px] font-semibold text-[var(--mscp-color-brand-primary)] transition hover:opacity-80"
-              >
-                <img
-                  src={logoAssets.medscapeMini}
-                  alt=""
-                  aria-hidden="true"
-                  className="h-[18px] w-[18px] object-contain"
-                />
-                <span>Return to Medscape</span>
-              </button>
-
-              <button
-                type="button"
-                aria-label="Close menu"
-                onClick={() => setIsSidebarOpen(false)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#495661] transition hover:bg-white/70"
-              >
-                <CloseIcon />
-              </button>
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-5">
-              <div className="flex flex-col gap-1">
-                <SidebarAction iconSrc={uiIcons.newChat} label="New Chat" onClick={handleLandingClick} />
-                <SidebarAction iconSrc={uiIcons.settings} label="Settings" />
-              </div>
-
-              <div className="mt-5 border-t border-[#d7e2f1] pt-4">
-                <div className="mb-3 flex items-center gap-2 px-2 text-[15px] font-semibold text-[#28323b]">
-                  <img
-                    src={uiIcons.history}
-                    alt=""
-                    aria-hidden="true"
-                    className="h-4 w-4 object-contain"
-                  />
-                  <span>History</span>
-                </div>
-
-                <div className="space-y-5">
-                  {sidebarHistoryGroups.map((group, groupIndex) => (
-                    <section key={`${group.label}-${groupIndex}`}>
-                      <h2 className="px-2 text-[11px] font-extrabold tracking-[0.04em] text-[#55616c] uppercase">
-                        {group.label}
-                      </h2>
-                      <div className="mt-1 space-y-1">
-                        {group.items.map((item, itemIndex) => (
-                          <button
-                            key={`${group.label}-${itemIndex}-${item}`}
-                            type="button"
-                            className="flex w-full items-start justify-between gap-3 rounded-[10px] px-2 py-1.5 text-left transition hover:bg-white/55"
-                          >
-                            <span className="text-[13px] leading-[1.35] text-[var(--mscp-color-brand-primary)]">
-                              {item}
-                            </span>
-                            <span className="pt-0.5 text-[#2c3740]">
-                              <OverflowDotsIcon />
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </aside>
+          <AiResponseSidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            onHistoryConversationClick={handleHistoryConversationClick}
+            onHomeClick={handleHomeClick}
+            onNewChatClick={handleLandingClick}
+          />
 
           <section className="relative flex min-h-0 flex-1 flex-col">
             <div
@@ -736,7 +629,7 @@ export function AiResponseScreen({
                   <button
                     type="button"
                     onClick={handleLandingClick}
-                    className="absolute left-1/2 top-2.5 -translate-x-1/2 rounded-full px-3 py-2 transition hover:opacity-85 md:top-3"
+                    className="absolute left-1/2 top-2.5 -translate-x-1/2 rounded-full px-3 py-2 transition md:top-3"
                     aria-label="Go to new chat"
                   >
                     <img
@@ -770,10 +663,7 @@ export function AiResponseScreen({
                       ) : null}
 
                       {turn.answer ? (
-                        <StreamedAnswerContent
-                          answer={turn.answer}
-                          isStreaming={turn.status === "streaming"}
-                        />
+                        <StreamedAnswerContent answer={turn.answer} />
                       ) : null}
                     </article>
                   ))}
@@ -856,29 +746,6 @@ export function AiResponseScreen({
           </section>
         </div>
       </section>
-
-      <style jsx>{`
-        @keyframes mscp-stream-cursor-blink {
-          0%,
-          49% {
-            opacity: 1;
-          }
-          50%,
-          100% {
-            opacity: 0;
-          }
-        }
-
-        .mscp-stream-cursor {
-          animation: mscp-stream-cursor-blink 1s step-end infinite;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .mscp-stream-cursor {
-            animation: none;
-          }
-        }
-      `}</style>
     </main>
   );
 }

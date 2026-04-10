@@ -24,6 +24,23 @@ a {
   text-decoration: none;
 }
 
+button:not(:disabled),
+input[type="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+a[href],
+[role="button"],
+[onclick],
+summary,
+label[for] {
+  cursor: pointer !important;
+}
+
+button:disabled,
+input:disabled {
+  cursor: not-allowed !important;
+}
+
 ::selection {
   background: color-mix(in srgb, var(--color-brand-500) 20%, white);
 }
