@@ -1,109 +1,16 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { type FormEvent, startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  type PromptSection,
-  type PromptSectionId,
-  promptSections,
-} from "@/components/screens/ai-response-content";
-import { AiResponseSidebar } from "@/components/screens/ai-response-sidebar";
-
-const landingLogoSrc = "/assets/Medscape AI Logo Slogan.svg";
-const menuIconSrc = "/assets/kebab-menu.svg";
-const microphoneIconSrc = "/assets/Microphone.svg";
-const promptIconSources: Record<PromptSectionId, string> = {
-  "drug-info": "/assets/Check drug info.svg",
-  "challenging-questions": "/assets/Ask challenging questions.svg",
-  "patient-workup": "/assets/Work up a patient.svg",
-  "treatment-options": "/assets/Review treatment options.svg",
-  "recent-research": "/assets/Summarize recent research.svg",
-  "lab-findings": "/assets/Interpret lab findings.svg",
-};
-
-function MenuIcon() {
-  return (
-    <img
-      src={menuIconSrc}
-      alt=""
-      aria-hidden="true"
-      className="h-5 w-5 object-contain brightness-0 invert"
-    />
-  );
-}
-
-function MicrophoneIcon() {
-  return (
-    <img
-      src={microphoneIconSrc}
-      alt=""
-      aria-hidden="true"
-      className="h-5 w-5 object-contain"
-    />
-  );
-}
-
-function SendIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m5 12 12-7-3 7 3 7-12-7Z" />
-      <path d="M5 12h9" />
-    </svg>
-  );
-}
-
-function PromptChevron() {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4 text-[#7f8a96]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m6 3.5 4 4.5-4 4.5" />
-    </svg>
-  );
-}
-
-function PromptSectionIcon({ id }: { id: PromptSectionId }) {
-  return (
-    <img
-      src={promptIconSources[id]}
-      alt=""
-      aria-hidden="true"
-      className="h-5 w-5 object-contain"
-    />
-  );
-}
-
-function PromptCard({
-  section,
-  onPromptSelect,
-}: {
-  section: PromptSection;
-  onPromptSelect: (prompt: string) => void;
-}) {
-  return (
-    <section className="w-full rounded-[8px] bg-white px-4 pb-3 pt-5">
-      <header className="flex items-center gap-2.5 pb-2 text-[16px] leading-[19px] font-semibold text-[var(--mscp-color-text-tertiary)]">
-        <PromptSectionIcon id={section.id} />
-        <span>{section.title}</span>
-      </header>
-      <div className="border-t border-[var(--mscp-color-border-primary)]">
-        {section.prompts.map((prompt, index) => (
-          <button
-            key={prompt}
-            type="button"
-            onClick={() => onPromptSelect(prompt)}
-            className={`flex w-full items-start gap-3 py-2 text-left text-[15px] leading-[20px] text-[var(--mscp-color-brand-primary)] transition hover:text-[#0a5fd2] ${
-              index < section.prompts.length - 1 ? "border-b border-[var(--mscp-color-border-primary)]" : ""
-            }`}
-          >
-            <span className="flex-1">{prompt}</span>
-            <span className="pt-[2px]">
-              <PromptChevron />
-            </span>
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
+  AiMenuIcon,
+  AiMicrophoneIcon,
+  AiSendIcon,
+} from "@/components/medscape/ai-response/iconography";
+import { AiPromptSectionsList } from "@/components/medscape/ai-response/prompt-card";
+import { AiResponseSidebar } from "@/components/medscape/ai-response/sidebar";
+import { aiResponseAssets, promptSections } from "@/data/ai-response";
 
 export function AiResponseLanding() {
   const router = useRouter();
@@ -143,10 +50,7 @@ export function AiResponseLanding() {
 
   return (
     <main className="relative h-dvh overflow-hidden text-white">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
-      >
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
@@ -207,7 +111,7 @@ export function AiResponseLanding() {
                 onClick={() => setIsSidebarOpen(true)}
                 className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white/92 transition hover:bg-white/10"
               >
-                <MenuIcon />
+                <AiMenuIcon invert />
               </button>
             ) : null}
           </header>
@@ -216,7 +120,7 @@ export function AiResponseLanding() {
             <div className="flex w-full max-w-[900px] flex-col items-center">
               <div className="flex w-full flex-col items-center gap-4">
                 <img
-                  src={landingLogoSrc}
+                  src={aiResponseAssets.landingLogo}
                   alt="Medscape AI"
                   className="w-[210px] object-contain md:w-[255px]"
                 />
@@ -239,7 +143,7 @@ export function AiResponseLanding() {
                       aria-label={hasDraft ? "Start chat" : "Voice input"}
                       className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--mscp-color-brand-primary)] transition hover:bg-[rgba(6,74,167,0.08)]"
                     >
-                      {hasDraft ? <SendIcon /> : <MicrophoneIcon />}
+                      {hasDraft ? <AiSendIcon /> : <AiMicrophoneIcon />}
                     </button>
                   </div>
                 </form>
@@ -251,11 +155,7 @@ export function AiResponseLanding() {
                 Discover what you can ask Medscape AI
               </p>
 
-              <div className="flex w-full flex-col gap-2">
-                {promptSections.map((section) => (
-                  <PromptCard key={section.id} section={section} onPromptSelect={navigateToChat} />
-                ))}
-              </div>
+              <AiPromptSectionsList sections={promptSections} onPromptSelect={navigateToChat} />
             </div>
           </div>
         </section>

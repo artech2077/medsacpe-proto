@@ -1,70 +1,85 @@
 import Link from "next/link";
-
-const prototypePages = [
-  {
-    href: "/example",
-    label: "Sample prototype",
-  },
-  {
-    href: "/ai-response",
-    label: "AI response prototype",
-  },
-];
+import { prototypeRegistry } from "@/registry/prototypes";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[var(--surface-canvas)]">
-      <section className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-10 md:px-10">
-        <div className="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-panel)] p-8 shadow-[var(--shadow-panel)]">
-          <div className="mb-6 inline-flex items-center rounded-full border border-[var(--border-subtle)] bg-white px-3 py-1 text-xs font-semibold tracking-[0.08em] text-[var(--text-secondary)] uppercase">
-            Codex + Figma Prototype Workspace
-          </div>
-          <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-[var(--text-primary)] md:text-5xl">
-            Build feature prototypes from Figma with a token-driven Next.js foundation.
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--text-secondary)] md:text-lg">
-            Use Codex in Cursor to implement Figma frames into route-based prototypes. This workspace already includes token CSS, font plumbing, and a sample prototype route.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            {prototypePages.map((prototype) => (
-              <Link
-                key={prototype.href}
-                href={prototype.href}
-                className="inline-flex items-center rounded-[var(--radius-md)] bg-[var(--color-brand-500)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--color-brand-600)]"
-              >
-                {prototype.label}
-              </Link>
-            ))}
-            <a
-              href="https://vercel.com/new"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-white px-4 py-2 text-sm font-semibold text-[var(--text-primary)] transition hover:bg-[var(--surface-muted)]"
-            >
-              Deploy on Vercel
-            </a>
-          </div>
-        </div>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(0,106,255,0.1),transparent_34%),linear-gradient(180deg,#f7fafe_0%,#eef3f9_100%)]">
+      <section className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-6 py-8 md:px-10 md:py-10">
+        <div className="grid gap-5 xl:grid-cols-3">
+          <article className="flex min-h-[320px] flex-col justify-between rounded-[32px] border border-white/80 bg-white/80 p-7 shadow-[0_24px_60px_rgba(16,24,40,0.06)] backdrop-blur-xl">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                Shared Library
+              </p>
+              <h1 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
+                Component Gallery
+              </h1>
+              <p className="mt-4 max-w-sm text-base leading-7 text-[var(--text-secondary)]">
+                Reusable Medscape AI building blocks for new prototype pages.
+              </p>
+            </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white p-5">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">1. Tokens</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-              Store Figma Variables in <code>src/styles/tokens.css</code> and keep screen styling token-backed.
-            </p>
+            <div className="pt-6">
+              <Link
+                href="/gallery"
+                className="inline-flex items-center rounded-full bg-[var(--mscp-color-brand-primary)] px-5 py-3 text-sm font-semibold !text-white shadow-[0_16px_30px_rgba(6,74,167,0.18)] transition hover:bg-[#0b5cc9] hover:!text-white visited:!text-white"
+              >
+                Open gallery
+              </Link>
+            </div>
           </article>
-          <article className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white p-5">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">2. Screens</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-              Implement each Figma frame at <code>src/app/(prototypes)/&lt;slug&gt;/page.tsx</code>.
-            </p>
-          </article>
-          <article className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-white p-5">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">3. Assets</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-              Save Figma MCP image/SVG assets in <code>public/assets/&lt;slug&gt;/</code> for fidelity.
-            </p>
-          </article>
+
+          {prototypeRegistry.map((prototype, index) => (
+            <article
+              key={prototype.slug}
+              className="flex min-h-[320px] flex-col justify-between rounded-[32px] border border-white/80 bg-white/84 p-7 shadow-[0_24px_60px_rgba(16,24,40,0.06)] backdrop-blur-xl"
+            >
+              <div>
+                <div className="flex items-start justify-between gap-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                    {String(index + 1).padStart(2, "0")}
+                  </p>
+                  {prototype.status ? (
+                    <span className="rounded-full border border-[rgba(6,74,167,0.14)] bg-[rgba(6,74,167,0.04)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--mscp-color-brand-primary)]">
+                      {prototype.status}
+                    </span>
+                  ) : null}
+                </div>
+
+                <h2 className="mt-6 text-3xl font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
+                  {prototype.title}
+                </h2>
+                <p className="mt-4 text-base leading-8 text-[var(--text-secondary)]">
+                  {prototype.description}
+                </p>
+
+                {prototype.tags?.length ? (
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {prototype.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-[var(--surface-muted)] px-3 py-1.5 text-sm font-medium text-[var(--text-secondary)]"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mt-8 flex items-center justify-between gap-4 border-t border-[rgba(16,24,40,0.08)] pt-6">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                  {prototype.route}
+                </span>
+                <Link
+                  href={prototype.route}
+                  className="inline-flex items-center rounded-full bg-[var(--mscp-color-brand-primary)] px-5 py-3 text-sm font-semibold !text-white shadow-[0_16px_30px_rgba(6,74,167,0.18)] transition hover:bg-[#0b5cc9] hover:!text-white visited:!text-white"
+                >
+                  Open
+                </Link>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
     </main>

@@ -1,7 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import {
-  type FormEvent,
   startTransition,
   type WheelEvent,
   useCallback,
@@ -10,33 +10,18 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
+import { AiResponseAnswerContent } from "@/components/medscape/ai-response/answer-content";
+import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
+import { AiMenuIcon } from "@/components/medscape/ai-response/iconography";
+import { AiPreparingAnswerNotice } from "@/components/medscape/ai-response/preparing-answer-notice";
+import { AiResponseSidebar } from "@/components/medscape/ai-response/sidebar";
+import { AiTopRailAction } from "@/components/medscape/ai-response/top-rail-action";
 import {
+  aiResponseAssets,
   buildMockAnswer,
   defaultInitialQuestion,
-} from "@/components/screens/ai-response-content";
-import { AiResponseSidebar } from "@/components/screens/ai-response-sidebar";
-
-const logoAssets = {
-  medscapeAi: "/assets/medscape-ai.svg",
-  medscapeMini: "/assets/Medscape-mini.svg",
-  promptAnimation: "/assets/prompt-animation.gif",
-} as const;
-
-const menuIconSrc = "/assets/kebab-menu.svg";
-
-const uiIcons = {
-  download: "/assets/Download.svg",
-  history: "/assets/history.svg",
-  newChat: "/assets/new-chat.svg",
-  settings: "/assets/settings.svg",
-  share: "/assets/Share.svg",
-} as const;
-
-const composerIcons = {
-  scrollDown: "/assets/arrow-down.svg?v=2",
-  send: "/assets/arrow-up.svg",
-  stop: "/assets/circle-arrow-up.svg",
-} as const;
+} from "@/data/ai-response";
 
 const PRE_STREAM_DELAY_MS = 1200;
 const STREAM_TICK_MS = 18;
@@ -58,145 +43,6 @@ type AiResponseScreenProps = {
   initialQuestion?: string;
 };
 
-type AnswerBlock =
-  | { text: string; type: "heading" | "paragraph" }
-  | { items: string[]; type: "list" };
-
-function MenuIcon() {
-  return (
-    <img
-      src={menuIconSrc}
-      alt=""
-      aria-hidden="true"
-      className="h-5 w-5 object-contain brightness-0"
-    />
-  );
-}
-
-function TopRailAction({ iconSrc, label }: { iconSrc: string; label: string }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      className="inline-flex h-9 items-center justify-center gap-2 rounded-full px-2 text-[13px] font-semibold text-[var(--mscp-color-brand-primary)] transition hover:bg-[#e8f0fb] md:px-3 md:text-[16px]"
-    >
-      <img src={iconSrc} alt="" aria-hidden="true" className="h-[18px] w-[18px] object-contain" />
-      <span className="hidden md:inline">{label}</span>
-    </button>
-  );
-}
-
-function buildAnswerBlocks(answer: string) {
-  const lines = answer.split("\n");
-  const blocks: AnswerBlock[] = [];
-  let currentList: string[] = [];
-
-  const flushList = () => {
-    if (currentList.length === 0) return;
-    blocks.push({ items: currentList, type: "list" });
-    currentList = [];
-  };
-
-  for (const line of lines) {
-    const trimmedLine = line.trim();
-
-    if (!trimmedLine) {
-      flushList();
-      continue;
-    }
-
-    if (/^-\s+/.test(trimmedLine)) {
-      currentList.push(trimmedLine.replace(/^-\s+/, ""));
-      continue;
-    }
-
-    flushList();
-
-    if (
-      /^[A-Z][A-Za-z0-9\s&/]+$/.test(trimmedLine) &&
-      trimmedLine.length <= 40 &&
-      !trimmedLine.endsWith(".")
-    ) {
-      blocks.push({ text: trimmedLine, type: "heading" });
-      continue;
-    }
-
-    blocks.push({ text: trimmedLine, type: "paragraph" });
-  }
-
-  flushList();
-  return blocks;
-}
-
-function StreamedAnswerContent({ answer }: { answer: string }) {
-  const blocks = buildAnswerBlocks(answer);
-
-  return (
-    <div className="text-[16px] leading-[1.45] text-[var(--mscp-color-text-body)]">
-      {blocks.map((block, index) => {
-        if (block.type === "heading") {
-          return (
-            <h2
-              key={`${block.type}-${index}`}
-              className="mt-8 text-[16px] font-bold text-[#3c454d] first:mt-0"
-            >
-              {block.text}
-            </h2>
-          );
-        }
-
-        if (block.type === "list") {
-          return (
-            <ul
-              key={`${block.type}-${index}`}
-              className="mt-5 list-disc space-y-3 pl-6 marker:text-[#252c31]"
-            >
-              {block.items.map((item, itemIndex) => (
-                <li key={`${item}-${itemIndex}`}>{item}</li>
-              ))}
-            </ul>
-          );
-        }
-
-        return (
-          <p key={`${block.type}-${index}`} className="mt-5 first:mt-0">
-            {block.text}
-          </p>
-        );
-      })}
-    </div>
-  );
-}
-
-function PreparingAnswerNotice({ question }: { question: string }) {
-  const preview = question.length > 84 ? `${question.slice(0, 84)}...` : question;
-
-  return (
-    <div className="mb-6 inline-flex max-w-full items-center gap-2 text-[14px] leading-[1.35] text-[#4b5a67] md:text-[15px]">
-      <span className="inline-flex h-5 w-5 items-center justify-center">
-        <img
-          src={logoAssets.promptAnimation}
-          alt=""
-          aria-hidden="true"
-          className="h-[18px] w-[18px] object-contain"
-        />
-      </span>
-      <p className="min-w-0 truncate">Assessing evidence and outcomes related to {preview}</p>
-    </div>
-  );
-}
-
-function SendButtonIcon({ generating }: { generating: boolean }) {
-  return (
-    <img
-      src={generating ? composerIcons.stop : composerIcons.send}
-      alt=""
-      aria-hidden="true"
-      className="h-8 w-8 object-contain"
-    />
-  );
-}
-
 export function AiResponseScreen({
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
@@ -216,7 +62,6 @@ export function AiResponseScreen({
   const [bottomSpacerHeight, setBottomSpacerHeight] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
-  const hasComposerDraft = composerDraft.trim().length > 0;
   const isGenerationInProgress = chatTurns.some(
     (turn) => turn.status === "preparing" || turn.status === "streaming",
   );
@@ -297,12 +142,7 @@ export function AiResponseScreen({
   };
 
   const startStreamingTurn = useCallback(
-    (
-      question: string,
-      options: {
-        focusComposer?: boolean;
-      } = {},
-    ) => {
+    (question: string, options: { focusComposer?: boolean } = {}) => {
       const trimmedQuestion = question.trim();
       if (!trimmedQuestion) return;
 
@@ -392,31 +232,34 @@ export function AiResponseScreen({
     [clearResponseTimers, reserveBottomSpaceForTurnTop, scrollTurnQuestionToTop],
   );
 
-  const showCompletedTurn = useCallback((question: string) => {
-    const trimmedQuestion = question.trim();
-    if (!trimmedQuestion) return;
+  const showCompletedTurn = useCallback(
+    (question: string) => {
+      const trimmedQuestion = question.trim();
+      if (!trimmedQuestion) return;
 
-    clearResponseTimers();
-    activeTurnIdRef.current = null;
-    setBottomSpacerHeight(0);
-    setComposerDraft("");
+      clearResponseTimers();
+      activeTurnIdRef.current = null;
+      setBottomSpacerHeight(0);
+      setComposerDraft("");
 
-    const nextTurnId = nextTurnIdRef.current;
-    nextTurnIdRef.current += 1;
+      const nextTurnId = nextTurnIdRef.current;
+      nextTurnIdRef.current += 1;
 
-    setChatTurns([
-      {
-        answer: buildMockAnswer(trimmedQuestion),
-        id: nextTurnId,
-        question: trimmedQuestion,
-        status: "complete",
-      },
-    ]);
+      setChatTurns([
+        {
+          answer: buildMockAnswer(trimmedQuestion),
+          id: nextTurnId,
+          question: trimmedQuestion,
+          status: "complete",
+        },
+      ]);
 
-    requestAnimationFrame(() => {
-      scrollTurnQuestionToTop(nextTurnId, "auto");
-    });
-  }, [clearResponseTimers, scrollTurnQuestionToTop]);
+      requestAnimationFrame(() => {
+        scrollTurnQuestionToTop(nextTurnId, "auto");
+      });
+    },
+    [clearResponseTimers, scrollTurnQuestionToTop],
+  );
 
   const submitQuestion = useCallback(
     (question: string, options?: { focusComposer?: boolean }) => {
@@ -456,7 +299,9 @@ export function AiResponseScreen({
         responseScroll.scrollHeight - responseScroll.clientHeight - responseScroll.scrollTop;
       const effectiveHiddenBottom =
         rawHiddenBottom - CHAT_BOTTOM_CONTENT_PADDING_PX - bottomSpacerHeight;
-      setShowScrollToBottomButton(effectiveHiddenBottom > SCROLL_DOWN_VISIBILITY_THRESHOLD_PX);
+      setShowScrollToBottomButton(
+        effectiveHiddenBottom > SCROLL_DOWN_VISIBILITY_THRESHOLD_PX,
+      );
     };
 
     syncScrollToBottomVisibility();
@@ -515,10 +360,10 @@ export function AiResponseScreen({
       return;
     }
 
+    if (event.deltaX === 0 && event.deltaY === 0) return;
+
     const deltaUnit =
       event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? responseScroll.clientHeight : 1;
-
-    if (event.deltaX === 0 && event.deltaY === 0) return;
 
     event.preventDefault();
     responseScroll.scrollBy({
@@ -526,12 +371,6 @@ export function AiResponseScreen({
       left: event.deltaX * deltaUnit,
       top: event.deltaY * deltaUnit,
     });
-  };
-
-  const handleComposerSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!composerDraft.trim()) return;
-    submitQuestion(composerDraft);
   };
 
   const handleStopGeneration = () => {
@@ -567,6 +406,11 @@ export function AiResponseScreen({
   const handleHistoryConversationClick = (question: string) => {
     setIsSidebarOpen(false);
     navigate(`/ai-response/chat?q=${encodeURIComponent(question)}&mode=complete`);
+  };
+
+  const handleSubmitQuestion = () => {
+    if (!composerDraft.trim()) return;
+    submitQuestion(composerDraft);
   };
 
   return (
@@ -609,39 +453,42 @@ export function AiResponseScreen({
           <section className="relative flex min-h-0 flex-1 flex-col">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[108px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_68%,rgba(255,255,255,0)_100%)]"
+              className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[72px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_68%,rgba(255,255,255,0)_100%)]"
             />
 
             <div className="relative z-20 flex min-h-0 flex-1 flex-col">
               <div className="sticky top-0 z-30">
-                <div className="absolute inset-x-0 top-0 h-[104px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_72%,rgba(255,255,255,0)_100%)]" />
-                <div className="relative flex min-h-[72px] items-start justify-between gap-3 px-3 pb-3 pt-3 md:min-h-[78px] md:px-5 md:pb-4 md:pt-3">
+                <div className="absolute inset-x-0 top-0 h-[68px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_72%,rgba(255,255,255,0)_100%)]" />
+                <div className="relative flex min-h-[48px] items-start justify-between gap-2 px-3 pt-2 md:min-h-[52px] md:px-5 md:pt-2">
                   <button
                     type="button"
                     aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
                     aria-expanded={isSidebarOpen}
                     onClick={() => setIsSidebarOpen((current) => !current)}
-                    className="relative z-10 inline-flex h-10 w-10 items-center justify-center rounded-full text-[#687680] transition hover:bg-white/70"
+                    className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-white/70"
                   >
-                    <MenuIcon />
+                    <AiMenuIcon />
                   </button>
 
                   <button
                     type="button"
                     onClick={handleLandingClick}
-                    className="absolute left-1/2 top-2.5 -translate-x-1/2 rounded-full px-3 py-2 transition md:top-3"
+                    className="absolute left-1/2 top-1 -translate-x-1/2 rounded-full px-3 py-1.5 transition md:top-1.5"
                     aria-label="Go to new chat"
                   >
                     <img
-                      src={logoAssets.medscapeAi}
+                      src={aiResponseAssets.logoAssets.medscapeAi}
                       alt="Medscape AI"
-                      className="h-[24px] w-auto object-contain md:h-[28px]"
+                      className="h-[22px] w-auto object-contain md:h-[24px]"
                     />
                   </button>
 
                   <div className="relative z-10 ml-auto flex items-center gap-0.5 md:gap-1">
-                    <TopRailAction iconSrc={uiIcons.share} label="Share" />
-                    <TopRailAction iconSrc={uiIcons.download} label="Download" />
+                    <AiTopRailAction iconSrc={aiResponseAssets.uiIcons.share} label="Share" />
+                    <AiTopRailAction
+                      iconSrc={aiResponseAssets.uiIcons.download}
+                      label="Download"
+                    />
                   </div>
                 </div>
               </div>
@@ -659,11 +506,13 @@ export function AiResponseScreen({
                       </h1>
 
                       {turn.status === "preparing" ? (
-                        <PreparingAnswerNotice question={turn.question} />
+                        <AiPreparingAnswerNotice question={turn.question} />
                       ) : null}
 
-                      {turn.answer ? (
-                        <StreamedAnswerContent answer={turn.answer} />
+                      {turn.answer ? <AiResponseAnswerContent answer={turn.answer} /> : null}
+
+                      {turn.status === "complete" && turn.answer ? (
+                        <AiResponseAnswerActions answer={turn.answer} />
                       ) : null}
                     </article>
                   ))}
@@ -690,7 +539,7 @@ export function AiResponseScreen({
                     }`}
                   >
                     <img
-                      src={composerIcons.scrollDown}
+                      src={aiResponseAssets.composerIcons.scrollDown}
                       alt=""
                       aria-hidden="true"
                       className="h-8 w-8 object-contain"
@@ -702,43 +551,14 @@ export function AiResponseScreen({
               <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
                 <div className="mx-auto w-full max-w-[980px] px-4 pb-0 md:px-6">
                   <div className="rounded-t-[28px] bg-gradient-to-b from-transparent via-white/82 to-white px-2 pb-[max(env(safe-area-inset-bottom),6px)] pt-3 md:pt-4">
-                    <form
-                      onSubmit={handleComposerSubmit}
-                      className="pointer-events-auto flex min-h-[48px] items-center gap-2 rounded-[999px] border border-[rgba(109,153,206,0.45)] bg-white px-4 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_8px_22px_rgba(16,24,40,0.06)]"
-                      onClick={() => composerInputRef.current?.focus()}
-                    >
-                      <input
-                        ref={composerInputRef}
-                        type="text"
-                        value={composerDraft}
-                        onChange={(event) => setComposerDraft(event.target.value)}
-                        placeholder="Ask anything"
-                        className="h-8 flex-1 border-0 bg-transparent text-[16px] leading-[20px] text-[#1b2b3a] outline-none placeholder:text-[#93a2ae]"
-                      />
-
-                      {isGenerationInProgress ? (
-                        <button
-                          type="button"
-                          aria-label="Stop generating"
-                          onClick={handleStopGeneration}
-                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center"
-                        >
-                          <SendButtonIcon generating />
-                        </button>
-                      ) : hasComposerDraft ? (
-                        <button
-                          type="submit"
-                          aria-label="Send"
-                          className="inline-flex h-8 w-8 shrink-0 items-center justify-center"
-                        >
-                          <SendButtonIcon generating={false} />
-                        </button>
-                      ) : null}
-                    </form>
-
-                    <p className="pointer-events-auto mt-1 text-center text-[10px] leading-[13px] text-[#647484]">
-                      AI may make mistakes. Always apply your clinical judgment.
-                    </p>
+                    <AiResponseChatComposer
+                      inputRef={composerInputRef}
+                      isGenerating={isGenerationInProgress}
+                      onStopGeneration={handleStopGeneration}
+                      onSubmit={handleSubmitQuestion}
+                      onValueChange={setComposerDraft}
+                      value={composerDraft}
+                    />
                   </div>
                 </div>
               </div>

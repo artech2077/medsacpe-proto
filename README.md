@@ -12,12 +12,17 @@ Open `http://localhost:3000`.
 
 ## Project structure
 
-- `src/app/(prototypes)/<slug>/page.tsx`: route for each prototype screen
-- `src/components/ui/`: reusable primitives for prototype screens
-- `src/components/screens/`: composed screen sections
+- `src/app/(prototypes)/<slug>/page.tsx`: thin route wrappers that render screen components
+- `src/app/gallery/page.tsx`: in-app gallery for reusable components
+- `src/components/screens/`: page-level screen compositions
+- `src/components/ui/`: generic reusable primitives
+- `src/components/medscape/`: Medscape-specific reusable components and flows
+- `src/registry/prototypes.ts`: source of truth for prototype routes shown on `/`
+- `src/registry/gallery.tsx`: source of truth for gallery entries shown on `/gallery`
+- `src/data/`: typed content and configuration modules consumed by screens/components
 - `src/styles/tokens.css`: CSS variables generated/mapped from Figma Variables
 - `public/assets/<slug>/`: images and SVG assets returned by Figma MCP
-- `docs/codex-figma-prompts.md`: copy/paste prompts for Codex in Cursor
+- `AGENTS.md`: canonical working rules for future prototype and component work
 
 ## Fonts (exact Figma match)
 

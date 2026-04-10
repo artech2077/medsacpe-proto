@@ -12,6 +12,55 @@ export type PromptSection = {
   prompts: string[];
 };
 
+export type SidebarHistoryItem = {
+  id: string;
+  question: string;
+};
+
+export type SidebarHistoryGroup = {
+  id: string;
+  items: SidebarHistoryItem[];
+  label: string;
+};
+
+export const aiResponseAssets = {
+  composerIcons: {
+    scrollDown: "/assets/arrow-down.svg?v=2",
+    send: "/assets/arrow-up.svg",
+    stop: "/assets/circle-arrow-up.svg",
+  },
+  landingLogo: "/assets/Medscape AI Logo Slogan.svg",
+  logoAssets: {
+    medscapeAi: "/assets/medscape-ai.svg",
+    medscapeMini: "/assets/Medscape-mini.svg",
+    promptAnimation: "/assets/prompt-animation.gif",
+  },
+  menuIcon: "/assets/kebab-menu.svg",
+  microphoneIcon: "/assets/Microphone.svg",
+  promptSectionIcons: {
+    "challenging-questions": "/assets/Ask challenging questions.svg",
+    "drug-info": "/assets/Check drug info.svg",
+    "lab-findings": "/assets/Interpret lab findings.svg",
+    "patient-workup": "/assets/Work up a patient.svg",
+    "recent-research": "/assets/Summarize recent research.svg",
+    "treatment-options": "/assets/Review treatment options.svg",
+  } satisfies Record<PromptSectionId, string>,
+  uiIcons: {
+    copy: "/assets/duplicate.svg",
+    dislike: "/assets/dislike.svg",
+    dislikeFilled: "/assets/dislike filled.svg",
+    download: "/assets/Download.svg",
+    history: "/assets/history.svg",
+    like: "/assets/like.svg",
+    likeFilled: "/assets/like filled.svg",
+    newChat: "/assets/new-chat.svg",
+    pencil: "/assets/pencil.svg",
+    settings: "/assets/settings.svg",
+    share: "/assets/Share.svg",
+    trash: "/assets/trash.svg",
+  },
+} as const;
+
 export const promptSections: PromptSection[] = [
   {
     id: "drug-info",
@@ -68,6 +117,50 @@ export const promptSections: PromptSection[] = [
     ],
   },
 ];
+
+const rawSidebarHistoryGroups = [
+  {
+    label: "This month",
+    items: ["What are the symptoms of afebrile pneumonia"],
+  },
+  {
+    label: "February 2026",
+    items: [
+      "What are the treatment options for type 2 diabetes",
+      "What are traditional risk factors for CVD?",
+      "How does HDL cholesterol affect heart disease risk?",
+    ],
+  },
+  {
+    label: "January 2026",
+    items: [
+      "What are the treatment options for type 2 diabetes",
+      "What are traditional risk factors for CVD?",
+      "How does HDL cholesterol affect heart disease risk?",
+      "What are the treatment options for type 2 diabetes",
+      "What are traditional risk factors for CVD?",
+    ],
+  },
+  {
+    label: "December 2025",
+    items: [
+      "What are the treatment options for type 2 diabetes",
+      "What are traditional risk factors for CVD?",
+      "How does HDL cholesterol affect heart disease risk?",
+    ],
+  },
+] as const;
+
+export function createInitialSidebarHistoryGroups(): SidebarHistoryGroup[] {
+  return rawSidebarHistoryGroups.map((group, groupIndex) => ({
+    id: `group-${groupIndex}`,
+    items: group.items.map((question, itemIndex) => ({
+      id: `group-${groupIndex}-item-${itemIndex}`,
+      question,
+    })),
+    label: group.label,
+  }));
+}
 
 export const defaultInitialQuestion = promptSections[0].prompts[0];
 
@@ -193,7 +286,11 @@ function buildGenericAnswer(question: string) {
 export function buildMockAnswer(question: string) {
   const normalized = question.toLowerCase();
 
-  if (normalized.includes("osteoporosis") || normalized.includes("vitamin d") || normalized.includes("calcium")) {
+  if (
+    normalized.includes("osteoporosis") ||
+    normalized.includes("vitamin d") ||
+    normalized.includes("calcium")
+  ) {
     return osteoporosisAnswer;
   }
 
@@ -205,7 +302,11 @@ export function buildMockAnswer(question: string) {
     return buildPhenytoinAnswer();
   }
 
-  if (normalized.includes("warfarin") || normalized.includes("trimethoprim") || normalized.includes("sulfamethoxazole")) {
+  if (
+    normalized.includes("warfarin") ||
+    normalized.includes("trimethoprim") ||
+    normalized.includes("sulfamethoxazole")
+  ) {
     return buildWarfarinAnswer();
   }
 

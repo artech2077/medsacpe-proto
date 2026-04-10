@@ -1,59 +1,16 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-const uiIcons = {
-  history: "/assets/history.svg",
-  medscapeMini: "/assets/Medscape-mini.svg",
-  newChat: "/assets/new-chat.svg",
-  pencil: "/assets/pencil.svg",
-  settings: "/assets/settings.svg",
-  trash: "/assets/trash.svg",
-} as const;
-
-const rawSidebarHistoryGroups = [
-  {
-    label: "This month",
-    items: ["What are the symptoms of afebrile pneumonia"],
-  },
-  {
-    label: "February 2026",
-    items: [
-      "What are the treatment options for type 2 diabetes",
-      "What are traditional risk factors for CVD?",
-      "How does HDL cholesterol affect heart disease risk?",
-    ],
-  },
-  {
-    label: "January 2026",
-    items: [
-      "What are the treatment options for type 2 diabetes",
-      "What are traditional risk factors for CVD?",
-      "How does HDL cholesterol affect heart disease risk?",
-      "What are the treatment options for type 2 diabetes",
-      "What are traditional risk factors for CVD?",
-    ],
-  },
-  {
-    label: "December 2025",
-    items: [
-      "What are the treatment options for type 2 diabetes",
-      "What are traditional risk factors for CVD?",
-      "How does HDL cholesterol affect heart disease risk?",
-    ],
-  },
-] as const;
-
-type SidebarHistoryItem = {
-  id: string;
-  question: string;
-};
-
-type SidebarHistoryGroup = {
-  id: string;
-  items: SidebarHistoryItem[];
-  label: string;
-};
+import {
+  AiCloseIcon,
+  AiOverflowDotsIcon,
+} from "@/components/medscape/ai-response/iconography";
+import {
+  aiResponseAssets,
+  createInitialSidebarHistoryGroups,
+  type SidebarHistoryGroup,
+} from "@/data/ai-response";
 
 type AiResponseSidebarProps = {
   isOpen: boolean;
@@ -63,53 +20,13 @@ type AiResponseSidebarProps = {
   onNewChatClick: () => void;
 };
 
-function createInitialSidebarHistoryGroups(): SidebarHistoryGroup[] {
-  return rawSidebarHistoryGroups.map((group, groupIndex) => ({
-    id: `group-${groupIndex}`,
-    items: group.items.map((question, itemIndex) => ({
-      id: `group-${groupIndex}-item-${itemIndex}`,
-      question,
-    })),
-    label: group.label,
-  }));
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      aria-hidden="true"
-      className="h-5 w-5"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeWidth="1.8"
-    >
-      <path d="M4 4 16 16" />
-      <path d="M16 4 4 16" />
-    </svg>
-  );
-}
-
-function OverflowDotsIcon() {
-  return (
-    <svg viewBox="0 0 4 16" aria-hidden="true" className="h-4 w-4 fill-current">
-      <circle cx="2" cy="3" r="1.1" />
-      <circle cx="2" cy="8" r="1.1" />
-      <circle cx="2" cy="13" r="1.1" />
-    </svg>
-  );
-}
-
-function SidebarAction({
-  iconSrc,
-  label,
-  onClick,
-}: {
+type SidebarActionProps = {
   iconSrc: string;
   label: string;
   onClick?: () => void;
-}) {
+};
+
+function SidebarAction({ iconSrc, label, onClick }: SidebarActionProps) {
   return (
     <button
       type="button"
@@ -214,7 +131,7 @@ export function AiResponseSidebar({
           className="inline-flex items-center gap-2 rounded-full pr-2 text-[14px] font-semibold text-[var(--mscp-color-brand-primary)] transition"
         >
           <img
-            src={uiIcons.medscapeMini}
+            src={aiResponseAssets.logoAssets.medscapeMini}
             alt=""
             aria-hidden="true"
             className="h-[18px] w-[18px] object-contain"
@@ -231,26 +148,31 @@ export function AiResponseSidebar({
           }}
           className="inline-flex h-8 w-8 items-center justify-center rounded-full text-[#495661] transition hover:bg-white/70"
         >
-          <CloseIcon />
+          <AiCloseIcon />
         </button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-5">
         <div className="flex flex-col gap-1">
           <SidebarAction
-            iconSrc={uiIcons.newChat}
+            iconSrc={aiResponseAssets.uiIcons.newChat}
             label="New Chat"
             onClick={() => {
               closeMenus();
               onNewChatClick();
             }}
           />
-          <SidebarAction iconSrc={uiIcons.settings} label="Settings" />
+          <SidebarAction iconSrc={aiResponseAssets.uiIcons.settings} label="Settings" />
         </div>
 
         <div className="mt-5 border-t border-[#d7e2f1] pt-4">
           <div className="mb-3 flex items-center gap-2 px-2 text-[15px] font-semibold text-[#28323b]">
-            <img src={uiIcons.history} alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
+            <img
+              src={aiResponseAssets.uiIcons.history}
+              alt=""
+              aria-hidden="true"
+              className="h-4 w-4 object-contain"
+            />
             <span>History</span>
           </div>
 
@@ -284,7 +206,9 @@ export function AiResponseSidebar({
                             aria-expanded={isMenuOpen}
                             onClick={(event) => {
                               event.stopPropagation();
-                              setActiveMenuItemId((current) => (current === item.id ? null : item.id));
+                              setActiveMenuItemId((current) =>
+                                current === item.id ? null : item.id,
+                              );
                             }}
                             className={`rounded-[10px] border p-2 text-[#2c3740] transition ${
                               isMenuOpen
@@ -292,7 +216,7 @@ export function AiResponseSidebar({
                                 : "border-transparent bg-transparent opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
                             }`}
                           >
-                            <OverflowDotsIcon />
+                            <AiOverflowDotsIcon />
                           </button>
                         </div>
 
@@ -307,7 +231,7 @@ export function AiResponseSidebar({
                               className="flex w-full items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-left text-[15px] font-medium text-[#0d57c6] transition hover:bg-[#f4f8ff]"
                             >
                               <img
-                                src={uiIcons.pencil}
+                                src={aiResponseAssets.uiIcons.pencil}
                                 alt=""
                                 aria-hidden="true"
                                 className="h-5 w-5 object-contain"
@@ -323,7 +247,7 @@ export function AiResponseSidebar({
                               className="flex w-full items-center gap-2.5 rounded-[6px] px-2.5 py-2 text-left text-[15px] font-medium text-[#0d57c6] transition hover:bg-[#f4f8ff]"
                             >
                               <img
-                                src={uiIcons.trash}
+                                src={aiResponseAssets.uiIcons.trash}
                                 alt=""
                                 aria-hidden="true"
                                 className="h-5 w-5 object-contain"
