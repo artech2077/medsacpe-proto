@@ -96,13 +96,19 @@ export function AiOverflowDotsIcon() {
   );
 }
 
-export function AiSendButtonIcon({ generating }: { generating: boolean }) {
+export function AiSendButtonIcon({
+  className = "h-8 w-8",
+  generating,
+}: {
+  className?: string;
+  generating: boolean;
+}) {
   return (
     <img
       src={generating ? aiResponseAssets.composerIcons.stop : aiResponseAssets.composerIcons.send}
       alt=""
       aria-hidden="true"
-      className="h-8 w-8 object-contain"
+      className={`${className} object-contain`}
     />
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 export type AiAnswerBlock =
   | { text: string; type: "heading" | "paragraph" }
   | { items: string[]; type: "list" };
@@ -31,7 +33,7 @@ export function buildAnswerBlocks(answer: string) {
     flushList();
 
     if (
-      /^[A-Z][A-Za-z0-9\s&/]+$/.test(trimmedLine) &&
+      /^[A-Z][A-Za-z0-9\s&/:-]+$/.test(trimmedLine) &&
       trimmedLine.length <= 40 &&
       !trimmedLine.endsWith(".")
     ) {
@@ -48,13 +50,34 @@ export function buildAnswerBlocks(answer: string) {
 
 type AiResponseAnswerContentProps = {
   answer: string;
+  className?: string;
 };
 
-export function AiResponseAnswerContent({ answer }: AiResponseAnswerContentProps) {
+function renderInlineText(text: string): ReactNode[] {
+  return text
+    .split(/(\*\*[^*]+\*\*)/g)
+    .filter(Boolean)
+    .map((part, index) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={`${part}-${index}`} className="font-extrabold">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+
+      return part;
+    });
+}
+
+export function AiResponseAnswerContent({
+  answer,
+  className,
+}: AiResponseAnswerContentProps) {
   const blocks = buildAnswerBlocks(answer);
 
   return (
-    <div className="text-[16px] leading-[1.45] text-[var(--mscp-color-text-body)]">
+    <div className={className ?? "text-[16px] leading-[1.45] text-[var(--mscp-color-text-body)]"}>
       {blocks.map((block, index) => {
         if (block.type === "heading") {
           return (
@@ -74,7 +97,7 @@ export function AiResponseAnswerContent({ answer }: AiResponseAnswerContentProps
               className="mt-5 list-disc space-y-3 pl-6 marker:text-[#252c31]"
             >
               {block.items.map((item, itemIndex) => (
-                <li key={`${item}-${itemIndex}`}>{item}</li>
+                <li key={`${item}-${itemIndex}`}>{renderInlineText(item)}</li>
               ))}
             </ul>
           );
@@ -82,7 +105,7 @@ export function AiResponseAnswerContent({ answer }: AiResponseAnswerContentProps
 
         return (
           <p key={`${block.type}-${index}`} className="mt-5 first:mt-0">
-            {block.text}
+            {renderInlineText(block.text)}
           </p>
         );
       })}

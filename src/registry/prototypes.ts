@@ -17,4 +17,13 @@ export const prototypeRegistry: PrototypeDefinition[] = [
     tags: ["medscape-ai", "chat", "streaming"],
     title: "AI Response Prototype",
   },
+  {
+    description:
+      "Current Medscape AI visual treatment with the same landing prompt and streaming conversation behavior.",
+    route: "/medscape-ai-current",
+    slug: "medscape-ai-current",
+    status: "active",
+    tags: ["medscape-ai", "current-ui", "chat"],
+    title: "Medscape AI current",
+  },
 ];

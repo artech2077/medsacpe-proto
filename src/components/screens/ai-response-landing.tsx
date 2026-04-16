@@ -1,13 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { type FormEvent, startTransition, useState } from "react";
+import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  AiMenuIcon,
-  AiMicrophoneIcon,
-  AiSendIcon,
-} from "@/components/medscape/ai-response/iconography";
+import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
+import { AiMenuIcon, AiMicrophoneIcon } from "@/components/medscape/ai-response/iconography";
 import { AiPromptSectionsList } from "@/components/medscape/ai-response/prompt-card";
 import { AiResponseSidebar } from "@/components/medscape/ai-response/sidebar";
 import { aiResponseAssets, promptSections } from "@/data/ai-response";
@@ -31,8 +28,7 @@ export function AiResponseLanding() {
     navigate(`/ai-response/chat?q=${encodeURIComponent(trimmedQuestion)}`);
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = () => {
     navigateToChat(draft);
   };
 
@@ -45,8 +41,6 @@ export function AiResponseLanding() {
     setIsSidebarOpen(false);
     navigate(`/ai-response/chat?q=${encodeURIComponent(question)}&mode=complete`);
   };
-
-  const hasDraft = draft.trim().length > 0;
 
   return (
     <main className="relative h-dvh overflow-hidden text-white">
@@ -125,28 +119,16 @@ export function AiResponseLanding() {
                   className="w-[210px] object-contain md:w-[255px]"
                 />
 
-                <form onSubmit={handleSubmit} className="w-full">
-                  <label className="sr-only" htmlFor="ai-response-landing-input">
-                    Ask anything
-                  </label>
-                  <div className="flex items-center rounded-[200px] bg-[rgba(255,255,255,0.9)] px-5 py-4 shadow-[0_2px_4px_rgba(0,0,0,0.07),0_7px_28px_rgba(0,0,0,0.1)]">
-                    <input
-                      id="ai-response-landing-input"
-                      type="text"
-                      value={draft}
-                      onChange={(event) => setDraft(event.target.value)}
-                      placeholder="Ask anything"
-                      className="min-w-0 flex-1 border-0 bg-transparent text-[17px] leading-[24px] text-[#161b1d] outline-none placeholder:text-[#6f8590] md:text-[20px] md:leading-[26px]"
-                    />
-                    <button
-                      type={hasDraft ? "submit" : "button"}
-                      aria-label={hasDraft ? "Start chat" : "Voice input"}
-                      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--mscp-color-brand-primary)] transition hover:bg-[rgba(6,74,167,0.08)]"
-                    >
-                      {hasDraft ? <AiSendIcon /> : <AiMicrophoneIcon />}
-                    </button>
-                  </div>
-                </form>
+                <AiResponseChatComposer
+                  className="w-full"
+                  emptyActionIcon={<AiMicrophoneIcon />}
+                  isGenerating={false}
+                  note={null}
+                  onSubmit={handleSubmit}
+                  onValueChange={setDraft}
+                  placeholder="Ask anything"
+                  value={draft}
+                />
               </div>
             </div>
 

@@ -51,10 +51,12 @@ export const aiResponseAssets = {
     dislikeFilled: "/assets/dislike filled.svg",
     download: "/assets/Download.svg",
     history: "/assets/history.svg",
+    followUpQuestions: "/assets/fwp.svg",
     like: "/assets/like.svg",
     likeFilled: "/assets/like filled.svg",
     newChat: "/assets/new-chat.svg",
     pencil: "/assets/pencil.svg",
+    references: "/assets/references.svg",
     settings: "/assets/settings.svg",
     share: "/assets/Share.svg",
     trash: "/assets/trash.svg",
@@ -190,6 +192,12 @@ const osteoporosisAnswer = [
 
 function buildVancomycinAnswer() {
   return [
+    "Key Points",
+    "- **Loading dose decisions** should be separated from post-dialysis maintenance dosing.",
+    "- **A common starting range** for serious infection is 20-25 mg/kg actual body weight.",
+    "- **Maintenance dosing** is typically given after hemodialysis and adjusted using serum levels.",
+    "- **Monitoring priorities** include pre-dialysis levels, dialysis schedule changes, residual kidney function, and clinical response.",
+    "",
     "For a 70 kg patient on intermittent hemodialysis, start by separating the loading dose decision from the post-dialysis maintenance strategy.",
     "",
     "Initial dosing approach",
@@ -244,6 +252,50 @@ function buildWarfarinAnswer() {
     "Monitoring priorities",
     "- Counsel on bleeding symptoms and verify the indication, target INR, and baseline stability.",
     "- Plan another INR reassessment after the antibiotic is stopped because warfarin requirements may rebound toward baseline.",
+  ].join("\n");
+}
+
+function buildOmegaAnswer() {
+  return [
+    "Key Points",
+    "- No guideline-endorsed cardioprotective omega-3 dose",
+    "- Most outcome RCTs: high-dose 4 g/day EPA+DHA",
+    "- PISCES (hemodialysis): 4 g/day lowered serious CV events (HR 0.57)",
+    "- STRENGTH (high-risk, non-dialysis): 4 g/day neutral for MACE",
+    "- Labelled use: 4 g/day for severe hypertriglyceridemia, CV benefit not established",
+    "",
+    "The best-studied dose for cardiovascular outcomes is 4 g/day of prescription-strength omega-3, but results are population- and trial-dependent.",
+    "",
+    "Clinical interpretation",
+    "- Do not treat omega-3 dosing as a general cardioprotective substitute for guideline-directed therapy.",
+    "- Separate triglyceride lowering from proven event reduction when counseling patients.",
+    "- Consider formulation, EPA-only versus mixed EPA/DHA, baseline risk, dialysis status, and concurrent statin therapy before applying trial results.",
+  ].join("\n");
+}
+
+function buildGlp1Answer() {
+  return [
+    "Key Points",
+    "- **GLP-1 receptor agonists like dulaglutide (Trulicity)** are prescribed to improve glycemic control in adults with type 2 diabetes.",
+    "- **Common side effects** include nausea, diarrhea, vomiting, and abdominal pain.",
+    "- **Serious risks** include pancreatitis, severe gastrointestinal disease, and potential cardiovascular events requiring close monitoring.",
+    "- **Management strategies** involve gradual dose escalation, hydration, small frequent meals, and regular consultation with healthcare providers.",
+    "",
+    "GLP-1 receptor agonists, such as dulaglutide (Trulicity), are used to improve glycemic control in adults with type 2 diabetes mellitus. However, they come with potential risks and side effects.",
+    "",
+    "Common Side Effects:",
+    "- Gastrointestinal symptoms are the most frequent, especially nausea, diarrhea, vomiting, constipation, and abdominal discomfort.",
+    "- Symptoms are often dose-related and may lessen after gradual titration.",
+    "",
+    "Serious Risks:",
+    "- Pancreatitis symptoms such as persistent severe abdominal pain, sometimes radiating to the back, require urgent evaluation.",
+    "- Hypersensitivity reactions can occur and may include rash, swelling, breathing difficulty, or injection-site reactions.",
+    "- Patients with severe gastrointestinal disease, dehydration risk, kidney disease, or complex cardiovascular histories may need closer monitoring.",
+    "",
+    "Practical Management:",
+    "- Start with the recommended titration schedule and avoid rapid escalation when gastrointestinal symptoms are limiting.",
+    "- Encourage hydration, smaller meals, and follow-up when symptoms are persistent, severe, or worsening.",
+    "- Review contraindications, concurrent diabetes medications, and patient-specific risks before continuing therapy.",
   ].join("\n");
 }
 
@@ -308,6 +360,19 @@ export function buildMockAnswer(question: string) {
     normalized.includes("sulfamethoxazole")
   ) {
     return buildWarfarinAnswer();
+  }
+
+  if (normalized.includes("omega-3") || normalized.includes("omega 3")) {
+    return buildOmegaAnswer();
+  }
+
+  if (
+    normalized.includes("glp-1") ||
+    normalized.includes("glp1") ||
+    normalized.includes("dulaglutide") ||
+    normalized.includes("trulicity")
+  ) {
+    return buildGlp1Answer();
   }
 
   if (

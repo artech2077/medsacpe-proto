@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import {
@@ -10,23 +9,21 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
+import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
+import { CurrentScrollDownIcon, CurrentSparkIcon } from "@/components/medscape/ai-current/current-icons";
+import { MedscapeCurrentHeader } from "@/components/medscape/ai-current/global-header";
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
 import { AiResponseAnswerContent } from "@/components/medscape/ai-response/answer-content";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
-import { AiMenuIcon } from "@/components/medscape/ai-response/iconography";
 import { AiPreparingAnswerNotice } from "@/components/medscape/ai-response/preparing-answer-notice";
-import { AiResponseSidebar } from "@/components/medscape/ai-response/sidebar";
 import { AiTopRailAction } from "@/components/medscape/ai-response/top-rail-action";
-import {
-  aiResponseAssets,
-  buildMockAnswer,
-  defaultInitialQuestion,
-} from "@/data/ai-response";
+import { aiResponseAssets, buildMockAnswer, defaultInitialQuestion } from "@/data/ai-response";
+import { getCurrentProgressText } from "@/data/medscape-ai-current";
 
-const PRE_STREAM_DELAY_MS = 1200;
+const PRE_STREAM_DELAY_MS = 10000;
 const STREAM_TICK_MS = 18;
 const STREAM_CHUNK_SIZE = 4;
-const CHAT_BOTTOM_CONTENT_PADDING_PX = 116;
+const CHAT_BOTTOM_CONTENT_PADDING_PX = 112;
 const SCROLL_DOWN_VISIBILITY_THRESHOLD_PX = 8;
 
 type ChatTurnStatus = "preparing" | "streaming" | "complete";
@@ -38,15 +35,24 @@ type ChatTurn = {
   status: ChatTurnStatus;
 };
 
-type AiResponseScreenProps = {
+function getLeadingKeyPointsLength(answer: string) {
+  if (!answer.trimStart().toLowerCase().startsWith("key points")) {
+    return 0;
+  }
+
+  const keyPointsEnd = answer.indexOf("\n\n");
+  return keyPointsEnd === -1 ? answer.length : keyPointsEnd;
+}
+
+type MedscapeAiCurrentScreenProps = {
   initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
 };
 
-export function AiResponseScreen({
+export function MedscapeAiCurrentScreen({
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
-}: AiResponseScreenProps) {
+}: MedscapeAiCurrentScreenProps) {
   const router = useRouter();
   const responseScrollRef = useRef<HTMLDivElement>(null);
   const turnArticleRefs = useRef(new Map<number, HTMLElement>());
@@ -60,7 +66,6 @@ export function AiResponseScreen({
   const [composerDraft, setComposerDraft] = useState("");
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [bottomSpacerHeight, setBottomSpacerHeight] = useState(0);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
   const isGenerationInProgress = chatTurns.some(
     (turn) => turn.status === "preparing" || turn.status === "streaming",
@@ -112,7 +117,7 @@ export function AiResponseScreen({
 
       responseScroll.scrollTo({
         behavior,
-        top: Math.max(turnTop - 12, 0),
+        top: Math.max(turnTop - 10, 0),
       });
     },
     [scrollResponseToBottom],
@@ -126,7 +131,7 @@ export function AiResponseScreen({
     const responseRect = responseScroll.getBoundingClientRect();
     const turnRect = turnArticle.getBoundingClientRect();
     const turnTop = turnRect.top - responseRect.top + responseScroll.scrollTop;
-    const targetTop = Math.max(turnTop - 12, 0);
+    const targetTop = Math.max(turnTop - 10, 0);
     const maxScrollTop = Math.max(responseScroll.scrollHeight - responseScroll.clientHeight, 0);
 
     return Math.max(targetTop - maxScrollTop + 16, 0);
@@ -190,13 +195,21 @@ export function AiResponseScreen({
       responseDelayTimeoutRef.current = setTimeout(() => {
         if (activeTurnIdRef.current !== newTurnId) return;
 
+        const initialAnswerLength = getLeadingKeyPointsLength(answerText);
+
         setChatTurns((currentTurns): ChatTurn[] =>
           currentTurns.map((turn): ChatTurn =>
-            turn.id === newTurnId ? { ...turn, status: "streaming" } : turn,
+            turn.id === newTurnId
+              ? {
+                  ...turn,
+                  answer: answerText.slice(0, initialAnswerLength),
+                  status: "streaming",
+                }
+              : turn,
           ),
         );
 
-        let nextLength = 0;
+        let nextLength = initialAnswerLength;
         responseStreamIntervalRef.current = setInterval(() => {
           if (activeTurnIdRef.current !== newTurnId) {
             clearResponseTimers();
@@ -253,17 +266,12 @@ export function AiResponseScreen({
           status: "complete",
         },
       ]);
-
-      requestAnimationFrame(() => {
-        scrollTurnQuestionToTop(nextTurnId, "auto");
-      });
     },
-    [clearResponseTimers, scrollTurnQuestionToTop],
+    [clearResponseTimers],
   );
 
   const submitQuestion = useCallback(
     (question: string, options?: { focusComposer?: boolean }) => {
-      setIsSidebarOpen(false);
       startStreamingTurn(question, options);
     },
     [startStreamingTurn],
@@ -274,21 +282,6 @@ export function AiResponseScreen({
       clearResponseTimers();
     };
   }, [clearResponseTimers]);
-
-  useEffect(() => {
-    if (!isSidebarOpen) return;
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsSidebarOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleEscape);
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-    };
-  }, [isSidebarOpen]);
 
   useEffect(() => {
     const responseScroll = responseScrollRef.current;
@@ -353,10 +346,7 @@ export function AiResponseScreen({
     if (!responseScroll) return;
 
     const target = event.target;
-    if (
-      target instanceof HTMLElement &&
-      (responseScroll.contains(target) || target.closest('[data-ai-response-sidebar="true"]'))
-    ) {
+    if (target instanceof HTMLElement && responseScroll.contains(target)) {
       return;
     }
 
@@ -389,25 +379,6 @@ export function AiResponseScreen({
     );
   };
 
-  const handleScrollToBottomClick = () => {
-    scrollResponseToBottom("smooth");
-  };
-
-  const handleLandingClick = () => {
-    setIsSidebarOpen(false);
-    navigate("/ai-response");
-  };
-
-  const handleHomeClick = () => {
-    setIsSidebarOpen(false);
-    navigate("/");
-  };
-
-  const handleHistoryConversationClick = (question: string) => {
-    setIsSidebarOpen(false);
-    navigate(`/ai-response/chat?q=${encodeURIComponent(question)}&mode=complete`);
-  };
-
   const handleSubmitQuestion = () => {
     if (!composerDraft.trim()) return;
     submitQuestion(composerDraft);
@@ -415,159 +386,119 @@ export function AiResponseScreen({
 
   return (
     <main
-      className="relative flex h-dvh min-h-0 overflow-hidden bg-[#dce8fb] text-[var(--mscp-color-text-primary)]"
+      className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#e8f0fb] text-[#161b1d]"
       onWheelCapture={handleWheelCapture}
     >
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,#d7e6fd_0%,#e9f2ff_34%,#d5e5ff_100%)]" />
-        <div className="absolute inset-x-0 top-0 h-[220px] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.85)_0%,rgba(255,255,255,0)_72%)]" />
-        <div className="absolute -left-20 top-24 h-64 w-64 rounded-full bg-[rgba(114,166,255,0.14)] blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-[rgba(6,74,167,0.10)] blur-3xl" />
-      </div>
+      <MedscapeCurrentHeader />
 
-      <section className="relative flex min-h-0 flex-1 p-2 md:p-3">
-        <div className="relative flex min-h-0 flex-1 overflow-hidden rounded-[22px] border border-[rgba(109,153,206,0.42)] bg-white shadow-[0_18px_44px_rgba(6,74,167,0.12)]">
-          <button
-            type="button"
-            aria-label="Close sidebar"
-            onClick={() => setIsSidebarOpen(false)}
-            className={`absolute inset-0 z-30 bg-[rgba(217,230,249,0.66)] transition md:hidden ${
-              isSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
-            }`}
-          />
-
-          <div
-            className={`hidden shrink-0 transition-[width] duration-300 ease-out md:block ${
-              isSidebarOpen ? "w-[272px]" : "w-0"
-            }`}
-          />
-
-          <AiResponseSidebar
-            isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
-            onHistoryConversationClick={handleHistoryConversationClick}
-            onHomeClick={handleHomeClick}
-            onNewChatClick={handleLandingClick}
-          />
-
-          <section className="relative flex min-h-0 flex-1 flex-col">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 top-0 z-10 h-[72px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_68%,rgba(255,255,255,0)_100%)]"
+      <section className="relative min-h-0 flex-1 p-0 md:p-3">
+        <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-white md:rounded-[12px]">
+          <div className="absolute right-4 top-5 z-30 flex items-center gap-4 md:left-8 md:right-auto md:top-4">
+            <AiTopRailAction
+              iconSrc={aiResponseAssets.uiIcons.history}
+              label="History"
+              onClick={() =>
+                navigate(
+                  `/medscape-ai-current/chat?q=${encodeURIComponent(defaultInitialQuestion)}&mode=complete`,
+                )
+              }
+              variant="text"
             />
+            <AiTopRailAction
+              iconClassName="h-[18px] w-[18px] object-contain"
+              iconSrc={aiResponseAssets.uiIcons.newChat}
+              label="New Chat"
+              onClick={() => navigate("/medscape-ai-current")}
+              variant="text"
+            />
+          </div>
 
-            <div className="relative z-20 flex min-h-0 flex-1 flex-col">
-              <div className="sticky top-0 z-30">
-                <div className="absolute inset-x-0 top-0 h-[68px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_72%,rgba(255,255,255,0)_100%)]" />
-                <div className="relative flex min-h-[48px] items-start justify-between gap-2 px-3 pt-2 md:min-h-[52px] md:px-5 md:pt-2">
-                  <button
-                    type="button"
-                    aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
-                    aria-expanded={isSidebarOpen}
-                    onClick={() => setIsSidebarOpen((current) => !current)}
-                    className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-white/70"
-                  >
-                    <AiMenuIcon />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleLandingClick}
-                    className="absolute left-1/2 top-1 -translate-x-1/2 rounded-full px-3 py-1.5 transition md:top-1.5"
-                    aria-label="Go to new chat"
-                  >
-                    <img
-                      src={aiResponseAssets.logoAssets.medscapeAi}
-                      alt="Medscape AI"
-                      className="h-[22px] w-auto object-contain md:h-[24px]"
-                    />
-                  </button>
-
-                  <div className="relative z-10 ml-auto flex items-center gap-0.5 md:gap-1">
-                    <AiTopRailAction iconSrc={aiResponseAssets.uiIcons.share} label="Share" />
-                    <AiTopRailAction
-                      iconSrc={aiResponseAssets.uiIcons.download}
-                      label="Download"
-                    />
-                  </div>
-                </div>
+          <div ref={responseScrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="mx-auto w-full max-w-[980px] px-5 pb-[124px] pt-[57px] md:px-7 md:pb-[136px] md:pt-4">
+              <div className="mb-5 hidden items-center justify-center gap-2 text-[15px] font-semibold text-[#2c353a] md:flex">
+                <CurrentSparkIcon className="h-4 w-4" />
+                <span>Medscape AI</span>
               </div>
 
-              <div ref={responseScrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-                <div className="mx-auto w-full max-w-[980px] px-5 pb-[124px] pt-3 md:px-7 md:pb-[136px] md:pt-6">
-                  {chatTurns.map((turn) => (
-                    <article
-                      key={turn.id}
-                      ref={(node) => registerTurnArticle(turn.id, node)}
-                      className="mx-auto mb-10 max-w-[900px] last:mb-0"
-                    >
-                      <h1 className="mb-6 text-[24px] leading-[1.24] font-extrabold tracking-[-0.02em] text-[#22282d] md:text-[30px]">
-                        {turn.question}
-                      </h1>
+              {chatTurns.map((turn) => (
+                <article
+                  key={turn.id}
+                  ref={(node) => registerTurnArticle(turn.id, node)}
+                  className="mx-auto mb-10 max-w-[900px] last:mb-0"
+                >
+                  <div className="mb-5 flex items-center gap-2 text-[16px] font-bold text-[#252c31] md:hidden">
+                    <CurrentSparkIcon className="h-4 w-4" />
+                    <span>Medscape AI</span>
+                  </div>
 
-                      {turn.status === "preparing" ? (
-                        <AiPreparingAnswerNotice question={turn.question} />
-                      ) : null}
+                  <h1 className="mb-7 text-[19px] leading-[1.25] font-extrabold tracking-[0] text-[#11181d] md:mb-5 md:mt-5 md:text-[24px] md:leading-[1.25]">
+                    {turn.question}
+                  </h1>
 
-                      {turn.answer ? <AiResponseAnswerContent answer={turn.answer} /> : null}
-
-                      {turn.status === "complete" && turn.answer ? (
-                        <AiResponseAnswerActions answer={turn.answer} />
-                      ) : null}
-                    </article>
-                  ))}
-
-                  {bottomSpacerHeight > 0 ? (
-                    <div aria-hidden="true" style={{ height: `${bottomSpacerHeight}px` }} />
+                  {turn.status === "preparing" ? (
+                    <>
+                      <AiPreparingAnswerNotice
+                        className="mb-6 flex max-w-[520px] items-start gap-4 text-[16px] leading-[1.45] text-[#5f6972] md:mb-0 md:items-center md:gap-3 md:text-[14px]"
+                        iconClassName="h-[18px] w-[18px]"
+                        text={getCurrentProgressText(turn.question)}
+                        textClassName=""
+                      />
+                      <MedscapeCurrentAdBlock className="mt-5 md:mt-4" />
+                    </>
                   ) : null}
-                </div>
-              </div>
 
-              <div className="pointer-events-none absolute inset-x-0 bottom-[71px] z-10 md:bottom-[76px]">
-                <div className="mx-auto flex w-full max-w-[980px] justify-center px-5 md:px-7">
-                  <button
-                    type="button"
-                    aria-label="Scroll to latest"
-                    aria-hidden={!showScrollToBottomButton}
-                    tabIndex={showScrollToBottomButton ? 0 : -1}
-                    disabled={!showScrollToBottomButton}
-                    onClick={handleScrollToBottomClick}
-                    className={`inline-flex h-8 w-8 items-center justify-center transition-all duration-200 ease-out ${
-                      showScrollToBottomButton
-                        ? "pointer-events-auto translate-y-0 opacity-100"
-                        : "pointer-events-none translate-y-1 opacity-0"
-                    }`}
-                  >
-                    <img
-                      src={aiResponseAssets.composerIcons.scrollDown}
-                      alt=""
-                      aria-hidden="true"
-                      className="h-8 w-8 object-contain"
-                    />
-                  </button>
-                </div>
-              </div>
+                  {turn.answer ? <AiResponseAnswerContent answer={turn.answer} /> : null}
 
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-                <div className="mx-auto w-full max-w-[980px] px-4 pb-0 md:px-6">
-                  <div className="rounded-t-[28px] bg-gradient-to-b from-transparent via-white/82 to-white px-2 pb-[max(env(safe-area-inset-bottom),6px)] pt-3 md:pt-4">
-                    <AiResponseChatComposer
-                      formClassName="pointer-events-auto flex min-h-[48px] items-center gap-2 rounded-[999px] border border-[rgba(109,153,206,0.45)] bg-white px-4 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_8px_22px_rgba(16,24,40,0.06)]"
-                      iconClassName="h-8 w-8"
-                      inputClassName="h-8 flex-1 border-0 bg-transparent text-[16px] leading-[20px] text-[#1b2b3a] outline-none placeholder:text-[#93a2ae]"
-                      inputRef={composerInputRef}
-                      isGenerating={isGenerationInProgress}
-                      onStopGeneration={handleStopGeneration}
-                      onSubmit={handleSubmitQuestion}
-                      onValueChange={setComposerDraft}
-                      submitButtonClassName="inline-flex h-8 w-8 shrink-0 items-center justify-center"
-                      value={composerDraft}
-                    />
-                  </div>
-                </div>
+                  {turn.status === "complete" && turn.answer ? (
+                    <AiResponseAnswerActions answer={turn.answer} />
+                  ) : null}
+                </article>
+              ))}
+
+              {bottomSpacerHeight > 0 ? (
+                <div aria-hidden="true" style={{ height: `${bottomSpacerHeight}px` }} />
+              ) : null}
+            </div>
+          </div>
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-[64px] z-10 md:bottom-[76px]">
+            <div className="mx-auto flex w-full max-w-[980px] justify-center px-5 md:px-7">
+              <button
+                type="button"
+                aria-label="Scroll to latest"
+                aria-hidden={!showScrollToBottomButton}
+                tabIndex={showScrollToBottomButton ? 0 : -1}
+                disabled={!showScrollToBottomButton}
+                onClick={() => scrollResponseToBottom("smooth")}
+                className={`inline-flex h-8 w-8 items-center justify-center transition-all duration-200 ease-out ${
+                  showScrollToBottomButton
+                    ? "pointer-events-auto translate-y-0 opacity-100"
+                    : "pointer-events-none translate-y-1 opacity-0"
+                }`}
+              >
+                <CurrentScrollDownIcon />
+              </button>
+            </div>
+          </div>
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
+            <div className="mx-auto w-full max-w-[980px] px-4 pb-0 md:px-6">
+              <div className="rounded-t-[28px] bg-gradient-to-b from-transparent via-white/82 to-white px-2 pb-[max(env(safe-area-inset-bottom),6px)] pt-3 md:pt-4">
+                <AiResponseChatComposer
+                  formClassName="pointer-events-auto flex min-h-[48px] items-center gap-2 rounded-[999px] border border-[rgba(109,153,206,0.45)] bg-white px-4 py-1 shadow-[0_1px_2px_rgba(16,24,40,0.05),0_8px_22px_rgba(16,24,40,0.06)]"
+                  iconClassName="h-8 w-8"
+                  inputClassName="h-8 flex-1 border-0 bg-transparent text-[16px] leading-[20px] text-[#1b2b3a] outline-none placeholder:text-[#93a2ae]"
+                  inputRef={composerInputRef}
+                  isGenerating={isGenerationInProgress}
+                  onStopGeneration={handleStopGeneration}
+                  onSubmit={handleSubmitQuestion}
+                  onValueChange={setComposerDraft}
+                  submitButtonClassName="inline-flex h-8 w-8 shrink-0 items-center justify-center"
+                  value={composerDraft}
+                />
               </div>
             </div>
-          </section>
+          </div>
         </div>
       </section>
     </main>
