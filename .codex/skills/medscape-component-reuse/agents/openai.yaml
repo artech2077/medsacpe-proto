@@ -1,0 +1,4 @@
+interface:
+  display_name: "Medscape Component Reuse"
+  short_description: "Reuse existing prototype components before creating new ones."
+  default_prompt: "Use this skill when building or refactoring Medscape AI prototype screens so existing shared components are discovered and reused before adding new components."
