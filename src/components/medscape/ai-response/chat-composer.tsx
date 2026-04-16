@@ -14,7 +14,7 @@ type AiResponseChatComposerProps = {
   inputClassName?: string;
   inputRef?: RefObject<HTMLInputElement | null>;
   isGenerating: boolean;
-  note?: string | null;
+  note?: ReactNode | null;
   noteClassName?: string;
   onStopGeneration?: () => void;
   onSubmit: () => void;
@@ -36,7 +36,12 @@ export function AiResponseChatComposer({
   inputClassName,
   inputRef,
   isGenerating,
-  note = "AI may make mistakes. Always apply your clinical judgment.",
+  note = (
+    <>
+      AI may make mistakes.{" "}
+      <span className="text-[var(--mscp-color-brand-primary)]">Medscape AI Disclaimer</span>
+    </>
+  ),
   noteClassName = "pointer-events-auto mt-1 text-center text-[10px] leading-[13px] text-[#647484]",
   onStopGeneration,
   onSubmit,

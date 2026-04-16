@@ -3,14 +3,22 @@
 
 import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
+import { MedscapeCurrentTopRailActions } from "@/components/medscape/ai-current/current-top-rail-actions";
+import { CurrentSparkIcon } from "@/components/medscape/ai-current/current-icons";
 import { MedscapeCurrentHeader } from "@/components/medscape/ai-current/global-header";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
 import { AiMicrophoneIcon } from "@/components/medscape/ai-response/iconography";
+import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiPromptSectionsList } from "@/components/medscape/ai-response/prompt-card";
-import { AiTopRailAction } from "@/components/medscape/ai-response/top-rail-action";
-import { aiResponseAssets, defaultInitialQuestion, promptSections } from "@/data/ai-response";
+import { defaultInitialQuestion, promptSections } from "@/data/ai-response";
 
-export function MedscapeAiCurrentLanding() {
+type MedscapeAiCurrentLandingProps = {
+  prototypeRoute?: string;
+};
+
+export function MedscapeAiCurrentLanding({
+  prototypeRoute = "/medscape-ai-current",
+}: MedscapeAiCurrentLandingProps) {
   const router = useRouter();
   const [draft, setDraft] = useState("");
 
@@ -25,7 +33,7 @@ export function MedscapeAiCurrentLanding() {
     if (!trimmedQuestion) return;
 
     const modeQuery = mode === "complete" ? "&mode=complete" : "";
-    navigate(`/medscape-ai-current/chat?q=${encodeURIComponent(trimmedQuestion)}${modeQuery}`);
+    navigate(`${prototypeRoute}/chat?q=${encodeURIComponent(trimmedQuestion)}${modeQuery}`);
   };
 
   const handleSubmit = () => {
@@ -37,23 +45,29 @@ export function MedscapeAiCurrentLanding() {
       <MedscapeCurrentHeader />
 
       <section className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-5 md:px-0">
-        <div className="absolute right-4 top-5 z-20 flex items-center gap-4 md:left-[38px] md:right-auto md:top-[28px]">
-          <AiTopRailAction
-            iconSrc={aiResponseAssets.uiIcons.history}
-            label="History"
-            onClick={() => navigateToChat(defaultInitialQuestion, "complete")}
-            variant="text"
-          />
-          <AiTopRailAction
-            iconClassName="h-[18px] w-[18px] object-contain"
-            iconSrc={aiResponseAssets.uiIcons.newChat}
-            label="New Chat"
-            onClick={() => setDraft("")}
-            variant="text"
+        <div className="absolute right-4 top-5 z-20 hidden md:left-[38px] md:right-auto md:top-[28px] md:block">
+          <MedscapeCurrentTopRailActions
+            onHistoryClick={() => navigateToChat(defaultInitialQuestion, "complete")}
+            onNewChatClick={() => setDraft("")}
           />
         </div>
 
-        <div className="mx-auto flex min-h-full w-full max-w-[1024px] flex-col items-center pt-[214px] md:pt-[122px]">
+        <AiMobileTopRail
+          left={
+            <div className="flex items-center gap-2 text-[16px] font-bold text-[#252c31]">
+              <CurrentSparkIcon className="h-4 w-4" />
+              <span>Medscape AI</span>
+            </div>
+          }
+          right={
+            <MedscapeCurrentTopRailActions
+              onHistoryClick={() => navigateToChat(defaultInitialQuestion, "complete")}
+              onNewChatClick={() => setDraft("")}
+            />
+          }
+        />
+
+        <div className="mx-auto flex min-h-full w-full max-w-[1024px] flex-col items-center pt-[158px] md:pt-[122px]">
           <div className="flex flex-col items-center">
             <img
               src="/assets/medscape-ai.svg"
@@ -80,7 +94,7 @@ export function MedscapeAiCurrentLanding() {
             </div>
           </div>
 
-          <div className="mt-8 flex w-full max-w-[640px] flex-col items-center gap-3">
+          <div className="mt-8 flex w-full flex-col items-center gap-3">
             <p className="w-full max-w-[600px] text-center text-[10px] leading-[14px] font-semibold tracking-[0.04em] text-[#2c353a] uppercase md:text-[12px] md:leading-[18px]">
               Discover what you can ask Medscape AI
             </p>

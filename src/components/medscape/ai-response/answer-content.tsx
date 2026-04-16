@@ -1,24 +1,139 @@
 "use client";
 
-import type { ReactNode } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { AiCloseIcon } from "@/components/medscape/ai-response/iconography";
+import { AiResponseReferenceCard } from "@/components/medscape/ai-response/reference-card";
+import type { AiAnswerReference } from "@/data/ai-response";
 
 export type AiAnswerBlock =
   | { text: string; type: "heading" | "paragraph" }
   | { items: string[]; type: "list" };
 
-export function buildAnswerBlocks(answer: string) {
+type AiAnswerBlockWithRange =
+  | { end: number; start: number; text: string; type: "heading" | "paragraph" }
+  | { end: number; items: string[]; start: number; type: "list" };
+
+type LeadingKeyPointsSplit = {
+  body: string;
+  keyPoints: string[];
+};
+
+type TooltipPosition = {
+  arrowLeft: number;
+  left: number;
+  top: number;
+  width: number;
+};
+
+const LEADING_KEY_POINTS_PATTERN =
+  /^\s*Key Points\s*\n((?:-\s+.*(?:\n|$))*)(?:\n+)*/i;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getCitationBlockIndexes(blocks: AiAnswerBlock[], citationCount: number) {
+  if (citationCount === 0) {
+    return new Map<number, number>();
+  }
+
+  const sectionEndIndexes: number[] = [];
+  let lastContentIndex: number | null = null;
+
+  blocks.forEach((block, index) => {
+    if (block.type === "heading") {
+      if (lastContentIndex !== null) {
+        sectionEndIndexes.push(lastContentIndex);
+        lastContentIndex = null;
+      }
+      return;
+    }
+
+    lastContentIndex = index;
+  });
+
+  if (lastContentIndex !== null) {
+    sectionEndIndexes.push(lastContentIndex);
+  }
+
+  const selectedIndexes = sectionEndIndexes.slice(-Math.min(citationCount, sectionEndIndexes.length));
+
+  if (selectedIndexes.length < citationCount) {
+    for (let index = blocks.length - 1; index >= 0; index -= 1) {
+      if (blocks[index]?.type === "heading" || selectedIndexes.includes(index)) {
+        continue;
+      }
+
+      selectedIndexes.unshift(index);
+
+      if (selectedIndexes.length >= citationCount) {
+        break;
+      }
+    }
+  }
+
+  return new Map(
+    selectedIndexes
+      .sort((left, right) => left - right)
+      .map((blockIndex, citationIndex) => [blockIndex, citationIndex + 1]),
+  );
+}
+
+export function splitLeadingKeyPoints(answer: string): LeadingKeyPointsSplit {
+  const match = answer.match(LEADING_KEY_POINTS_PATTERN);
+
+  if (!match) {
+    return { body: answer, keyPoints: [] };
+  }
+
+  const keyPoints = match[1]
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^-\s+/, ""));
+
+  return {
+    body: answer.slice(match[0].length).trimStart(),
+    keyPoints,
+  };
+}
+
+export function getLeadingKeyPointsLength(answer: string) {
+  const match = answer.match(LEADING_KEY_POINTS_PATTERN);
+  return match ? match[0].length : 0;
+}
+
+function buildAnswerBlocksWithRanges(answer: string): AiAnswerBlockWithRange[] {
   const lines = answer.split("\n");
-  const blocks: AiAnswerBlock[] = [];
+  const blocks: AiAnswerBlockWithRange[] = [];
   let currentList: string[] = [];
+  let currentListStart = 0;
+  let currentListEnd = 0;
+  let offset = 0;
 
   const flushList = () => {
     if (currentList.length === 0) return;
-    blocks.push({ items: currentList, type: "list" });
+    blocks.push({
+      end: currentListEnd,
+      items: currentList,
+      start: currentListStart,
+      type: "list",
+    });
     currentList = [];
   };
 
   for (const line of lines) {
+    const lineStart = offset;
+    const lineEnd = lineStart + line.length;
     const trimmedLine = line.trim();
+    offset = lineEnd + 1;
 
     if (!trimmedLine) {
       flushList();
@@ -26,7 +141,11 @@ export function buildAnswerBlocks(answer: string) {
     }
 
     if (/^-\s+/.test(trimmedLine)) {
+      if (currentList.length === 0) {
+        currentListStart = lineStart;
+      }
       currentList.push(trimmedLine.replace(/^-\s+/, ""));
+      currentListEnd = lineEnd;
       continue;
     }
 
@@ -37,23 +156,62 @@ export function buildAnswerBlocks(answer: string) {
       trimmedLine.length <= 40 &&
       !trimmedLine.endsWith(".")
     ) {
-      blocks.push({ text: trimmedLine, type: "heading" });
+      blocks.push({ end: lineEnd, start: lineStart, text: trimmedLine, type: "heading" });
       continue;
     }
 
-    blocks.push({ text: trimmedLine, type: "paragraph" });
+    blocks.push({ end: lineEnd, start: lineStart, text: trimmedLine, type: "paragraph" });
   }
 
   flushList();
   return blocks;
 }
 
+export function buildAnswerBlocks(answer: string) {
+  return buildAnswerBlocksWithRanges(answer).map((block) => {
+    if (block.type === "list") {
+      return { items: block.items, type: block.type };
+    }
+
+    return { text: block.text, type: block.type };
+  });
+}
+
 type AiResponseAnswerContentProps = {
   answer: string;
   className?: string;
+  fullAnswer?: string;
+  references?: AiAnswerReference[];
 };
 
-function renderInlineText(text: string): ReactNode[] {
+function AiResponseCitationMarker({
+  citationId,
+  isActive,
+  onClick,
+  registerButton,
+}: {
+  citationId: number;
+  isActive: boolean;
+  onClick: (citationId: number) => void;
+  registerButton: (citationId: number, node: HTMLButtonElement | null) => void;
+}) {
+  return (
+    <button
+      ref={(node) => registerButton(citationId, node)}
+      type="button"
+      aria-label={`Open citation ${citationId}`}
+      aria-pressed={isActive}
+      onClick={() => onClick(citationId)}
+      className={`ml-1 inline-flex h-5 w-5 translate-y-[-1px] items-center justify-center rounded-full text-[13px] leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
+        isActive ? "bg-[#dfeafb] text-[#161b1d]" : "bg-[#ecf1f9] text-[#161b1d] hover:bg-[#dfeafb]"
+      }`}
+    >
+      {citationId}
+    </button>
+  );
+}
+
+export function renderInlineText(text: string): ReactNode[] {
   return text
     .split(/(\*\*[^*]+\*\*)/g)
     .filter(Boolean)
@@ -73,12 +231,158 @@ function renderInlineText(text: string): ReactNode[] {
 export function AiResponseAnswerContent({
   answer,
   className,
+  fullAnswer,
+  references = [],
 }: AiResponseAnswerContentProps) {
-  const blocks = buildAnswerBlocks(answer);
+  const [openCitationId, setOpenCitationId] = useState<number | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const citationButtonRefs = useRef(new Map<number, HTMLButtonElement>());
+
+  const { body } = splitLeadingKeyPoints(answer);
+  const { body: fullBody } = splitLeadingKeyPoints(fullAnswer ?? answer);
+  const blocks = useMemo(() => buildAnswerBlocks(body), [body]);
+  const fullBlocks = useMemo(() => buildAnswerBlocksWithRanges(fullBody), [fullBody]);
+  const citationTargets = useMemo(
+    () =>
+      new Map(
+        Array.from(getCitationBlockIndexes(fullBlocks, references.length).entries()).map(
+          ([blockIndex, citationId]) => [
+            blockIndex,
+            { citationId, end: fullBlocks[blockIndex]?.end ?? 0 },
+          ],
+        ),
+      ),
+    [fullBlocks, references.length],
+  );
+  const openReference = useMemo(
+    () => references.find((reference) => reference.id === openCitationId) ?? null,
+    [openCitationId, references],
+  );
+
+  const registerCitationButton = useCallback(
+    (citationId: number, node: HTMLButtonElement | null) => {
+      if (node) {
+        citationButtonRefs.current.set(citationId, node);
+        return;
+      }
+
+      citationButtonRefs.current.delete(citationId);
+    },
+    [],
+  );
+
+  const updateTooltipPosition = useCallback(() => {
+    if (!openCitationId) {
+      setTooltipPosition(null);
+      return;
+    }
+
+    const contentElement = contentRef.current;
+    const citationButton = citationButtonRefs.current.get(openCitationId);
+    if (!contentElement || !citationButton) {
+      setTooltipPosition(null);
+      return;
+    }
+
+    const contentRect = contentElement.getBoundingClientRect();
+    const buttonRect = citationButton.getBoundingClientRect();
+    const maxWidth = Math.max(Math.min(500, contentRect.width - 24), 240);
+    const markerCenter = buttonRect.left - contentRect.left + buttonRect.width / 2;
+    const left = clamp(markerCenter - maxWidth / 2, 12, Math.max(contentRect.width - maxWidth - 12, 12));
+    const arrowLeft = clamp(markerCenter - left, 22, maxWidth - 22);
+    const top = buttonRect.bottom - contentRect.top + 16;
+
+    setTooltipPosition({
+      arrowLeft,
+      left,
+      top,
+      width: maxWidth,
+    });
+  }, [openCitationId]);
+
+  useEffect(() => {
+    if (!openCitationId) {
+      return;
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      updateTooltipPosition();
+    });
+
+    const handleLayoutChange = () => {
+      updateTooltipPosition();
+    };
+
+    window.addEventListener("resize", handleLayoutChange);
+    window.addEventListener("scroll", handleLayoutChange, true);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", handleLayoutChange);
+      window.removeEventListener("scroll", handleLayoutChange, true);
+    };
+  }, [openCitationId, updateTooltipPosition]);
+
+  useEffect(() => {
+    if (!openCitationId) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      if (tooltipRef.current?.contains(target)) {
+        return;
+      }
+
+      for (const button of citationButtonRefs.current.values()) {
+        if (button.contains(target)) {
+          return;
+        }
+      }
+
+      setOpenCitationId(null);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpenCitationId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [openCitationId]);
+
+  if (blocks.length === 0) {
+    return null;
+  }
 
   return (
-    <div className={className ?? "text-[16px] leading-[1.45] text-[var(--mscp-color-text-body)]"}>
+    <div
+      ref={contentRef}
+      className={[
+        "relative text-[16px] leading-[1.45] text-[var(--mscp-color-text-body)]",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {blocks.map((block, index) => {
+        const citationTarget = citationTargets.get(index);
+        const citationId =
+          citationTarget && citationTarget.end <= body.length ? citationTarget.citationId : null;
+
         if (block.type === "heading") {
           return (
             <h2
@@ -96,9 +400,27 @@ export function AiResponseAnswerContent({
               key={`${block.type}-${index}`}
               className="mt-5 list-disc space-y-3 pl-6 marker:text-[#252c31]"
             >
-              {block.items.map((item, itemIndex) => (
-                <li key={`${item}-${itemIndex}`}>{renderInlineText(item)}</li>
-              ))}
+              {block.items.map((item, itemIndex) => {
+                const isLastItem = itemIndex === block.items.length - 1;
+
+                return (
+                  <li key={`${item}-${itemIndex}`}>
+                    {renderInlineText(item)}
+                    {citationId && isLastItem ? (
+                      <AiResponseCitationMarker
+                        citationId={citationId}
+                        isActive={openCitationId === citationId}
+                        onClick={(nextCitationId) =>
+                          setOpenCitationId((current) =>
+                            current === nextCitationId ? null : nextCitationId,
+                          )
+                        }
+                        registerButton={registerCitationButton}
+                      />
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           );
         }
@@ -106,9 +428,56 @@ export function AiResponseAnswerContent({
         return (
           <p key={`${block.type}-${index}`} className="mt-5 first:mt-0">
             {renderInlineText(block.text)}
+            {citationId ? (
+              <AiResponseCitationMarker
+                citationId={citationId}
+                isActive={openCitationId === citationId}
+                onClick={(nextCitationId) =>
+                  setOpenCitationId((current) => (current === nextCitationId ? null : nextCitationId))
+                }
+                registerButton={registerCitationButton}
+              />
+            ) : null}
           </p>
         );
       })}
+
+      {openReference && tooltipPosition ? (
+        <div
+          ref={tooltipRef}
+          className="absolute z-20"
+          style={{
+            left: `${tooltipPosition.left}px`,
+            top: `${tooltipPosition.top}px`,
+            width: `${tooltipPosition.width}px`,
+          }}
+        >
+          <div
+            aria-hidden="true"
+            className="absolute top-[-11px] h-0 w-0 border-x-[12px] border-b-[12px] border-x-transparent border-b-white"
+            style={{ left: `${tooltipPosition.arrowLeft}px`, transform: "translateX(-50%)" }}
+          />
+
+          <div className="rounded-[4px] bg-white p-3 shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+            <div className="flex items-start gap-2">
+              <AiResponseReferenceCard
+                reference={openReference}
+                variant="compact"
+                className="min-w-0 flex-1"
+              />
+
+              <button
+                type="button"
+                aria-label="Close citation tooltip"
+                onClick={() => setOpenCitationId(null)}
+                className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#2c353a] transition hover:bg-[#f4f7fb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              >
+                <AiCloseIcon />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

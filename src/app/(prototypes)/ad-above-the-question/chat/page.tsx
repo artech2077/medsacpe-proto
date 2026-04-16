@@ -1,16 +1,16 @@
 import { redirect } from "next/navigation";
 import { MedscapeAiCurrentScreen } from "@/components/screens/medscape-ai-current-screen";
 
-type MedscapeAiCurrentChatPageProps = {
+type AdAboveTheQuestionChatPageProps = {
   searchParams: Promise<{
     mode?: string | string[];
     q?: string | string[];
   }>;
 };
 
-export default async function MedscapeAiCurrentChatPage({
+export default async function AdAboveTheQuestionChatPage({
   searchParams,
-}: MedscapeAiCurrentChatPageProps) {
+}: AdAboveTheQuestionChatPageProps) {
   const params = await searchParams;
   const modeValue = Array.isArray(params.mode) ? params.mode[0] : params.mode;
   const questionValue = Array.isArray(params.q) ? params.q[0] : params.q;
@@ -18,14 +18,15 @@ export default async function MedscapeAiCurrentChatPage({
   const initialConversationMode = modeValue === "complete" ? "complete" : "stream";
 
   if (!initialQuestion) {
-    redirect("/medscape-ai-current");
+    redirect("/ad-above-the-question");
   }
 
   return (
     <MedscapeAiCurrentScreen
+      adPlacement="above-question"
       initialConversationMode={initialConversationMode}
       initialQuestion={initialQuestion}
-      prototypeRoute="/medscape-ai-current"
+      prototypeRoute="/ad-above-the-question"
     />
   );
 }

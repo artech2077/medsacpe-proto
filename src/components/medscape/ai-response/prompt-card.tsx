@@ -15,7 +15,7 @@ export function AiPromptCard({ onPromptSelect, section }: AiPromptCardProps) {
         <AiPromptSectionIcon id={section.id} />
         <span>{section.title}</span>
       </header>
-      <div className="border-t border-[var(--mscp-color-border-primary)]">
+      <div className="border-t border-[#EBEBEB]">
         {section.prompts.map((prompt, index) => (
           <button
             key={prompt}
@@ -23,7 +23,7 @@ export function AiPromptCard({ onPromptSelect, section }: AiPromptCardProps) {
             onClick={() => onPromptSelect(prompt)}
             className={`flex w-full items-start gap-3 py-2 text-left text-[15px] leading-[20px] text-[var(--mscp-color-brand-primary)] transition hover:text-[#0a5fd2] ${
               index < section.prompts.length - 1
-                ? "border-b border-[var(--mscp-color-border-primary)]"
+                ? "border-b border-[#EBEBEB]"
                 : ""
             }`}
           >
@@ -48,7 +48,7 @@ export function AiPromptSectionsList({
   sections,
 }: AiPromptSectionsListProps) {
   return (
-    <div className="flex w-full flex-col gap-2">
+    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-2">
       {sections.map((section) => (
         <AiPromptCard key={section.id} section={section} onPromptSelect={onPromptSelect} />
       ))}

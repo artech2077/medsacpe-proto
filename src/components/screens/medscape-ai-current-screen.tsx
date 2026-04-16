@@ -10,17 +10,32 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
+import { MedscapeCurrentTopRailActions } from "@/components/medscape/ai-current/current-top-rail-actions";
 import { CurrentScrollDownIcon, CurrentSparkIcon } from "@/components/medscape/ai-current/current-icons";
 import { MedscapeCurrentHeader } from "@/components/medscape/ai-current/global-header";
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
-import { AiResponseAnswerContent } from "@/components/medscape/ai-response/answer-content";
+import {
+  AiResponseAnswerContent,
+  getLeadingKeyPointsLength,
+  splitLeadingKeyPoints,
+} from "@/components/medscape/ai-response/answer-content";
+import { AiResponseAnswerSupportingContent } from "@/components/medscape/ai-response/answer-supporting-content";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
+import {
+  AiResponseKeyPoints,
+  type AiResponseKeyPointsVariant,
+} from "@/components/medscape/ai-response/key-points";
+import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiPreparingAnswerNotice } from "@/components/medscape/ai-response/preparing-answer-notice";
-import { AiTopRailAction } from "@/components/medscape/ai-response/top-rail-action";
-import { aiResponseAssets, buildMockAnswer, defaultInitialQuestion } from "@/data/ai-response";
+import {
+  type AiAnswerSupportingContent,
+  buildMockAnswer,
+  buildMockAnswerSupportingContent,
+  defaultInitialQuestion,
+} from "@/data/ai-response";
 import { getCurrentProgressText } from "@/data/medscape-ai-current";
 
-const PRE_STREAM_DELAY_MS = 10000;
+const PRE_STREAM_DELAY_MS = 5000;
 const STREAM_TICK_MS = 18;
 const STREAM_CHUNK_SIZE = 4;
 const CHAT_BOTTOM_CONTENT_PADDING_PX = 112;
@@ -30,28 +45,34 @@ type ChatTurnStatus = "preparing" | "streaming" | "complete";
 
 type ChatTurn = {
   answer: string;
+  fullAnswer: string;
   id: number;
   question: string;
   status: ChatTurnStatus;
+  supportingContent: AiAnswerSupportingContent;
 };
 
-function getLeadingKeyPointsLength(answer: string) {
-  if (!answer.trimStart().toLowerCase().startsWith("key points")) {
-    return 0;
-  }
-
-  const keyPointsEnd = answer.indexOf("\n\n");
-  return keyPointsEnd === -1 ? answer.length : keyPointsEnd;
-}
+type MedscapeAiCurrentScreenAdPlacement =
+  | "after-progress"
+  | "above-question"
+  | "after-keypoints";
 
 type MedscapeAiCurrentScreenProps = {
+  adPlacement?: MedscapeAiCurrentScreenAdPlacement;
   initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
+  keyPointsDefaultExpanded?: boolean;
+  keyPointsVariant?: AiResponseKeyPointsVariant;
+  prototypeRoute?: string;
 };
 
 export function MedscapeAiCurrentScreen({
+  adPlacement = "after-progress",
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
+  keyPointsDefaultExpanded = true,
+  keyPointsVariant = "default",
+  prototypeRoute = "/medscape-ai-current",
 }: MedscapeAiCurrentScreenProps) {
   const router = useRouter();
   const responseScrollRef = useRef<HTMLDivElement>(null);
@@ -161,9 +182,11 @@ export function MedscapeAiCurrentScreen({
 
       const nextTurn: ChatTurn = {
         answer: "",
+        fullAnswer: answerText,
         id: newTurnId,
         question: trimmedQuestion,
         status: "preparing",
+        supportingContent: buildMockAnswerSupportingContent(trimmedQuestion),
       };
 
       setChatTurns((currentTurns): ChatTurn[] => [
@@ -261,9 +284,11 @@ export function MedscapeAiCurrentScreen({
       setChatTurns([
         {
           answer: buildMockAnswer(trimmedQuestion),
+          fullAnswer: buildMockAnswer(trimmedQuestion),
           id: nextTurnId,
           question: trimmedQuestion,
           status: "complete",
+          supportingContent: buildMockAnswerSupportingContent(trimmedQuestion),
         },
       ]);
     },
@@ -393,66 +418,117 @@ export function MedscapeAiCurrentScreen({
 
       <section className="relative min-h-0 flex-1 p-0 md:p-3">
         <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-white md:rounded-[12px]">
-          <div className="absolute right-4 top-5 z-30 flex items-center gap-4 md:left-8 md:right-auto md:top-4">
-            <AiTopRailAction
-              iconSrc={aiResponseAssets.uiIcons.history}
-              label="History"
-              onClick={() =>
+          <div className="absolute right-4 top-5 z-30 hidden md:left-8 md:right-auto md:top-4 md:block">
+            <MedscapeCurrentTopRailActions
+              onHistoryClick={() =>
                 navigate(
-                  `/medscape-ai-current/chat?q=${encodeURIComponent(defaultInitialQuestion)}&mode=complete`,
+                  `${prototypeRoute}/chat?q=${encodeURIComponent(defaultInitialQuestion)}&mode=complete`,
                 )
               }
-              variant="text"
-            />
-            <AiTopRailAction
-              iconClassName="h-[18px] w-[18px] object-contain"
-              iconSrc={aiResponseAssets.uiIcons.newChat}
-              label="New Chat"
-              onClick={() => navigate("/medscape-ai-current")}
-              variant="text"
+              onNewChatClick={() => navigate(prototypeRoute)}
             />
           </div>
 
+          <AiMobileTopRail
+            railClassName="bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_48%,rgba(255,255,255,0)_100%)] px-5 pb-2 pt-2"
+            contentClassName="relative flex min-h-[32px] items-center justify-between gap-3"
+            left={
+              <div className="flex items-center gap-2 text-[16px] leading-none font-bold text-[#252c31]">
+                <CurrentSparkIcon className="h-4 w-4" />
+                <span>Medscape AI</span>
+              </div>
+            }
+            right={
+              <MedscapeCurrentTopRailActions
+                onHistoryClick={() =>
+                  navigate(
+                    `${prototypeRoute}/chat?q=${encodeURIComponent(defaultInitialQuestion)}&mode=complete`,
+                  )
+                }
+                onNewChatClick={() => navigate(prototypeRoute)}
+              />
+            }
+            rightClassName="relative z-10 ml-auto flex items-center gap-4"
+          />
+
           <div ref={responseScrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <div className="mx-auto w-full max-w-[980px] px-5 pb-[124px] pt-[57px] md:px-7 md:pb-[136px] md:pt-4">
+            <div className="mx-auto w-full max-w-[980px] px-5 pb-[124px] pt-4 md:px-7 md:pb-[136px] md:pt-4">
               <div className="mb-5 hidden items-center justify-center gap-2 text-[15px] font-semibold text-[#2c353a] md:flex">
                 <CurrentSparkIcon className="h-4 w-4" />
                 <span>Medscape AI</span>
               </div>
 
               {chatTurns.map((turn) => (
-                <article
-                  key={turn.id}
-                  ref={(node) => registerTurnArticle(turn.id, node)}
-                  className="mx-auto mb-10 max-w-[900px] last:mb-0"
-                >
-                  <div className="mb-5 flex items-center gap-2 text-[16px] font-bold text-[#252c31] md:hidden">
-                    <CurrentSparkIcon className="h-4 w-4" />
-                    <span>Medscape AI</span>
-                  </div>
+                (() => {
+                  const keyPoints = turn.answer ? splitLeadingKeyPoints(turn.answer).keyPoints : [];
+                  const showAfterKeypointsAd =
+                    adPlacement === "after-keypoints" && keyPoints.length > 0;
 
-                  <h1 className="mb-7 text-[19px] leading-[1.25] font-extrabold tracking-[0] text-[#11181d] md:mb-5 md:mt-5 md:text-[24px] md:leading-[1.25]">
-                    {turn.question}
-                  </h1>
+                  return (
+                    <article
+                      key={turn.id}
+                      ref={(node) => registerTurnArticle(turn.id, node)}
+                      className="mx-auto mb-10 max-w-[900px] last:mb-0"
+                    >
+                      {adPlacement === "above-question" ? (
+                        <MedscapeCurrentAdBlock className="mb-5 md:mb-4" />
+                      ) : null}
 
-                  {turn.status === "preparing" ? (
-                    <>
-                      <AiPreparingAnswerNotice
-                        className="mb-6 flex max-w-[520px] items-start gap-4 text-[16px] leading-[1.45] text-[#5f6972] md:mb-0 md:items-center md:gap-3 md:text-[14px]"
-                        iconClassName="h-[18px] w-[18px]"
-                        text={getCurrentProgressText(turn.question)}
-                        textClassName=""
-                      />
-                      <MedscapeCurrentAdBlock className="mt-5 md:mt-4" />
-                    </>
-                  ) : null}
+                      <h1 className="mb-7 text-[19px] leading-[1.25] font-extrabold tracking-[0] text-[#11181d] md:mb-5 md:mt-5 md:text-[24px] md:leading-[1.25]">
+                        {turn.question}
+                      </h1>
 
-                  {turn.answer ? <AiResponseAnswerContent answer={turn.answer} /> : null}
+                      {turn.status === "preparing" ? (
+                        <>
+                          <AiPreparingAnswerNotice
+                            className={`flex max-w-[520px] items-start gap-4 text-[16px] leading-[1.45] text-[#5f6972] md:items-center md:gap-3 md:text-[14px] ${
+                              adPlacement === "above-question" ? "mb-6 md:mb-6" : "mb-6 md:mb-0"
+                            }`}
+                            iconClassName="h-[18px] w-[18px]"
+                            text={getCurrentProgressText(turn.question)}
+                            textClassName=""
+                          />
+                          {adPlacement === "after-progress" ? (
+                            <MedscapeCurrentAdBlock className="mt-5 md:mt-4" />
+                          ) : null}
+                        </>
+                      ) : null}
 
-                  {turn.status === "complete" && turn.answer ? (
-                    <AiResponseAnswerActions answer={turn.answer} />
-                  ) : null}
-                </article>
+                      {turn.answer ? (
+                        <AiResponseKeyPoints
+                          className="mb-6"
+                          defaultExpanded={keyPointsDefaultExpanded}
+                          keyPoints={keyPoints}
+                          variant={keyPointsVariant}
+                        />
+                      ) : null}
+
+                      {showAfterKeypointsAd ? (
+                        <MedscapeCurrentAdBlock className="mb-6" />
+                      ) : null}
+
+                      {turn.answer ? (
+                        <AiResponseAnswerContent
+                          answer={turn.answer}
+                          fullAnswer={turn.fullAnswer}
+                          references={turn.supportingContent.references}
+                        />
+                      ) : null}
+
+                      {turn.status === "complete" && turn.answer ? (
+                        <>
+                          <AiResponseAnswerActions answer={turn.answer} />
+                          <AiResponseAnswerSupportingContent
+                            className="mt-5"
+                            followUpQuestions={turn.supportingContent.followUpQuestions}
+                            onFollowUpQuestionSelect={submitQuestion}
+                            references={turn.supportingContent.references}
+                          />
+                        </>
+                      ) : null}
+                    </article>
+                  );
+                })()
               ))}
 
               {bottomSpacerHeight > 0 ? (
@@ -461,7 +537,7 @@ export function MedscapeAiCurrentScreen({
             </div>
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 bottom-[64px] z-10 md:bottom-[76px]">
+          <div className="pointer-events-none absolute inset-x-0 bottom-[76px] z-10">
             <div className="mx-auto flex w-full max-w-[980px] justify-center px-5 md:px-7">
               <button
                 type="button"

@@ -166,6 +166,60 @@ export function createInitialSidebarHistoryGroups(): SidebarHistoryGroup[] {
 
 export const defaultInitialQuestion = promptSections[0].prompts[0];
 
+export type AiAnswerReference = {
+  detail: string;
+  doi?: string;
+  id: number;
+  publishedAt?: string;
+  source: string;
+  sourceLabel: string;
+  tags?: string[];
+  title: string;
+};
+
+export type AiAnswerSupportingContent = {
+  followUpQuestions: string[];
+  references: AiAnswerReference[];
+};
+
+function buildReferenceList(
+  references: Omit<AiAnswerReference, "id">[],
+): AiAnswerReference[] {
+  return references.map((reference, index) => ({
+    ...reference,
+    id: index + 1,
+  }));
+}
+
+function buildGenericSupportingContent(question: string): AiAnswerSupportingContent {
+  return {
+    followUpQuestions: [
+      `What additional patient factors would change the answer for ${question}?`,
+      "Which findings would make this issue more urgent to evaluate?",
+      "What follow-up monitoring would you recommend after the initial plan?",
+      "When should a clinician escalate to specialist input for this scenario?",
+    ],
+    references: buildReferenceList([
+      {
+        detail: "Guideline-informed demonstration source for prototype content.",
+        publishedAt: "Apr 16, 2026",
+        source: "Prototype Clinical Summary",
+        sourceLabel: "Prototype",
+        tags: ["Prototype"],
+        title: `Guideline-informed clinical summary for: ${question}`,
+      },
+      {
+        detail: "Evidence synthesis content should be replaced with source-linked references in production.",
+        publishedAt: "Apr 16, 2026",
+        source: "Prototype Evidence Note",
+        sourceLabel: "Prototype",
+        tags: ["Demo Only"],
+        title: "Implementation note for evidence synthesis and source linking",
+      },
+    ]),
+  };
+}
+
 const osteoporosisAnswer = [
   "Patients with osteoporosis should maintain adequate daily intakes of elemental calcium and vitamin D, preferably through diet but supplemented as needed.",
   "",
@@ -335,35 +389,140 @@ function buildGenericAnswer(question: string) {
   ].join("\n");
 }
 
+const LEADING_KEY_POINTS_PATTERN = /^\s*Key Points\s*\n/i;
+
+function isHeadingLine(line: string) {
+  return (
+    /^[A-Z][A-Za-z0-9\s&/:-]+$/.test(line) &&
+    line.length <= 40 &&
+    !line.endsWith(".")
+  );
+}
+
+function deriveKeyPoints(answer: string) {
+  const lines = answer
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const listItems = lines
+    .filter((line) => line.startsWith("- "))
+    .map((line) => line.replace(/^- /, ""));
+  const summaryLines = lines.filter(
+    (line) => !line.startsWith("- ") && !isHeadingLine(line),
+  );
+  const candidates = [...listItems, ...summaryLines];
+  const seen = new Set<string>();
+  const keyPoints: string[] = [];
+
+  for (const candidate of candidates) {
+    if (seen.has(candidate)) {
+      continue;
+    }
+
+    seen.add(candidate);
+    keyPoints.push(candidate);
+
+    if (keyPoints.length === 4) {
+      break;
+    }
+  }
+
+  return keyPoints.length > 0
+    ? keyPoints
+    : ["Review the answer details below for the full clinical context."];
+}
+
+function ensureLeadingKeyPoints(answer: string) {
+  if (LEADING_KEY_POINTS_PATTERN.test(answer)) {
+    return answer;
+  }
+
+  return [
+    "Key Points",
+    ...deriveKeyPoints(answer).map((keyPoint) => `- ${keyPoint}`),
+    "",
+    answer,
+  ].join("\n");
+}
+
 export function buildMockAnswer(question: string) {
   const normalized = question.toLowerCase();
+  let answer: string;
 
   if (
     normalized.includes("osteoporosis") ||
     normalized.includes("vitamin d") ||
     normalized.includes("calcium")
   ) {
-    return osteoporosisAnswer;
-  }
-
-  if (normalized.includes("vancomycin")) {
-    return buildVancomycinAnswer();
-  }
-
-  if (normalized.includes("phenytoin")) {
-    return buildPhenytoinAnswer();
-  }
-
-  if (
+    answer = osteoporosisAnswer;
+  } else if (normalized.includes("vancomycin")) {
+    answer = buildVancomycinAnswer();
+  } else if (normalized.includes("phenytoin")) {
+    answer = buildPhenytoinAnswer();
+  } else if (
     normalized.includes("warfarin") ||
     normalized.includes("trimethoprim") ||
     normalized.includes("sulfamethoxazole")
   ) {
-    return buildWarfarinAnswer();
+    answer = buildWarfarinAnswer();
+  } else if (normalized.includes("omega-3") || normalized.includes("omega 3")) {
+    answer = buildOmegaAnswer();
+  } else if (
+    normalized.includes("glp-1") ||
+    normalized.includes("glp1") ||
+    normalized.includes("dulaglutide") ||
+    normalized.includes("trulicity")
+  ) {
+    answer = buildGlp1Answer();
+  } else if (
+    normalized.includes("research") ||
+    normalized.includes("evidence") ||
+    normalized.includes("trial") ||
+    normalized.includes("study")
+  ) {
+    answer = buildResearchAnswer(question);
+  } else {
+    answer = buildGenericAnswer(question);
   }
 
-  if (normalized.includes("omega-3") || normalized.includes("omega 3")) {
-    return buildOmegaAnswer();
+  return ensureLeadingKeyPoints(answer);
+}
+
+export function buildMockAnswerSupportingContent(
+  question: string,
+): AiAnswerSupportingContent {
+  const normalized = question.toLowerCase();
+
+  if (normalized.includes("vancomycin")) {
+    return {
+      followUpQuestions: [
+        "How should vancomycin levels be monitored when the dialysis schedule changes?",
+        "When should post-hemodialysis vancomycin doses be increased for deep-seated infection?",
+        "How does residual kidney function affect vancomycin dosing in dialysis patients?",
+        "What target exposure should clinicians use when AUC monitoring is available?",
+      ],
+      references: buildReferenceList([
+        {
+          detail: "Rybak MJ, Le J, Lodise TP, et al.",
+          doi: "doi: 10.1093/ajhp/zxaa036.",
+          publishedAt: "Mar 19, 2020",
+          source: "American Journal of Health-System Pharmacy",
+          sourceLabel: "AJHP",
+          tags: ["Guideline"],
+          title:
+            "Therapeutic monitoring of vancomycin for serious methicillin-resistant Staphylococcus aureus infections: a revised consensus guideline.",
+        },
+        {
+          detail: "Pai AB, Pai MP.",
+          publishedAt: "Jul 01, 2004",
+          source: "Seminars in Dialysis",
+          sourceLabel: "Seminars in Dialysis",
+          tags: ["Review"],
+          title: "Vancomycin dosing considerations in high-flux hemodialysis.",
+        },
+      ]),
+    };
   }
 
   if (
@@ -372,7 +531,78 @@ export function buildMockAnswer(question: string) {
     normalized.includes("dulaglutide") ||
     normalized.includes("trulicity")
   ) {
-    return buildGlp1Answer();
+    return {
+      followUpQuestions: [
+        "What clinical guidelines recommend monitoring for pancreatitis in patients on GLP-1 therapies",
+        "What are the signs of an allergic reaction to GLP-1 injections",
+        "Are there any dietary changes that can help reduce gastrointestinal side effects of GLP-1s",
+        "How common are severe side effects like pancreatitis with GLP-1 medications",
+        "Can GLP-1 medications affect kidney function",
+      ],
+      references: buildReferenceList([
+        {
+          detail: "Living standards update.",
+          publishedAt: "Jan 01, 2026",
+          source: "Diabetes Care",
+          sourceLabel: "ADA",
+          tags: ["Guideline"],
+          title: "American Diabetes Association. Standards of Care in Diabetes.",
+        },
+        {
+          detail: "Prescribing information.",
+          publishedAt: "Sep 01, 2025",
+          source: "Eli Lilly and Company",
+          sourceLabel: "Trulicity",
+          tags: ["Label"],
+          title: "Trulicity (dulaglutide) prescribing information.",
+        },
+        {
+          detail: "Clinical practice guidance for pharmacologic management of type 2 diabetes.",
+          publishedAt: "May 10, 2024",
+          source: "AACE",
+          sourceLabel: "AACE",
+          tags: ["Guideline"],
+          title: "AACE clinical practice guidance for pharmacologic management of type 2 diabetes.",
+        },
+      ]),
+    };
+  }
+
+  if (normalized.includes("omega-3") || normalized.includes("omega 3")) {
+    return {
+      followUpQuestions: [
+        "Which cardiovascular populations appear most likely to benefit from prescription omega-3 therapy?",
+        "How should clinicians interpret EPA-only trials versus mixed EPA/DHA formulations?",
+        "When is 4 g/day omega-3 used for triglyceride lowering rather than cardiovascular risk reduction?",
+        "What adverse effects and monitoring issues matter most with high-dose omega-3 products?",
+      ],
+      references: buildReferenceList([
+        {
+          detail: "Nicholls SJ, Lincoff AM, Garcia M, et al.",
+          publishedAt: "Nov 15, 2020",
+          source: "JAMA",
+          sourceLabel: "JAMA",
+          tags: ["RCT"],
+          title: "STRENGTH trial.",
+        },
+        {
+          detail: "Kalstad AA, Myhre PL, Laake K, et al.",
+          publishedAt: "Jun 29, 2021",
+          source: "Circulation",
+          sourceLabel: "Circulation",
+          tags: ["RCT"],
+          title: "OMEMI trial.",
+        },
+        {
+          detail: "Dialysis population summary included for prototype illustration.",
+          publishedAt: "Apr 16, 2026",
+          source: "Prototype Trial Summary",
+          sourceLabel: "Prototype",
+          tags: ["Demo Only"],
+          title: "Clinical trial summary referenced in this prototype answer for dialysis populations.",
+        },
+      ]),
+    };
   }
 
   if (
@@ -381,8 +611,33 @@ export function buildMockAnswer(question: string) {
     normalized.includes("trial") ||
     normalized.includes("study")
   ) {
-    return buildResearchAnswer(question);
+    return {
+      followUpQuestions: [
+        "Which outcome measures from the latest trials are most practice-changing?",
+        "How should absolute benefit and harm be communicated to patients from these data?",
+        "Which subgroups were underrepresented in the available evidence?",
+        "What would still prevent these findings from changing first-line care?",
+      ],
+      references: buildReferenceList([
+        {
+          detail: "Demonstration literature summary for prototype behavior.",
+          publishedAt: "Apr 16, 2026",
+          source: "Prototype Research Summary",
+          sourceLabel: "Prototype",
+          tags: ["Demo Only"],
+          title: "Summary of recent trial literature relevant to the question.",
+        },
+        {
+          detail: "Supporting guideline and review sources should be linked in production.",
+          publishedAt: "Apr 16, 2026",
+          source: "Prototype Evidence Note",
+          sourceLabel: "Prototype",
+          tags: ["Demo Only"],
+          title: "Supporting guideline and review sources to add in production.",
+        },
+      ]),
+    };
   }
 
-  return buildGenericAnswer(question);
+  return buildGenericSupportingContent(question);
 }

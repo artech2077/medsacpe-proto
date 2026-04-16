@@ -26,4 +26,40 @@ export const prototypeRegistry: PrototypeDefinition[] = [
     tags: ["medscape-ai", "current-ui", "chat"],
     title: "Medscape AI current",
   },
+  {
+    description:
+      "Medscape AI current with the first ad pinned above each question so it remains visible during generation and completed answers.",
+    route: "/ad-above-the-question",
+    slug: "ad-above-the-question",
+    status: "active",
+    tags: ["medscape-ai", "current-ui", "ad-placement"],
+    title: "Ad above the question",
+  },
+  {
+    description:
+      "Medscape AI current with the first ad held until the key points block appears, then kept between key points and the answer for every response.",
+    route: "/ad-after-keypoints",
+    slug: "ad-after-keypoints",
+    status: "active",
+    tags: ["medscape-ai", "current-ui", "ad-placement"],
+    title: "Ad after keypoints",
+  },
+  {
+    description:
+      "Medscape AI current with key points collapsed by default and the first ad appearing between key points and the answer once key points are available.",
+    route: "/ad-after-keypoints-collapsed",
+    slug: "ad-after-keypoints-collapsed",
+    status: "active",
+    tags: ["medscape-ai", "current-ui", "ad-placement"],
+    title: "Ad after keypoints collapsed",
+  },
+  {
+    description:
+      "Medscape AI current with the first ad pinned below a collapsed key points card that previews the first bullet and expands with a Read More action.",
+    route: "/ad-after-keypoints-collapsed-with-read-more",
+    slug: "ad-after-keypoints-collapsed-with-read-more",
+    status: "active",
+    tags: ["medscape-ai", "current-ui", "ad-placement"],
+    title: "Ad after keypoints collapsed with read more",
+  },
 ];

@@ -16,12 +16,12 @@ export function CurrentHamburgerIcon() {
 
 export function CurrentSparkIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 18 18" aria-hidden="true" className={className} fill="none">
-      <path
-        d="M9 1.4c.38 3.73 1.87 5.22 5.6 5.6-3.73.38-5.22 1.87-5.6 5.6C8.62 8.87 7.13 7.38 3.4 7 7.13 6.62 8.62 5.13 9 1.4Z"
-        fill="#a622ff"
-      />
-    </svg>
+    <img
+      src="/assets/Logo Icon.svg"
+      alt=""
+      aria-hidden="true"
+      className={`${className} object-contain`}
+    />
   );
 }
 

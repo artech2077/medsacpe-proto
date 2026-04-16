@@ -5,6 +5,7 @@ import { startTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
 import { AiMenuIcon, AiMicrophoneIcon } from "@/components/medscape/ai-response/iconography";
+import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiPromptSectionsList } from "@/components/medscape/ai-response/prompt-card";
 import { AiResponseSidebar } from "@/components/medscape/ai-response/sidebar";
 import { aiResponseAssets, promptSections } from "@/data/ai-response";
@@ -97,7 +98,38 @@ export function AiResponseLanding() {
         />
 
         <section className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <header className="absolute left-3 top-3 z-20 md:left-[22px] md:top-[22px]">
+          <AiMobileTopRail
+            railClassName="bg-[linear-gradient(180deg,rgba(5,29,71,0.94)_0%,rgba(5,29,71,0.84)_58%,rgba(5,29,71,0)_100%)] px-3 pb-4 pt-3 backdrop-blur-[10px]"
+            contentClassName="relative flex min-h-[44px] items-start justify-between gap-2"
+            left={
+              !isSidebarOpen ? (
+                <button
+                  type="button"
+                  aria-label="Open menu"
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white/92 transition hover:bg-white/10"
+                >
+                  <AiMenuIcon invert />
+                </button>
+              ) : null
+            }
+            center={
+              <button
+                type="button"
+                onClick={handleHomeClick}
+                className="rounded-full px-3 py-2 transition"
+                aria-label="Go to home"
+              >
+                <img
+                  src={aiResponseAssets.logoAssets.medscapeAi}
+                  alt="Medscape AI"
+                  className="h-[22px] w-auto object-contain"
+                />
+              </button>
+            }
+          />
+
+          <header className="absolute left-[22px] top-[22px] z-20 hidden md:block">
             {!isSidebarOpen ? (
               <button
                 type="button"
@@ -110,7 +142,7 @@ export function AiResponseLanding() {
             ) : null}
           </header>
 
-          <div className="mx-auto flex min-h-full w-full max-w-[1440px] flex-col items-center px-4 pb-14 pt-28 md:px-6 md:pb-[100px] md:pt-[187px]">
+          <div className="mx-auto flex min-h-full w-full max-w-[1440px] flex-col items-center px-4 pb-14 pt-16 md:px-6 md:pb-[100px] md:pt-[187px]">
             <div className="flex w-full max-w-[900px] flex-col items-center">
               <div className="flex w-full flex-col items-center gap-4">
                 <img
@@ -132,7 +164,7 @@ export function AiResponseLanding() {
               </div>
             </div>
 
-            <div className="mt-8 flex w-full max-w-[640px] flex-col items-center gap-3">
+            <div className="mt-8 flex w-full flex-col items-center gap-3">
               <p className="w-full max-w-[600px] text-center text-[10px] leading-[14px] font-semibold tracking-[0.04em] text-[#e2e7e9] uppercase md:text-[12px] md:leading-[18px]">
                 Discover what you can ask Medscape AI
               </p>

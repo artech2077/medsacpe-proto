@@ -11,15 +11,25 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
-import { AiResponseAnswerContent } from "@/components/medscape/ai-response/answer-content";
+import {
+  AiResponseAnswerContent,
+  getLeadingKeyPointsLength,
+  splitLeadingKeyPoints,
+} from "@/components/medscape/ai-response/answer-content";
+import { AiResponseAnswerSupportingContent } from "@/components/medscape/ai-response/answer-supporting-content";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
 import { AiMenuIcon } from "@/components/medscape/ai-response/iconography";
+import { AiResponseKeyPoints } from "@/components/medscape/ai-response/key-points";
+import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiPreparingAnswerNotice } from "@/components/medscape/ai-response/preparing-answer-notice";
 import { AiResponseSidebar } from "@/components/medscape/ai-response/sidebar";
 import { AiTopRailAction } from "@/components/medscape/ai-response/top-rail-action";
+import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
 import {
+  type AiAnswerSupportingContent,
   aiResponseAssets,
   buildMockAnswer,
+  buildMockAnswerSupportingContent,
   defaultInitialQuestion,
 } from "@/data/ai-response";
 
@@ -33,9 +43,11 @@ type ChatTurnStatus = "preparing" | "streaming" | "complete";
 
 type ChatTurn = {
   answer: string;
+  fullAnswer: string;
   id: number;
   question: string;
   status: ChatTurnStatus;
+  supportingContent: AiAnswerSupportingContent;
 };
 
 type AiResponseScreenProps = {
@@ -156,9 +168,11 @@ export function AiResponseScreen({
 
       const nextTurn: ChatTurn = {
         answer: "",
+        fullAnswer: answerText,
         id: newTurnId,
         question: trimmedQuestion,
         status: "preparing",
+        supportingContent: buildMockAnswerSupportingContent(trimmedQuestion),
       };
 
       setChatTurns((currentTurns): ChatTurn[] => [
@@ -190,13 +204,21 @@ export function AiResponseScreen({
       responseDelayTimeoutRef.current = setTimeout(() => {
         if (activeTurnIdRef.current !== newTurnId) return;
 
+        const initialAnswerLength = getLeadingKeyPointsLength(answerText);
+
         setChatTurns((currentTurns): ChatTurn[] =>
           currentTurns.map((turn): ChatTurn =>
-            turn.id === newTurnId ? { ...turn, status: "streaming" } : turn,
+            turn.id === newTurnId
+              ? {
+                  ...turn,
+                  answer: answerText.slice(0, initialAnswerLength),
+                  status: "streaming",
+                }
+              : turn,
           ),
         );
 
-        let nextLength = 0;
+        let nextLength = initialAnswerLength;
         responseStreamIntervalRef.current = setInterval(() => {
           if (activeTurnIdRef.current !== newTurnId) {
             clearResponseTimers();
@@ -248,9 +270,11 @@ export function AiResponseScreen({
       setChatTurns([
         {
           answer: buildMockAnswer(trimmedQuestion),
+          fullAnswer: buildMockAnswer(trimmedQuestion),
           id: nextTurnId,
           question: trimmedQuestion,
           status: "complete",
+          supportingContent: buildMockAnswerSupportingContent(trimmedQuestion),
         },
       ]);
 
@@ -458,37 +482,79 @@ export function AiResponseScreen({
 
             <div className="relative z-20 flex min-h-0 flex-1 flex-col">
               <div className="sticky top-0 z-30">
-                <div className="absolute inset-x-0 top-0 h-[68px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_72%,rgba(255,255,255,0)_100%)]" />
-                <div className="relative flex min-h-[48px] items-start justify-between gap-2 px-3 pt-2 md:min-h-[52px] md:px-5 md:pt-2">
-                  <button
-                    type="button"
-                    aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
-                    aria-expanded={isSidebarOpen}
-                    onClick={() => setIsSidebarOpen((current) => !current)}
-                    className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-white/70"
-                  >
-                    <AiMenuIcon />
-                  </button>
+                <AiMobileTopRail
+                  railClassName="bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_72%,rgba(255,255,255,0)_100%)] px-3 pb-3 pt-2"
+                  contentClassName="relative flex min-h-[48px] items-start justify-between gap-2"
+                  left={
+                    <button
+                      type="button"
+                      aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
+                      aria-expanded={isSidebarOpen}
+                      onClick={() => setIsSidebarOpen((current) => !current)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-white/70"
+                    >
+                      <AiMenuIcon />
+                    </button>
+                  }
+                  center={
+                    <button
+                      type="button"
+                      onClick={handleLandingClick}
+                      className="rounded-full px-3 py-1.5 transition"
+                      aria-label="Go to new chat"
+                    >
+                      <img
+                        src={aiResponseAssets.logoAssets.medscapeAi}
+                        alt="Medscape AI"
+                        className="h-[22px] w-auto object-contain"
+                      />
+                    </button>
+                  }
+                  right={
+                    <>
+                      <AiTopRailAction iconSrc={aiResponseAssets.uiIcons.share} label="Share" />
+                      <AiTopRailAction
+                        iconSrc={aiResponseAssets.uiIcons.download}
+                        label="Download"
+                      />
+                    </>
+                  }
+                  rightClassName="relative z-10 ml-auto flex items-center gap-0.5"
+                />
 
-                  <button
-                    type="button"
-                    onClick={handleLandingClick}
-                    className="absolute left-1/2 top-1 -translate-x-1/2 rounded-full px-3 py-1.5 transition md:top-1.5"
-                    aria-label="Go to new chat"
-                  >
-                    <img
-                      src={aiResponseAssets.logoAssets.medscapeAi}
-                      alt="Medscape AI"
-                      className="h-[22px] w-auto object-contain md:h-[24px]"
-                    />
-                  </button>
+                <div className="hidden md:block">
+                  <div className="absolute inset-x-0 top-0 h-[68px] bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(255,255,255,1)_72%,rgba(255,255,255,0)_100%)]" />
+                  <div className="relative flex min-h-[52px] items-start justify-between gap-2 px-5 pt-2">
+                    <button
+                      type="button"
+                      aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
+                      aria-expanded={isSidebarOpen}
+                      onClick={() => setIsSidebarOpen((current) => !current)}
+                      className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-white/70"
+                    >
+                      <AiMenuIcon />
+                    </button>
 
-                  <div className="relative z-10 ml-auto flex items-center gap-0.5 md:gap-1">
-                    <AiTopRailAction iconSrc={aiResponseAssets.uiIcons.share} label="Share" />
-                    <AiTopRailAction
-                      iconSrc={aiResponseAssets.uiIcons.download}
-                      label="Download"
-                    />
+                    <button
+                      type="button"
+                      onClick={handleLandingClick}
+                      className="absolute left-1/2 top-1.5 -translate-x-1/2 rounded-full px-3 py-1.5 transition"
+                      aria-label="Go to new chat"
+                    >
+                      <img
+                        src={aiResponseAssets.logoAssets.medscapeAi}
+                        alt="Medscape AI"
+                        className="h-[24px] w-auto object-contain"
+                      />
+                    </button>
+
+                    <div className="relative z-10 ml-auto flex items-center gap-1">
+                      <AiTopRailAction iconSrc={aiResponseAssets.uiIcons.share} label="Share" />
+                      <AiTopRailAction
+                        iconSrc={aiResponseAssets.uiIcons.download}
+                        label="Download"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -506,13 +572,37 @@ export function AiResponseScreen({
                       </h1>
 
                       {turn.status === "preparing" ? (
-                        <AiPreparingAnswerNotice question={turn.question} />
+                        <>
+                          <AiPreparingAnswerNotice question={turn.question} />
+                          <MedscapeCurrentAdBlock className="mt-5 md:mt-4" />
+                        </>
                       ) : null}
 
-                      {turn.answer ? <AiResponseAnswerContent answer={turn.answer} /> : null}
+                      {turn.answer ? (
+                        <AiResponseKeyPoints
+                          className="mb-6"
+                          keyPoints={splitLeadingKeyPoints(turn.answer).keyPoints}
+                        />
+                      ) : null}
+
+                      {turn.answer ? (
+                        <AiResponseAnswerContent
+                          answer={turn.answer}
+                          fullAnswer={turn.fullAnswer}
+                          references={turn.supportingContent.references}
+                        />
+                      ) : null}
 
                       {turn.status === "complete" && turn.answer ? (
-                        <AiResponseAnswerActions answer={turn.answer} />
+                        <>
+                          <AiResponseAnswerActions answer={turn.answer} />
+                          <AiResponseAnswerSupportingContent
+                            className="mt-5"
+                            followUpQuestions={turn.supportingContent.followUpQuestions}
+                            onFollowUpQuestionSelect={submitQuestion}
+                            references={turn.supportingContent.references}
+                          />
+                        </>
                       ) : null}
                     </article>
                   ))}
@@ -523,7 +613,7 @@ export function AiResponseScreen({
                 </div>
               </div>
 
-              <div className="pointer-events-none absolute inset-x-0 bottom-[71px] z-10 md:bottom-[76px]">
+              <div className="pointer-events-none absolute inset-x-0 bottom-[76px] z-10">
                 <div className="mx-auto flex w-full max-w-[980px] justify-center px-5 md:px-7">
                   <button
                     type="button"

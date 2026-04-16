@@ -1,16 +1,16 @@
 import { redirect } from "next/navigation";
 import { MedscapeAiCurrentScreen } from "@/components/screens/medscape-ai-current-screen";
 
-type MedscapeAiCurrentChatPageProps = {
+type AdAfterKeypointsCollapsedWithReadMoreChatPageProps = {
   searchParams: Promise<{
     mode?: string | string[];
     q?: string | string[];
   }>;
 };
 
-export default async function MedscapeAiCurrentChatPage({
+export default async function AdAfterKeypointsCollapsedWithReadMoreChatPage({
   searchParams,
-}: MedscapeAiCurrentChatPageProps) {
+}: AdAfterKeypointsCollapsedWithReadMoreChatPageProps) {
   const params = await searchParams;
   const modeValue = Array.isArray(params.mode) ? params.mode[0] : params.mode;
   const questionValue = Array.isArray(params.q) ? params.q[0] : params.q;
@@ -18,14 +18,17 @@ export default async function MedscapeAiCurrentChatPage({
   const initialConversationMode = modeValue === "complete" ? "complete" : "stream";
 
   if (!initialQuestion) {
-    redirect("/medscape-ai-current");
+    redirect("/ad-after-keypoints-collapsed-with-read-more");
   }
 
   return (
     <MedscapeAiCurrentScreen
+      adPlacement="after-keypoints"
       initialConversationMode={initialConversationMode}
       initialQuestion={initialQuestion}
-      prototypeRoute="/medscape-ai-current"
+      keyPointsDefaultExpanded={false}
+      keyPointsVariant="collapsed-read-more"
+      prototypeRoute="/ad-after-keypoints-collapsed-with-read-more"
     />
   );
 }
