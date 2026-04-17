@@ -4,7 +4,7 @@ import type { PromptSection } from "@/data/ai-response";
 import { AiPromptChevron, AiPromptSectionIcon } from "@/components/medscape/ai-response/iconography";
 
 type AiPromptCardProps = {
-  onPromptSelect: (prompt: string) => void;
+  onPromptSelect: (prompt: string, section: PromptSection, promptIndex: number) => void;
   section: PromptSection;
 };
 
@@ -20,7 +20,7 @@ export function AiPromptCard({ onPromptSelect, section }: AiPromptCardProps) {
           <button
             key={prompt}
             type="button"
-            onClick={() => onPromptSelect(prompt)}
+            onClick={() => onPromptSelect(prompt, section, index)}
             className={`flex w-full items-start gap-3 py-2 text-left text-[15px] leading-[20px] text-[var(--mscp-color-brand-primary)] transition hover:text-[#0a5fd2] ${
               index < section.prompts.length - 1
                 ? "border-b border-[#EBEBEB]"
@@ -39,7 +39,7 @@ export function AiPromptCard({ onPromptSelect, section }: AiPromptCardProps) {
 }
 
 type AiPromptSectionsListProps = {
-  onPromptSelect: (prompt: string) => void;
+  onPromptSelect: (prompt: string, section: PromptSection, promptIndex: number) => void;
   sections: PromptSection[];
 };
 

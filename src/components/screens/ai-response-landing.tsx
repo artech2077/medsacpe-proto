@@ -1,14 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { startTransition, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
 import { AiMenuIcon, AiMicrophoneIcon } from "@/components/medscape/ai-response/iconography";
 import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiPromptSectionsList } from "@/components/medscape/ai-response/prompt-card";
 import { AiResponseSidebar } from "@/components/medscape/ai-response/sidebar";
-import { aiResponseAssets, promptSections } from "@/data/ai-response";
+import { aiResponseAssets, promptSections, type PromptSection } from "@/data/ai-response";
+import { captureAnalyticsEvent } from "@/lib/analytics/posthog";
 
 export function AiResponseLanding() {
   const router = useRouter();
@@ -26,7 +27,37 @@ export function AiResponseLanding() {
     if (!trimmedQuestion) return;
 
     setIsSidebarOpen(false);
-    navigate(`/ai-response/chat?q=${encodeURIComponent(trimmedQuestion)}`);
+    navigate(
+      `/ai-response/chat?q=${encodeURIComponent(trimmedQuestion)}&source=${encodeURIComponent(
+        "composer",
+      )}`,
+    );
+  };
+
+  const handlePromptSelect = (
+    prompt: string,
+    section: PromptSection,
+    promptIndex: number,
+  ) => {
+    captureAnalyticsEvent("prompt_suggestion_clicked", {
+      prompt_index: promptIndex,
+      prompt_section: section.id,
+      prompt_text: prompt,
+      prototype_family: "ai-response",
+      prototype_route: "/ai-response",
+      prototype_slug: "ai-response",
+      screen_type: "prototype_landing",
+    });
+
+    const trimmedQuestion = prompt.trim();
+    if (!trimmedQuestion) return;
+
+    setIsSidebarOpen(false);
+    navigate(
+      `/ai-response/chat?q=${encodeURIComponent(trimmedQuestion)}&source=${encodeURIComponent(
+        "prompt_suggestion",
+      )}`,
+    );
   };
 
   const handleSubmit = () => {
@@ -35,13 +66,40 @@ export function AiResponseLanding() {
 
   const handleHomeClick = () => {
     setIsSidebarOpen(false);
+    captureAnalyticsEvent("home_clicked", {
+      prototype_family: "ai-response",
+      prototype_route: "/ai-response",
+      prototype_slug: "ai-response",
+      screen_type: "prototype_landing",
+    });
     navigate("/");
   };
 
   const handleHistoryConversationClick = (question: string) => {
     setIsSidebarOpen(false);
-    navigate(`/ai-response/chat?q=${encodeURIComponent(question)}&mode=complete`);
+    captureAnalyticsEvent("history_conversation_clicked", {
+      prototype_family: "ai-response",
+      prototype_route: "/ai-response",
+      prototype_slug: "ai-response",
+      question_text: question,
+      screen_type: "prototype_landing",
+    });
+    navigate(
+      `/ai-response/chat?q=${encodeURIComponent(question)}&mode=complete&source=${encodeURIComponent(
+        "history",
+      )}`,
+    );
   };
+
+  useEffect(() => {
+    captureAnalyticsEvent("prototype_viewed", {
+      initial_mode: "landing",
+      prototype_family: "ai-response",
+      prototype_route: "/ai-response",
+      prototype_slug: "ai-response",
+      screen_type: "prototype_landing",
+    });
+  }, []);
 
   return (
     <main className="relative h-dvh overflow-hidden text-white">
@@ -77,7 +135,15 @@ export function AiResponseLanding() {
         <button
           type="button"
           aria-label="Close sidebar"
-          onClick={() => setIsSidebarOpen(false)}
+          onClick={() => {
+            setIsSidebarOpen(false);
+            captureAnalyticsEvent("sidebar_closed", {
+              prototype_family: "ai-response",
+              prototype_route: "/ai-response",
+              prototype_slug: "ai-response",
+              screen_type: "prototype_landing",
+            });
+          }}
           className={`absolute inset-0 z-30 bg-[rgba(6,27,63,0.45)] transition md:hidden ${
             isSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
@@ -91,10 +157,26 @@ export function AiResponseLanding() {
 
         <AiResponseSidebar
           isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
+          onClose={() => {
+            setIsSidebarOpen(false);
+            captureAnalyticsEvent("sidebar_closed", {
+              prototype_family: "ai-response",
+              prototype_route: "/ai-response",
+              prototype_slug: "ai-response",
+              screen_type: "prototype_landing",
+            });
+          }}
           onHistoryConversationClick={handleHistoryConversationClick}
           onHomeClick={handleHomeClick}
-          onNewChatClick={() => setIsSidebarOpen(false)}
+          onNewChatClick={() => {
+            setIsSidebarOpen(false);
+            captureAnalyticsEvent("new_chat_clicked", {
+              prototype_family: "ai-response",
+              prototype_route: "/ai-response",
+              prototype_slug: "ai-response",
+              screen_type: "prototype_landing",
+            });
+          }}
         />
 
         <section className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">
@@ -105,8 +187,16 @@ export function AiResponseLanding() {
               !isSidebarOpen ? (
                 <button
                   type="button"
-                  aria-label="Open menu"
-                  onClick={() => setIsSidebarOpen(true)}
+                      aria-label="Open menu"
+                      onClick={() => {
+                        setIsSidebarOpen(true);
+                        captureAnalyticsEvent("sidebar_opened", {
+                          prototype_family: "ai-response",
+                          prototype_route: "/ai-response",
+                          prototype_slug: "ai-response",
+                          screen_type: "prototype_landing",
+                        });
+                      }}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white/92 transition hover:bg-white/10"
                 >
                   <AiMenuIcon invert />
@@ -116,7 +206,7 @@ export function AiResponseLanding() {
             center={
               <button
                 type="button"
-                onClick={handleHomeClick}
+                    onClick={handleHomeClick}
                 className="rounded-full px-3 py-2 transition"
                 aria-label="Go to home"
               >
@@ -134,7 +224,15 @@ export function AiResponseLanding() {
               <button
                 type="button"
                 aria-label="Open menu"
-                onClick={() => setIsSidebarOpen(true)}
+                  onClick={() => {
+                    setIsSidebarOpen(true);
+                    captureAnalyticsEvent("sidebar_opened", {
+                      prototype_family: "ai-response",
+                      prototype_route: "/ai-response",
+                      prototype_slug: "ai-response",
+                      screen_type: "prototype_landing",
+                    });
+                  }}
                 className="inline-flex h-11 w-11 items-center justify-center rounded-full text-white/92 transition hover:bg-white/10"
               >
                 <AiMenuIcon invert />
@@ -152,6 +250,7 @@ export function AiResponseLanding() {
                 />
 
                 <AiResponseChatComposer
+                  analyticsSourceSurface="ai_response_landing"
                   className="w-full"
                   emptyActionIcon={<AiMicrophoneIcon />}
                   isGenerating={false}
@@ -169,7 +268,7 @@ export function AiResponseLanding() {
                 Discover what you can ask Medscape AI
               </p>
 
-              <AiPromptSectionsList sections={promptSections} onPromptSelect={navigateToChat} />
+              <AiPromptSectionsList sections={promptSections} onPromptSelect={handlePromptSelect} />
             </div>
           </div>
         </section>

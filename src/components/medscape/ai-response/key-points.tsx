@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { renderInlineText } from "@/components/medscape/ai-response/answer-content";
 import { AiChevronIcon, AiLightbulbIcon } from "@/components/medscape/ai-response/answer-section-icons";
+import { captureAnalyticsEvent } from "@/lib/analytics/posthog";
 
 const COLLAPSED_PREVIEW_CHARACTER_LIMIT = 92;
 
@@ -14,6 +15,15 @@ type InlineTextSegment = {
 export type AiResponseKeyPointsVariant = "default" | "collapsed-read-more";
 
 type AiResponseKeyPointsProps = {
+  analyticsContext?: {
+    conversationId?: string;
+    prototypeFamily?: string;
+    prototypeRoute?: string;
+    prototypeSlug?: string;
+    question?: string;
+    screenType?: string;
+    turnId?: number;
+  };
   className?: string;
   defaultExpanded?: boolean;
   keyPoints: string[];
@@ -85,6 +95,7 @@ function renderInlineSegments(segments: InlineTextSegment[]) {
 }
 
 export function AiResponseKeyPoints({
+  analyticsContext,
   className,
   defaultExpanded = true,
   keyPoints,
@@ -99,6 +110,21 @@ export function AiResponseKeyPoints({
   const isCollapsedReadMoreVariant = variant === "collapsed-read-more";
   const collapsedPreview = buildCollapsedPreview(keyPoints[0]);
   const showCollapsedPreview = isCollapsedReadMoreVariant && !isExpanded;
+  const trackToggle = (nextExpanded: boolean, trigger: "header" | "read_more") => {
+    captureAnalyticsEvent("key_points_toggled", {
+      conversation_id: analyticsContext?.conversationId,
+      expanded: nextExpanded,
+      key_points_count: keyPoints.length,
+      prototype_family: analyticsContext?.prototypeFamily,
+      prototype_route: analyticsContext?.prototypeRoute,
+      prototype_slug: analyticsContext?.prototypeSlug,
+      question_text: analyticsContext?.question,
+      screen_type: analyticsContext?.screenType,
+      trigger,
+      turn_id: analyticsContext?.turnId,
+      variant,
+    });
+  };
 
   return (
     <section
@@ -107,7 +133,13 @@ export function AiResponseKeyPoints({
       <button
         type="button"
         aria-expanded={isExpanded}
-        onClick={() => setIsExpanded((current) => !current)}
+        onClick={() => {
+          setIsExpanded((current) => {
+            const nextExpanded = !current;
+            trackToggle(nextExpanded, "header");
+            return nextExpanded;
+          });
+        }}
         className="flex w-full items-center gap-2 text-left text-[#2c353a]"
       >
         <AiLightbulbIcon className="h-5 w-5 shrink-0 text-[#2c353a] md:h-6 md:w-6" />
@@ -128,7 +160,10 @@ export function AiResponseKeyPoints({
             {collapsedPreview.wasTruncated ? <span>... </span> : <span> </span>}
             <button
               type="button"
-              onClick={() => setIsExpanded(true)}
+              onClick={() => {
+                setIsExpanded(true);
+                trackToggle(true, "read_more");
+              }}
               className="font-semibold text-[#064aa7] transition hover:text-[#043b84] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ecf1f9]"
             >
               Read More

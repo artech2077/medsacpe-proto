@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AnalyticsRouteTracker } from "@/components/analytics/analytics-route-tracker";
 import { prototypeMono, prototypeSans } from "@/styles/fonts";
 import "./globals.css";
 
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning className={`${prototypeSans.variable} ${prototypeMono.variable} antialiased`}>
+        <AnalyticsRouteTracker />
         {children}
       </body>
     </html>

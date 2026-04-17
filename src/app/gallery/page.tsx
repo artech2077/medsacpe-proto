@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AnalyticsMountEvent } from "@/components/analytics/analytics-mount-event";
 import { galleryCategoryOrder, galleryRegistry } from "@/registry/gallery";
 
 const categoryLabels = {
@@ -14,6 +15,14 @@ const categoryLabels = {
 export default function GalleryPage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(0,106,255,0.1),transparent_34%),linear-gradient(180deg,#f7fafe_0%,#eef3f9_100%)]">
+      <AnalyticsMountEvent
+        eventName="gallery_viewed"
+        properties={{
+          category_count: galleryCategoryOrder.length,
+          component_count: galleryRegistry.length,
+          screen_type: "gallery",
+        }}
+      />
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-8 md:px-10 md:py-10">
         <header className="flex flex-col gap-4 rounded-[28px] border border-white/80 bg-white/82 px-6 py-5 shadow-[0_20px_50px_rgba(16,24,40,0.05)] backdrop-blur-xl md:flex-row md:items-end md:justify-between">
           <div>

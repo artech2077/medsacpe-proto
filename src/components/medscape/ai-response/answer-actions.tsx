@@ -6,10 +6,20 @@ import {
   AiAnswerDislikeIcon,
   AiAnswerLikeIcon,
 } from "@/components/medscape/ai-response/iconography";
+import { captureAnalyticsEvent } from "@/lib/analytics/posthog";
 
 type AnswerReaction = "dislike" | "like" | null;
 
 type AiResponseAnswerActionsProps = {
+  analyticsContext?: {
+    conversationId?: string;
+    prototypeFamily?: string;
+    prototypeRoute?: string;
+    prototypeSlug?: string;
+    question: string;
+    screenType?: string;
+    turnId: number;
+  };
   answer: string;
 };
 
@@ -31,7 +41,10 @@ async function copyAnswerText(answer: string) {
   document.body.removeChild(textarea);
 }
 
-export function AiResponseAnswerActions({ answer }: AiResponseAnswerActionsProps) {
+export function AiResponseAnswerActions({
+  analyticsContext,
+  answer,
+}: AiResponseAnswerActionsProps) {
   const [copied, setCopied] = useState(false);
   const [reaction, setReaction] = useState<AnswerReaction>(null);
   const copyResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,9 +58,22 @@ export function AiResponseAnswerActions({ answer }: AiResponseAnswerActionsProps
   }, []);
 
   const handleCopy = async () => {
+    const copyMethod = navigator.clipboard ? "clipboard_api" : "exec_command";
+
     try {
       await copyAnswerText(answer);
       setCopied(true);
+      captureAnalyticsEvent("answer_copied", {
+        answer_length: answer.length,
+        conversation_id: analyticsContext?.conversationId,
+        copy_method: copyMethod,
+        prototype_family: analyticsContext?.prototypeFamily,
+        prototype_route: analyticsContext?.prototypeRoute,
+        prototype_slug: analyticsContext?.prototypeSlug,
+        question_text: analyticsContext?.question,
+        screen_type: analyticsContext?.screenType,
+        turn_id: analyticsContext?.turnId,
+      });
 
       if (copyResetTimeoutRef.current) {
         clearTimeout(copyResetTimeoutRef.current);
@@ -71,7 +97,20 @@ export function AiResponseAnswerActions({ answer }: AiResponseAnswerActionsProps
         type="button"
         aria-label="Mark answer helpful"
         aria-pressed={reaction === "like"}
-        onClick={() => setReaction("like")}
+        onClick={() => {
+          setReaction("like");
+          captureAnalyticsEvent("answer_feedback_submitted", {
+            answer_length: answer.length,
+            conversation_id: analyticsContext?.conversationId,
+            feedback: "helpful",
+            prototype_family: analyticsContext?.prototypeFamily,
+            prototype_route: analyticsContext?.prototypeRoute,
+            prototype_slug: analyticsContext?.prototypeSlug,
+            question_text: analyticsContext?.question,
+            screen_type: analyticsContext?.screenType,
+            turn_id: analyticsContext?.turnId,
+          });
+        }}
         className={actionButtonClassName}
       >
         <AiAnswerLikeIcon active={reaction === "like"} />
@@ -82,7 +121,20 @@ export function AiResponseAnswerActions({ answer }: AiResponseAnswerActionsProps
         type="button"
         aria-label="Mark answer not helpful"
         aria-pressed={reaction === "dislike"}
-        onClick={() => setReaction("dislike")}
+        onClick={() => {
+          setReaction("dislike");
+          captureAnalyticsEvent("answer_feedback_submitted", {
+            answer_length: answer.length,
+            conversation_id: analyticsContext?.conversationId,
+            feedback: "not_helpful",
+            prototype_family: analyticsContext?.prototypeFamily,
+            prototype_route: analyticsContext?.prototypeRoute,
+            prototype_slug: analyticsContext?.prototypeSlug,
+            question_text: analyticsContext?.question,
+            screen_type: analyticsContext?.screenType,
+            turn_id: analyticsContext?.turnId,
+          });
+        }}
         className={actionButtonClassName}
       >
         <AiAnswerDislikeIcon active={reaction === "dislike"} />

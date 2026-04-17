@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { startTransition, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MedscapeCurrentTopRailActions } from "@/components/medscape/ai-current/current-top-rail-actions";
 import { CurrentSparkIcon } from "@/components/medscape/ai-current/current-icons";
@@ -10,7 +10,8 @@ import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-c
 import { AiMicrophoneIcon } from "@/components/medscape/ai-response/iconography";
 import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiPromptSectionsList } from "@/components/medscape/ai-response/prompt-card";
-import { defaultInitialQuestion, promptSections } from "@/data/ai-response";
+import { defaultInitialQuestion, promptSections, type PromptSection } from "@/data/ai-response";
+import { captureAnalyticsEvent } from "@/lib/analytics/posthog";
 
 type MedscapeAiCurrentLandingProps = {
   prototypeRoute?: string;
@@ -28,17 +29,53 @@ export function MedscapeAiCurrentLanding({
     });
   };
 
-  const navigateToChat = (question: string, mode: "complete" | "stream" = "stream") => {
+  const prototypeSlug = prototypeRoute.replace(/^\//, "");
+  const navigateToChat = (
+    question: string,
+    mode: "complete" | "stream" = "stream",
+    questionSource = "composer",
+  ) => {
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion) return;
 
     const modeQuery = mode === "complete" ? "&mode=complete" : "";
-    navigate(`${prototypeRoute}/chat?q=${encodeURIComponent(trimmedQuestion)}${modeQuery}`);
+    navigate(
+      `${prototypeRoute}/chat?q=${encodeURIComponent(trimmedQuestion)}${modeQuery}&source=${encodeURIComponent(
+        questionSource,
+      )}`,
+    );
   };
 
   const handleSubmit = () => {
     navigateToChat(draft);
   };
+
+  const handlePromptSelect = (
+    prompt: string,
+    section: PromptSection,
+    promptIndex: number,
+  ) => {
+    captureAnalyticsEvent("prompt_suggestion_clicked", {
+      prompt_index: promptIndex,
+      prompt_section: section.id,
+      prompt_text: prompt,
+      prototype_family: "medscape-ai-current",
+      prototype_route: prototypeRoute,
+      prototype_slug: prototypeSlug,
+      screen_type: "prototype_landing",
+    });
+    navigateToChat(prompt, "stream", "prompt_suggestion");
+  };
+
+  useEffect(() => {
+    captureAnalyticsEvent("prototype_viewed", {
+      initial_mode: "landing",
+      prototype_family: "medscape-ai-current",
+      prototype_route: prototypeRoute,
+      prototype_slug: prototypeSlug,
+      screen_type: "prototype_landing",
+    });
+  }, [prototypeRoute, prototypeSlug]);
 
   return (
     <main className="flex h-dvh flex-col overflow-hidden bg-[#e8f0fb] text-[#161b1d]">
@@ -47,8 +84,25 @@ export function MedscapeAiCurrentLanding({
       <section className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-5 md:px-0">
         <div className="absolute right-4 top-5 z-20 hidden md:left-[38px] md:right-auto md:top-[28px] md:block">
           <MedscapeCurrentTopRailActions
-            onHistoryClick={() => navigateToChat(defaultInitialQuestion, "complete")}
-            onNewChatClick={() => setDraft("")}
+            onHistoryClick={() => {
+              captureAnalyticsEvent("history_conversation_clicked", {
+                prototype_family: "medscape-ai-current",
+                prototype_route: prototypeRoute,
+                prototype_slug: prototypeSlug,
+                question_text: defaultInitialQuestion,
+                screen_type: "prototype_landing",
+              });
+              navigateToChat(defaultInitialQuestion, "complete", "history");
+            }}
+            onNewChatClick={() => {
+              setDraft("");
+              captureAnalyticsEvent("new_chat_clicked", {
+                prototype_family: "medscape-ai-current",
+                prototype_route: prototypeRoute,
+                prototype_slug: prototypeSlug,
+                screen_type: "prototype_landing",
+              });
+            }}
           />
         </div>
 
@@ -60,10 +114,27 @@ export function MedscapeAiCurrentLanding({
             </div>
           }
           right={
-            <MedscapeCurrentTopRailActions
-              onHistoryClick={() => navigateToChat(defaultInitialQuestion, "complete")}
-              onNewChatClick={() => setDraft("")}
-            />
+              <MedscapeCurrentTopRailActions
+                onHistoryClick={() => {
+                  captureAnalyticsEvent("history_conversation_clicked", {
+                    prototype_family: "medscape-ai-current",
+                    prototype_route: prototypeRoute,
+                    prototype_slug: prototypeSlug,
+                    question_text: defaultInitialQuestion,
+                    screen_type: "prototype_landing",
+                  });
+                  navigateToChat(defaultInitialQuestion, "complete", "history");
+                }}
+                onNewChatClick={() => {
+                  setDraft("");
+                  captureAnalyticsEvent("new_chat_clicked", {
+                    prototype_family: "medscape-ai-current",
+                    prototype_route: prototypeRoute,
+                    prototype_slug: prototypeSlug,
+                    screen_type: "prototype_landing",
+                  });
+                }}
+              />
           }
         />
 
@@ -82,6 +153,7 @@ export function MedscapeAiCurrentLanding({
           <div className="mt-5 w-full max-w-[900px] md:mt-3">
             <div className="relative">
               <AiResponseChatComposer
+                analyticsSourceSurface="medscape_current_landing"
                 className="w-full"
                 emptyActionIcon={<AiMicrophoneIcon />}
                 isGenerating={false}
@@ -98,7 +170,7 @@ export function MedscapeAiCurrentLanding({
             <p className="w-full max-w-[600px] text-center text-[10px] leading-[14px] font-semibold tracking-[0.04em] text-[#2c353a] uppercase md:text-[12px] md:leading-[18px]">
               Discover what you can ask Medscape AI
             </p>
-            <AiPromptSectionsList sections={promptSections} onPromptSelect={navigateToChat} />
+            <AiPromptSectionsList sections={promptSections} onPromptSelect={handlePromptSelect} />
           </div>
         </div>
       </section>

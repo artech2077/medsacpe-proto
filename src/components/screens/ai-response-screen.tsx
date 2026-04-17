@@ -32,12 +32,23 @@ import {
   buildMockAnswerSupportingContent,
   defaultInitialQuestion,
 } from "@/data/ai-response";
+import { createAnalyticsId } from "@/lib/analytics/events";
+import {
+  captureAnalyticsEvent,
+  getPostHogSessionId,
+} from "@/lib/analytics/posthog";
 
 const PRE_STREAM_DELAY_MS = 1200;
 const STREAM_TICK_MS = 18;
 const STREAM_CHUNK_SIZE = 4;
 const CHAT_BOTTOM_CONTENT_PADDING_PX = 116;
 const SCROLL_DOWN_VISIBILITY_THRESHOLD_PX = 8;
+const AI_RESPONSE_PROTOTYPE_ANALYTICS = {
+  prototype_family: "ai-response",
+  prototype_route: "/ai-response",
+  prototype_slug: "ai-response",
+  screen_type: "prototype_chat",
+} as const;
 
 type ChatTurnStatus = "preparing" | "streaming" | "complete";
 
@@ -53,11 +64,13 @@ type ChatTurn = {
 type AiResponseScreenProps = {
   initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
+  initialQuestionSource?: string;
 };
 
 export function AiResponseScreen({
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
+  initialQuestionSource = "direct_url",
 }: AiResponseScreenProps) {
   const router = useRouter();
   const responseScrollRef = useRef<HTMLDivElement>(null);
@@ -66,9 +79,11 @@ export function AiResponseScreen({
   const responseDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const responseStreamIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const activeTurnIdRef = useRef<number | null>(null);
+  const generationStartedAtRef = useRef(new Map<number, number>());
   const nextTurnIdRef = useRef(1);
   const startedInitialConversationRef = useRef<string | null>(null);
 
+  const [conversationId] = useState(() => createAnalyticsId("conversation"));
   const [composerDraft, setComposerDraft] = useState("");
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [bottomSpacerHeight, setBottomSpacerHeight] = useState(0);
@@ -77,6 +92,7 @@ export function AiResponseScreen({
   const isGenerationInProgress = chatTurns.some(
     (turn) => turn.status === "preparing" || turn.status === "streaming",
   );
+  const prototypeAnalytics = AI_RESPONSE_PROTOTYPE_ANALYTICS;
 
   const navigate = useCallback(
     (href: string) => {
@@ -144,17 +160,20 @@ export function AiResponseScreen({
     return Math.max(targetTop - maxScrollTop + 16, 0);
   }, []);
 
-  const registerTurnArticle = (turnId: number, node: HTMLElement | null) => {
+  const registerTurnArticle = useCallback((turnId: number, node: HTMLElement | null) => {
     if (node) {
       turnArticleRefs.current.set(turnId, node);
       return;
     }
 
     turnArticleRefs.current.delete(turnId);
-  };
+  }, []);
 
   const startStreamingTurn = useCallback(
-    (question: string, options: { focusComposer?: boolean } = {}) => {
+    (
+      question: string,
+      options: { focusComposer?: boolean; questionSource?: string } = {},
+    ) => {
       const trimmedQuestion = question.trim();
       if (!trimmedQuestion) return;
 
@@ -163,8 +182,11 @@ export function AiResponseScreen({
 
       const newTurnId = nextTurnIdRef.current;
       const answerText = buildMockAnswer(trimmedQuestion);
+      const supportingContent = buildMockAnswerSupportingContent(trimmedQuestion);
+      const startedAt = performance.now();
       nextTurnIdRef.current += 1;
       activeTurnIdRef.current = newTurnId;
+      generationStartedAtRef.current.set(newTurnId, startedAt);
 
       const nextTurn: ChatTurn = {
         answer: "",
@@ -172,8 +194,39 @@ export function AiResponseScreen({
         id: newTurnId,
         question: trimmedQuestion,
         status: "preparing",
-        supportingContent: buildMockAnswerSupportingContent(trimmedQuestion),
+        supportingContent,
       };
+
+      const questionSource = options.questionSource ?? "composer";
+
+      captureAnalyticsEvent("question_submitted", {
+        ...prototypeAnalytics,
+        conversation_id: conversationId,
+        entry_surface: questionSource,
+        question_length: trimmedQuestion.length,
+        question_source: questionSource,
+        question_text: trimmedQuestion,
+        session_id: getPostHogSessionId(),
+        turn_id: newTurnId,
+      });
+
+      captureAnalyticsEvent("generation_started", {
+        ...prototypeAnalytics,
+        conversation_id: conversationId,
+        generation_mode: "stream",
+        mock_generation: true,
+        question_text: trimmedQuestion,
+        session_id: getPostHogSessionId(),
+        turn_id: newTurnId,
+      });
+
+      captureAnalyticsEvent("generation_preparing_viewed", {
+        ...prototypeAnalytics,
+        ad_placement: "after-progress",
+        conversation_id: conversationId,
+        progress_text: "Preparing answer",
+        turn_id: newTurnId,
+      });
 
       setChatTurns((currentTurns): ChatTurn[] => [
         ...currentTurns.map((turn): ChatTurn =>
@@ -205,6 +258,7 @@ export function AiResponseScreen({
         if (activeTurnIdRef.current !== newTurnId) return;
 
         const initialAnswerLength = getLeadingKeyPointsLength(answerText);
+        const leadingKeyPointsCount = splitLeadingKeyPoints(answerText).keyPoints.length;
 
         setChatTurns((currentTurns): ChatTurn[] =>
           currentTurns.map((turn): ChatTurn =>
@@ -217,6 +271,14 @@ export function AiResponseScreen({
               : turn,
           ),
         );
+
+        captureAnalyticsEvent("generation_first_content", {
+          ...prototypeAnalytics,
+          conversation_id: conversationId,
+          leading_key_points_count: leadingKeyPointsCount,
+          time_to_first_content_ms: Math.round(performance.now() - startedAt),
+          turn_id: newTurnId,
+        });
 
         let nextLength = initialAnswerLength;
         responseStreamIntervalRef.current = setInterval(() => {
@@ -245,13 +307,29 @@ export function AiResponseScreen({
                 turn.id === newTurnId ? { ...turn, status: "complete" } : turn,
               ),
             );
+            captureAnalyticsEvent("generation_completed", {
+              ...prototypeAnalytics,
+              answer_length: answerText.length,
+              conversation_id: conversationId,
+              follow_up_count: supportingContent.followUpQuestions.length,
+              reference_count: supportingContent.references.length,
+              time_to_complete_ms: Math.round(performance.now() - startedAt),
+              turn_id: newTurnId,
+            });
+            generationStartedAtRef.current.delete(newTurnId);
             setBottomSpacerHeight(0);
             activeTurnIdRef.current = null;
           }
         }, STREAM_TICK_MS);
       }, PRE_STREAM_DELAY_MS);
     },
-    [clearResponseTimers, reserveBottomSpaceForTurnTop, scrollTurnQuestionToTop],
+    [
+      clearResponseTimers,
+      conversationId,
+      prototypeAnalytics,
+      reserveBottomSpaceForTurnTop,
+      scrollTurnQuestionToTop,
+    ],
   );
 
   const showCompletedTurn = useCallback(
@@ -286,12 +364,22 @@ export function AiResponseScreen({
   );
 
   const submitQuestion = useCallback(
-    (question: string, options?: { focusComposer?: boolean }) => {
+    (
+      question: string,
+      options?: { focusComposer?: boolean; questionSource?: string },
+    ) => {
       setIsSidebarOpen(false);
       startStreamingTurn(question, options);
     },
     [startStreamingTurn],
   );
+
+  useEffect(() => {
+    captureAnalyticsEvent("prototype_viewed", {
+      ...prototypeAnalytics,
+      initial_mode: initialConversationMode,
+    });
+  }, [initialConversationMode, prototypeAnalytics]);
 
   useEffect(() => {
     return () => {
@@ -346,6 +434,15 @@ export function AiResponseScreen({
   }, [bottomSpacerHeight]);
 
   useEffect(() => {
+    if (!showScrollToBottomButton) return;
+
+    captureAnalyticsEvent("scroll_to_latest_shown", {
+      ...prototypeAnalytics,
+      conversation_id: conversationId,
+    });
+  }, [conversationId, prototypeAnalytics, showScrollToBottomButton]);
+
+  useEffect(() => {
     const trimmedInitialQuestion = initialQuestion.trim();
     if (!trimmedInitialQuestion) return;
 
@@ -362,13 +459,22 @@ export function AiResponseScreen({
         return;
       }
 
-      submitQuestion(trimmedInitialQuestion, { focusComposer: false });
+      submitQuestion(trimmedInitialQuestion, {
+        focusComposer: false,
+        questionSource: initialQuestionSource,
+      });
     });
 
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [initialConversationMode, initialQuestion, showCompletedTurn, submitQuestion]);
+  }, [
+    initialConversationMode,
+    initialQuestion,
+    initialQuestionSource,
+    showCompletedTurn,
+    submitQuestion,
+  ]);
 
   const handleWheelCapture = (event: WheelEvent<HTMLElement>) => {
     if (event.ctrlKey) return;
@@ -404,6 +510,19 @@ export function AiResponseScreen({
     clearResponseTimers();
     activeTurnIdRef.current = null;
     setBottomSpacerHeight(0);
+    const activeTurn = chatTurns.find((turn) => turn.id === activeTurnId);
+    const startedAt = generationStartedAtRef.current.get(activeTurnId);
+    captureAnalyticsEvent("generation_stopped", {
+      ...prototypeAnalytics,
+      answer_length_at_stop: activeTurn?.answer.length ?? 0,
+      conversation_id: conversationId,
+      elapsed_ms: startedAt ? Math.round(performance.now() - startedAt) : undefined,
+      had_key_points: Boolean(
+        activeTurn?.answer && splitLeadingKeyPoints(activeTurn.answer).keyPoints.length > 0,
+      ),
+      turn_id: activeTurnId,
+    });
+    generationStartedAtRef.current.delete(activeTurnId);
     setChatTurns((currentTurns) =>
       currentTurns.map((turn) =>
         turn.id === activeTurnId && turn.status !== "complete"
@@ -414,22 +533,43 @@ export function AiResponseScreen({
   };
 
   const handleScrollToBottomClick = () => {
+    captureAnalyticsEvent("scroll_to_latest_clicked", {
+      ...prototypeAnalytics,
+      conversation_id: conversationId,
+    });
     scrollResponseToBottom("smooth");
   };
 
   const handleLandingClick = () => {
     setIsSidebarOpen(false);
+    captureAnalyticsEvent("new_chat_clicked", {
+      ...prototypeAnalytics,
+      conversation_id: conversationId,
+    });
     navigate("/ai-response");
   };
 
   const handleHomeClick = () => {
     setIsSidebarOpen(false);
+    captureAnalyticsEvent("home_clicked", {
+      ...prototypeAnalytics,
+      conversation_id: conversationId,
+    });
     navigate("/");
   };
 
   const handleHistoryConversationClick = (question: string) => {
     setIsSidebarOpen(false);
-    navigate(`/ai-response/chat?q=${encodeURIComponent(question)}&mode=complete`);
+    captureAnalyticsEvent("history_conversation_clicked", {
+      ...prototypeAnalytics,
+      conversation_id: conversationId,
+      question_text: question,
+    });
+    navigate(
+      `/ai-response/chat?q=${encodeURIComponent(question)}&mode=complete&source=${encodeURIComponent(
+        "history",
+      )}`,
+    );
   };
 
   const handleSubmitQuestion = () => {
@@ -454,7 +594,13 @@ export function AiResponseScreen({
           <button
             type="button"
             aria-label="Close sidebar"
-            onClick={() => setIsSidebarOpen(false)}
+            onClick={() => {
+              setIsSidebarOpen(false);
+              captureAnalyticsEvent("sidebar_closed", {
+                ...prototypeAnalytics,
+                conversation_id: conversationId,
+              });
+            }}
             className={`absolute inset-0 z-30 bg-[rgba(217,230,249,0.66)] transition md:hidden ${
               isSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
@@ -468,7 +614,13 @@ export function AiResponseScreen({
 
           <AiResponseSidebar
             isOpen={isSidebarOpen}
-            onClose={() => setIsSidebarOpen(false)}
+            onClose={() => {
+              setIsSidebarOpen(false);
+              captureAnalyticsEvent("sidebar_closed", {
+                ...prototypeAnalytics,
+                conversation_id: conversationId,
+              });
+            }}
             onHistoryConversationClick={handleHistoryConversationClick}
             onHomeClick={handleHomeClick}
             onNewChatClick={handleLandingClick}
@@ -490,7 +642,19 @@ export function AiResponseScreen({
                       type="button"
                       aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
                       aria-expanded={isSidebarOpen}
-                      onClick={() => setIsSidebarOpen((current) => !current)}
+                      onClick={() => {
+                        setIsSidebarOpen((current) => {
+                          const nextOpen = !current;
+                          captureAnalyticsEvent(
+                            nextOpen ? "sidebar_opened" : "sidebar_closed",
+                            {
+                              ...prototypeAnalytics,
+                              conversation_id: conversationId,
+                            },
+                          );
+                          return nextOpen;
+                        });
+                      }}
                       className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-white/70"
                     >
                       <AiMenuIcon />
@@ -529,7 +693,19 @@ export function AiResponseScreen({
                       type="button"
                       aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
                       aria-expanded={isSidebarOpen}
-                      onClick={() => setIsSidebarOpen((current) => !current)}
+                      onClick={() => {
+                        setIsSidebarOpen((current) => {
+                          const nextOpen = !current;
+                          captureAnalyticsEvent(
+                            nextOpen ? "sidebar_opened" : "sidebar_closed",
+                            {
+                              ...prototypeAnalytics,
+                              conversation_id: conversationId,
+                            },
+                          );
+                          return nextOpen;
+                        });
+                      }}
                       className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-white/70"
                     >
                       <AiMenuIcon />
@@ -574,12 +750,31 @@ export function AiResponseScreen({
                       {turn.status === "preparing" ? (
                         <>
                           <AiPreparingAnswerNotice question={turn.question} />
-                          <MedscapeCurrentAdBlock className="mt-5 md:mt-4" />
+                          <MedscapeCurrentAdBlock
+                            adPlacement="after-progress"
+                            adSlot="preparing"
+                            className="mt-5 md:mt-4"
+                            conversationId={conversationId}
+                            prototypeFamily="ai-response"
+                            prototypeRoute="/ai-response"
+                            prototypeSlug="ai-response"
+                            screenType="prototype_chat"
+                            turnId={turn.id}
+                          />
                         </>
                       ) : null}
 
                       {turn.answer ? (
                         <AiResponseKeyPoints
+                          analyticsContext={{
+                            conversationId,
+                            prototypeFamily: "ai-response",
+                            prototypeRoute: "/ai-response",
+                            prototypeSlug: "ai-response",
+                            question: turn.question,
+                            screenType: "prototype_chat",
+                            turnId: turn.id,
+                          }}
                           className="mb-6"
                           keyPoints={splitLeadingKeyPoints(turn.answer).keyPoints}
                         />
@@ -595,11 +790,42 @@ export function AiResponseScreen({
 
                       {turn.status === "complete" && turn.answer ? (
                         <>
-                          <AiResponseAnswerActions answer={turn.answer} />
+                          <AiResponseAnswerActions
+                            analyticsContext={{
+                              conversationId,
+                              prototypeFamily: "ai-response",
+                              prototypeRoute: "/ai-response",
+                              prototypeSlug: "ai-response",
+                              question: turn.question,
+                              screenType: "prototype_chat",
+                              turnId: turn.id,
+                            }}
+                            answer={turn.answer}
+                          />
                           <AiResponseAnswerSupportingContent
+                            adPlacement="answer-footer"
+                            analyticsContext={{
+                              conversationId,
+                              prototypeFamily: "ai-response",
+                              prototypeRoute: "/ai-response",
+                              prototypeSlug: "ai-response",
+                              screenType: "prototype_chat",
+                              turnId: turn.id,
+                            }}
                             className="mt-5"
                             followUpQuestions={turn.supportingContent.followUpQuestions}
-                            onFollowUpQuestionSelect={submitQuestion}
+                            onFollowUpQuestionSelect={(question) => {
+                              captureAnalyticsEvent("follow_up_question_clicked", {
+                                ...prototypeAnalytics,
+                                conversation_id: conversationId,
+                                follow_up_index: turn.supportingContent.followUpQuestions.indexOf(question),
+                                follow_up_text: question,
+                                parent_turn_id: turn.id,
+                              });
+                              submitQuestion(question, {
+                                questionSource: "follow_up_question",
+                              });
+                            }}
                             references={turn.supportingContent.references}
                           />
                         </>
@@ -646,6 +872,7 @@ export function AiResponseScreen({
                       iconClassName="h-8 w-8"
                       inputClassName="h-8 flex-1 border-0 bg-transparent text-[16px] leading-[20px] text-[#1b2b3a] outline-none placeholder:text-[#93a2ae]"
                       inputRef={composerInputRef}
+                      analyticsSourceSurface="ai_response_chat"
                       isGenerating={isGenerationInProgress}
                       onStopGeneration={handleStopGeneration}
                       onSubmit={handleSubmitQuestion}

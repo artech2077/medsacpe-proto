@@ -1,13 +1,17 @@
 "use client";
 
+import { useRef } from "react";
 import type { FormEvent, ReactNode, RefObject } from "react";
 import { AiSendButtonIcon } from "@/components/medscape/ai-response/iconography";
+import { getQuestionLengthBucket } from "@/lib/analytics/events";
+import { captureAnalyticsEvent } from "@/lib/analytics/posthog";
 
 type AiResponseChatComposerProps = {
   className?: string;
   emptyActionButtonClassName?: string;
   emptyActionIcon?: ReactNode;
   emptyActionLabel?: string;
+  analyticsSourceSurface?: string;
   onEmptyActionClick?: () => void;
   formClassName?: string;
   iconClassName?: string;
@@ -30,6 +34,7 @@ export function AiResponseChatComposer({
   emptyActionButtonClassName,
   emptyActionIcon,
   emptyActionLabel = "Voice input",
+  analyticsSourceSurface,
   onEmptyActionClick,
   formClassName,
   iconClassName,
@@ -51,6 +56,8 @@ export function AiResponseChatComposer({
   submitButtonClassName,
   value,
 }: AiResponseChatComposerProps) {
+  const hasTrackedFocusRef = useRef(false);
+  const trackedLengthBucketsRef = useRef(new Set<string>());
   const hasDraft = value.trim().length > 0;
   const canSubmit = hasDraft || showSubmitWhenEmpty;
   const resolvedFormClassName =
@@ -73,6 +80,41 @@ export function AiResponseChatComposer({
     onSubmit();
   };
 
+  const handleInputFocus = () => {
+    if (hasTrackedFocusRef.current) return;
+
+    hasTrackedFocusRef.current = true;
+    captureAnalyticsEvent("composer_focused", {
+      source_surface: analyticsSourceSurface ?? "unknown",
+    });
+  };
+
+  const handleValueChange = (nextValue: string) => {
+    const trimmedValue = nextValue.trim();
+    const lengthBucket = getQuestionLengthBucket(trimmedValue.length);
+
+    if (
+      lengthBucket !== "empty" &&
+      !trackedLengthBucketsRef.current.has(lengthBucket)
+    ) {
+      trackedLengthBucketsRef.current.add(lengthBucket);
+      captureAnalyticsEvent("composer_changed", {
+        char_bucket: lengthBucket,
+        has_text: trimmedValue.length > 0,
+        source_surface: analyticsSourceSurface ?? "unknown",
+      });
+    }
+
+    onValueChange(nextValue);
+  };
+
+  const handleEmptyActionClick = () => {
+    captureAnalyticsEvent("voice_input_clicked", {
+      source_surface: analyticsSourceSurface ?? "unknown",
+    });
+    onEmptyActionClick?.();
+  };
+
   return (
     <div className={className}>
       <form
@@ -84,7 +126,8 @@ export function AiResponseChatComposer({
           ref={inputRef}
           type="text"
           value={value}
-          onChange={(event) => onValueChange(event.target.value)}
+          onChange={(event) => handleValueChange(event.target.value)}
+          onFocus={handleInputFocus}
           placeholder={placeholder}
           className={resolvedInputClassName}
         />
@@ -110,7 +153,7 @@ export function AiResponseChatComposer({
           <button
             type="button"
             aria-label={emptyActionLabel}
-            onClick={onEmptyActionClick}
+            onClick={handleEmptyActionClick}
             className={resolvedEmptyActionButtonClassName}
           >
             {emptyActionIcon}

@@ -1,12 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+/* eslint-disable @next/next/no-img-element */
+import { useEffect, useRef, useState } from "react";
+import { captureAnalyticsEvent } from "@/lib/analytics/posthog";
 
 type MedscapeCurrentAdBlockProps = {
+  adPlacement?: string;
+  adSlot?: string;
   className?: string;
+  conversationId?: string;
+  prototypeFamily?: string;
+  prototypeRoute?: string;
+  prototypeSlug?: string;
+  screenType?: string;
+  turnId?: number;
 };
 
-export function MedscapeCurrentAdBlock({ className = "" }: MedscapeCurrentAdBlockProps) {
+export function MedscapeCurrentAdBlock({
+  adPlacement,
+  adSlot = "medscape_current_ad",
+  className = "",
+  conversationId,
+  prototypeFamily,
+  prototypeRoute,
+  prototypeSlug,
+  screenType,
+  turnId,
+}: MedscapeCurrentAdBlockProps) {
+  const adRef = useRef<HTMLElement>(null);
+  const hasTrackedViewRef = useRef(false);
+  const viewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const visibleSinceRef = useRef<number | null>(null);
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
@@ -21,8 +45,77 @@ export function MedscapeCurrentAdBlock({ className = "" }: MedscapeCurrentAdBloc
     };
   }, []);
 
+  useEffect(() => {
+    const adNode = adRef.current;
+    if (!adNode || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const now = performance.now();
+
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          if (visibleSinceRef.current === null) {
+            visibleSinceRef.current = now;
+          }
+
+          if (!hasTrackedViewRef.current && viewTimeoutRef.current === null) {
+            const visibleRatio = Number(entry.intersectionRatio.toFixed(2));
+            viewTimeoutRef.current = setTimeout(() => {
+              if (hasTrackedViewRef.current || visibleSinceRef.current === null) return;
+
+              const timeVisibleMs = Math.round(performance.now() - visibleSinceRef.current);
+              hasTrackedViewRef.current = true;
+              captureAnalyticsEvent("ad_slot_viewed", {
+                ad_placement: adPlacement,
+                ad_slot: adSlot,
+                conversation_id: conversationId,
+                prototype_family: prototypeFamily,
+                prototype_route: prototypeRoute,
+                prototype_slug: prototypeSlug,
+                screen_type: screenType,
+                time_visible_ms: timeVisibleMs,
+                turn_id: turnId,
+                visible_ratio: visibleRatio,
+              });
+              viewTimeoutRef.current = null;
+            }, 1000);
+          }
+
+          return;
+        }
+
+        if (viewTimeoutRef.current) {
+          clearTimeout(viewTimeoutRef.current);
+          viewTimeoutRef.current = null;
+        }
+        visibleSinceRef.current = null;
+      },
+      { threshold: [0, 0.5, 1] },
+    );
+
+    observer.observe(adNode);
+
+    return () => {
+      if (viewTimeoutRef.current) {
+        clearTimeout(viewTimeoutRef.current);
+        viewTimeoutRef.current = null;
+      }
+      observer.disconnect();
+    };
+  }, [
+    adPlacement,
+    adSlot,
+    conversationId,
+    prototypeFamily,
+    prototypeRoute,
+    prototypeSlug,
+    screenType,
+    turnId,
+  ]);
+
   return (
     <aside
+      ref={adRef}
       className={`border border-[#C5CED3] bg-[#F2F2F2] px-5 py-5 text-center ${className}`.trim()}
       aria-label="Advertisement"
     >

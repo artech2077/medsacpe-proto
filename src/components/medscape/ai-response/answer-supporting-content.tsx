@@ -6,6 +6,15 @@ import { AiResponseReferences } from "@/components/medscape/ai-response/referenc
 import type { AiAnswerReference } from "@/data/ai-response";
 
 type AiResponseAnswerSupportingContentProps = {
+  analyticsContext?: {
+    conversationId?: string;
+    prototypeFamily?: string;
+    prototypeRoute?: string;
+    prototypeSlug?: string;
+    screenType?: string;
+    turnId?: number;
+  };
+  adPlacement?: string;
   className?: string;
   followUpQuestions: string[];
   onFollowUpQuestionSelect?: (question: string) => void;
@@ -13,6 +22,8 @@ type AiResponseAnswerSupportingContentProps = {
 };
 
 export function AiResponseAnswerSupportingContent({
+  analyticsContext,
+  adPlacement,
   className,
   followUpQuestions,
   onFollowUpQuestionSelect,
@@ -21,7 +32,17 @@ export function AiResponseAnswerSupportingContent({
   return (
     <section className={className}>
       <AiResponseReferences references={references} />
-      <MedscapeCurrentAdBlock className="mt-4 md:mt-5" />
+      <MedscapeCurrentAdBlock
+        adPlacement={adPlacement}
+        adSlot="answer_footer"
+        className="mt-4 md:mt-5"
+        conversationId={analyticsContext?.conversationId}
+        prototypeFamily={analyticsContext?.prototypeFamily}
+        prototypeRoute={analyticsContext?.prototypeRoute}
+        prototypeSlug={analyticsContext?.prototypeSlug}
+        screenType={analyticsContext?.screenType}
+        turnId={analyticsContext?.turnId}
+      />
       <AiResponseFollowUpQuestions
         className="mt-4 md:mt-5"
         onQuestionSelect={onFollowUpQuestionSelect}
