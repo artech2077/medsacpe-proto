@@ -17,8 +17,28 @@ const POSTHOG_ENABLED = process.env.NEXT_PUBLIC_POSTHOG_ENABLED === "true";
 const REPLAY_ENABLED = process.env.NEXT_PUBLIC_POSTHOG_REPLAY_ENABLED === "true";
 const RAW_PROMPT_CAPTURE_ENABLED =
   process.env.NEXT_PUBLIC_POSTHOG_CAPTURE_RAW_PROMPTS === "true";
+const OPT_OUT_USER_AGENT_FILTER =
+  process.env.NEXT_PUBLIC_POSTHOG_OPT_OUT_USERAGENT_FILTER === "true";
 
 let hasInitializedPostHog = false;
+
+function exposePostHogOnWindow() {
+  if (typeof window === "undefined") return;
+
+  (
+    window as Window & {
+      posthog?: typeof posthog;
+    }
+  ).posthog = posthog;
+}
+
+function ensurePostHogInitialized() {
+  if (!isAnalyticsEnabled() || !POSTHOG_KEY) return false;
+  if (typeof window === "undefined") return false;
+  if (!hasInitializedPostHog) initPostHog();
+
+  return true;
+}
 
 export function isAnalyticsEnabled() {
   return Boolean(POSTHOG_ENABLED && POSTHOG_KEY);
@@ -51,6 +71,8 @@ export function initPostHog() {
   if (hasInitializedPostHog || typeof window === "undefined") return;
   if (!isAnalyticsEnabled() || !POSTHOG_KEY) return;
 
+  exposePostHogOnWindow();
+
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
     autocapture: false,
@@ -67,6 +89,7 @@ export function initPostHog() {
     defaults: "2026-01-30",
     disable_session_recording: !REPLAY_ENABLED,
     mask_personal_data_properties: true,
+    opt_out_useragent_filter: OPT_OUT_USER_AGENT_FILTER,
     person_profiles: "never",
     rageclick: false,
     session_recording: {
@@ -84,16 +107,19 @@ export function initPostHog() {
     },
     before_send: (event) => sanitizeCaptureResult(event),
     loaded: () => {
+      exposePostHogOnWindow();
       hasInitializedPostHog = true;
     },
   });
+
+  hasInitializedPostHog = true;
 }
 
 export function captureAnalyticsEvent(
   eventName: string,
   properties: AnalyticsProperties = {},
 ) {
-  if (!isAnalyticsEnabled()) return;
+  if (!ensurePostHogInitialized()) return;
 
   const payload = buildAnalyticsPayload(eventName, properties, {
     rawPromptCaptureEnabled: isRawPromptCaptureEnabled(),
@@ -103,7 +129,7 @@ export function captureAnalyticsEvent(
 }
 
 export function capturePageView() {
-  if (!isAnalyticsEnabled() || typeof window === "undefined") return;
+  if (!ensurePostHogInitialized()) return;
 
   const rawPromptCaptureEnabled = isRawPromptCaptureEnabled();
   const currentUrl = sanitizeTrackedUrl(window.location.href, rawPromptCaptureEnabled);
@@ -125,7 +151,7 @@ export function captureClientError(
   error: unknown,
   properties: AnalyticsProperties = {},
 ) {
-  if (!isAnalyticsEnabled()) return;
+  if (!ensurePostHogInitialized()) return;
 
   const payload = buildAnalyticsPayload("client_error_captured", properties, {
     rawPromptCaptureEnabled: isRawPromptCaptureEnabled(),
@@ -136,11 +162,11 @@ export function captureClientError(
 }
 
 export function getPostHogSessionId() {
-  if (!isAnalyticsEnabled() || !hasInitializedPostHog) return undefined;
+  if (!ensurePostHogInitialized()) return undefined;
   return posthog.get_session_id();
 }
 
 export function getPostHogFeatureFlag(flagKey: string) {
-  if (!isAnalyticsEnabled() || !hasInitializedPostHog) return undefined;
+  if (!ensurePostHogInitialized()) return undefined;
   return posthog.getFeatureFlag(flagKey);
 }

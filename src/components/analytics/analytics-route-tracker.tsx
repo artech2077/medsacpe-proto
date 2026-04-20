@@ -8,6 +8,16 @@ import {
   capturePageView,
 } from "@/lib/analytics/posthog";
 
+const reportWebVital: Parameters<typeof useReportWebVitals>[0] = (metric) => {
+  captureAnalyticsEvent("web_vital_reported", {
+    metric_delta: metric.delta,
+    metric_id: metric.id,
+    metric_name: metric.name,
+    metric_rating: metric.rating,
+    metric_value: metric.value,
+  });
+};
+
 function AnalyticsRouteTrackerInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -17,15 +27,7 @@ function AnalyticsRouteTrackerInner() {
     capturePageView();
   }, [pathname, searchParamsString]);
 
-  useReportWebVitals((metric) => {
-    captureAnalyticsEvent("web_vital_reported", {
-      metric_delta: metric.delta,
-      metric_id: metric.id,
-      metric_name: metric.name,
-      metric_rating: metric.rating,
-      metric_value: metric.value,
-    });
-  });
+  useReportWebVitals(reportWebVital);
 
   return null;
 }

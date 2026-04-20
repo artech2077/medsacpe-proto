@@ -10,9 +10,12 @@ NEXT_PUBLIC_POSTHOG_KEY=<project-key>
 NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 NEXT_PUBLIC_POSTHOG_CAPTURE_RAW_PROMPTS=true
 NEXT_PUBLIC_POSTHOG_REPLAY_ENABLED=true
+NEXT_PUBLIC_POSTHOG_OPT_OUT_USERAGENT_FILTER=false
 ```
 
 Use the host that matches the PostHog project region. Keep `NEXT_PUBLIC_POSTHOG_ENABLED=false` for local development unless you are intentionally testing analytics.
+Leave `NEXT_PUBLIC_POSTHOG_OPT_OUT_USERAGENT_FILTER=false` in production. Set it to `true` only when you intentionally need analytics from headless or automation-driven browsers such as Codex browser checks.
+If you want a first-party ingest path on Vercel without a custom domain, set `NEXT_PUBLIC_POSTHOG_HOST=/ingest` and proxy `/ingest` to PostHog with Next.js rewrites.
 
 ## Launch Gate
 
@@ -39,6 +42,7 @@ After restarting Codex with the PostHog MCP available, create or verify:
 ## Verification
 
 - Run `pnpm test`, `pnpm lint`, and `pnpm build`.
+- Use [`docs/analytics-tagging-plan.md`](/Users/faroukbousaaid/Vibes/Medscape proto/docs/analytics-tagging-plan.md) as the detailed event catalog and QA checklist.
 - Use PostHog debug/live events to verify home, gallery, prototype open, prompt suggestion, composer submit, generation first content, generation complete, stop, copy, feedback, follow-up, key-points toggle, scroll-to-latest, ad view, error, and web-vital events.
-- Confirm no custom event includes `user_id`, `email`, `name`, `tester_id`, `tester_role`, `study_id`, or `distinct_id`.
+- Confirm no custom event includes `user_id`, `email`, `name`, `tester_id`, `tester_role`, or `study_id`.
 - Disable `analytics_raw_prompt_capture_enabled` and confirm `question_text`, `prompt_text`, and `follow_up_text` stop appearing in custom event properties.

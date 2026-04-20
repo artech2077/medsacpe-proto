@@ -10,7 +10,6 @@ export type AnalyticsPayloadOptions = {
 const FORBIDDEN_IDENTITY_KEYS = new Set([
   "$email",
   "$name",
-  "distinct_id",
   "email",
   "name",
   "study_id",
