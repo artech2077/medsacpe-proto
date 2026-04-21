@@ -1,0 +1,13 @@
+
+> medscape-ai-prototype@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.20.2.114:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 1081ms
+ GET / 200 in 1143ms (compile: 887ms, render: 256ms)
+ GET / 200 in 125ms (compile: 8ms, render: 117ms)

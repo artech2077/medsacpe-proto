@@ -9,18 +9,27 @@ import {
   sanitizePostHogProperties,
   sanitizeTrackedUrl,
 } from "@/lib/analytics/events";
+import {
+  resolvePostHogClientHost,
+  resolvePostHogUiHost,
+} from "@/lib/analytics/posthog-hosts";
 
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-const POSTHOG_HOST =
-  process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://eu.i.posthog.com";
+const POSTHOG_KEY =
+  process.env.NEXT_PUBLIC_POSTHOG_KEY ??
+  process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
+const POSTHOG_HOST = resolvePostHogClientHost();
+const POSTHOG_UI_HOST = resolvePostHogUiHost();
 const POSTHOG_ENABLED = process.env.NEXT_PUBLIC_POSTHOG_ENABLED === "true";
 const REPLAY_ENABLED = process.env.NEXT_PUBLIC_POSTHOG_REPLAY_ENABLED === "true";
 const RAW_PROMPT_CAPTURE_ENABLED =
   process.env.NEXT_PUBLIC_POSTHOG_CAPTURE_RAW_PROMPTS === "true";
 const OPT_OUT_USER_AGENT_FILTER =
   process.env.NEXT_PUBLIC_POSTHOG_OPT_OUT_USERAGENT_FILTER === "true";
+const FORCE_SIMPLE_LOCAL_TRANSPORT =
+  process.env.NODE_ENV !== "production" && POSTHOG_HOST === "/ingest";
 
 let hasInitializedPostHog = false;
+let hasWarnedAboutMissingConfig = false;
 
 function exposePostHogOnWindow() {
   if (typeof window === "undefined") return;
@@ -69,12 +78,27 @@ function sanitizeCaptureResult(event: CaptureResult | null): CaptureResult | nul
 
 export function initPostHog() {
   if (hasInitializedPostHog || typeof window === "undefined") return;
-  if (!isAnalyticsEnabled() || !POSTHOG_KEY) return;
+  if (!POSTHOG_KEY || !POSTHOG_ENABLED) {
+    if (
+      process.env.NODE_ENV !== "production" &&
+      !hasWarnedAboutMissingConfig &&
+      (POSTHOG_ENABLED || POSTHOG_KEY)
+    ) {
+      console.warn(
+        "[analytics] PostHog is not fully configured. Set NEXT_PUBLIC_POSTHOG_ENABLED=true and provide NEXT_PUBLIC_POSTHOG_KEY or NEXT_PUBLIC_POSTHOG_TOKEN in your local env file.",
+      );
+      hasWarnedAboutMissingConfig = true;
+    }
+
+    return;
+  }
 
   exposePostHogOnWindow();
 
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
+    api_transport: FORCE_SIMPLE_LOCAL_TRANSPORT ? "XHR" : undefined,
+    ui_host: POSTHOG_UI_HOST,
     autocapture: false,
     capture_pageleave: false,
     capture_pageview: false,
@@ -87,11 +111,13 @@ export function initPostHog() {
       "user_id",
     ],
     defaults: "2026-01-30",
+    disable_compression: FORCE_SIMPLE_LOCAL_TRANSPORT,
     disable_session_recording: !REPLAY_ENABLED,
     mask_personal_data_properties: true,
     opt_out_useragent_filter: OPT_OUT_USER_AGENT_FILTER,
     person_profiles: "never",
     rageclick: false,
+    request_batching: !FORCE_SIMPLE_LOCAL_TRANSPORT,
     session_recording: {
       maskAllInputs: false,
       maskInputOptions: {
