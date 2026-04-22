@@ -37,6 +37,15 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   },
   {
     description:
+      "Paid-entry variant of the ad-above-the-question flow that leads with a quick answer preview, tap-ready follow-up actions, and a lighter mobile-first first screen before the full answer.",
+    route: "/ad-exp-test1",
+    slug: "ad-exp-test1",
+    status: "active",
+    tags: ["medscape-ai", "current-ui", "paid-entry", "ad-placement"],
+    title: "Ad exp test1",
+  },
+  {
+    description:
       "Medscape AI current with the first ad held until the key points block appears, then kept between key points and the answer for every response.",
     route: "/ad-after-keypoints",
     slug: "ad-after-keypoints",
@@ -61,5 +70,14 @@ export const prototypeRegistry: PrototypeDefinition[] = [
     status: "active",
     tags: ["medscape-ai", "current-ui", "ad-placement"],
     title: "Ad after keypoints collapsed with read more",
+  },
+  {
+    description:
+      "Configuration surface for the Medscape AI feature-update popup shown from the landing experience, including multi-slide carousel content.",
+    route: "/medscape-ai-feature-updates-config",
+    slug: "medscape-ai-feature-updates-config",
+    status: "active",
+    tags: ["medscape-ai", "config", "carousel"],
+    title: "Feature updates config",
   },
 ];

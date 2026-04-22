@@ -4,24 +4,38 @@
 import { startTransition, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MedscapeCurrentTopRailActions } from "@/components/medscape/ai-current/current-top-rail-actions";
+import { MedscapeFeatureUpdatesModal } from "@/components/medscape/ai-current/feature-updates-modal";
 import { CurrentSparkIcon } from "@/components/medscape/ai-current/current-icons";
 import { MedscapeCurrentHeader } from "@/components/medscape/ai-current/global-header";
+import { useMedscapeFeatureUpdatesConfig } from "@/components/medscape/ai-current/use-feature-updates-config";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
 import { AiMicrophoneIcon } from "@/components/medscape/ai-response/iconography";
 import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiPromptSectionsList } from "@/components/medscape/ai-response/prompt-card";
 import { defaultInitialQuestion, promptSections, type PromptSection } from "@/data/ai-response";
+import { featureUpdatesTriggerPrompt } from "@/data/medscape-feature-updates";
 import { captureAnalyticsEvent } from "@/lib/analytics/posthog";
 
 type MedscapeAiCurrentLandingProps = {
+  composerPlaceholder?: string;
+  promptIntro?: string;
   prototypeRoute?: string;
+  showHistoryAction?: boolean;
 };
 
 export function MedscapeAiCurrentLanding({
+  composerPlaceholder = "Ask anything",
+  promptIntro = "Discover what you can ask Medscape AI",
   prototypeRoute = "/medscape-ai-current",
+  showHistoryAction = true,
 }: MedscapeAiCurrentLandingProps) {
   const router = useRouter();
   const [draft, setDraft] = useState("");
+  const [isFeatureUpdatesOpen, setIsFeatureUpdatesOpen] = useState(false);
+  const [pendingFeatureUpdatePrompt, setPendingFeatureUpdatePrompt] = useState<string | null>(
+    null,
+  );
+  const { updates: featureUpdates } = useMedscapeFeatureUpdatesConfig();
 
   const navigate = (href: string) => {
     startTransition(() => {
@@ -64,7 +78,49 @@ export function MedscapeAiCurrentLanding({
       prototype_slug: prototypeSlug,
       screen_type: "prototype_landing",
     });
+
+    if (prompt === featureUpdatesTriggerPrompt) {
+      setPendingFeatureUpdatePrompt(prompt);
+      setIsFeatureUpdatesOpen(true);
+      captureAnalyticsEvent("feature_updates_modal_opened", {
+        feature_update_count: featureUpdates.length,
+        prompt_section: section.id,
+        prompt_text: prompt,
+        prototype_family: "medscape-ai-current",
+        prototype_route: prototypeRoute,
+        prototype_slug: prototypeSlug,
+        screen_type: "prototype_landing",
+      });
+      return;
+    }
+
     navigateToChat(prompt, "stream", "prompt_suggestion");
+  };
+
+  const closeFeatureUpdates = () => {
+    setIsFeatureUpdatesOpen(false);
+    captureAnalyticsEvent("feature_updates_modal_closed", {
+      feature_update_count: featureUpdates.length,
+      prototype_family: "medscape-ai-current",
+      prototype_route: prototypeRoute,
+      prototype_slug: prototypeSlug,
+      screen_type: "prototype_landing",
+    });
+  };
+
+  const handleFeatureUpdatesContinue = () => {
+    if (!pendingFeatureUpdatePrompt) return;
+
+    captureAnalyticsEvent("feature_updates_modal_cta_clicked", {
+      feature_update_count: featureUpdates.length,
+      prompt_text: pendingFeatureUpdatePrompt,
+      prototype_family: "medscape-ai-current",
+      prototype_route: prototypeRoute,
+      prototype_slug: prototypeSlug,
+      screen_type: "prototype_landing",
+    });
+    setIsFeatureUpdatesOpen(false);
+    navigateToChat(pendingFeatureUpdatePrompt, "stream", "feature_updates_modal");
   };
 
   useEffect(() => {
@@ -103,6 +159,7 @@ export function MedscapeAiCurrentLanding({
                 screen_type: "prototype_landing",
               });
             }}
+            showHistory={showHistoryAction}
           />
         </div>
 
@@ -134,6 +191,7 @@ export function MedscapeAiCurrentLanding({
                     screen_type: "prototype_landing",
                   });
                 }}
+                showHistory={showHistoryAction}
               />
           }
         />
@@ -160,7 +218,7 @@ export function MedscapeAiCurrentLanding({
                 note={null}
                 onSubmit={handleSubmit}
                 onValueChange={setDraft}
-                placeholder="Ask anything"
+                placeholder={composerPlaceholder}
                 value={draft}
               />
             </div>
@@ -168,12 +226,21 @@ export function MedscapeAiCurrentLanding({
 
           <div className="mt-8 flex w-full flex-col items-center gap-3">
             <p className="w-full max-w-[600px] text-center text-[10px] leading-[14px] font-semibold tracking-[0.04em] text-[#2c353a] uppercase md:text-[12px] md:leading-[18px]">
-              Discover what you can ask Medscape AI
+              {promptIntro}
             </p>
             <AiPromptSectionsList sections={promptSections} onPromptSelect={handlePromptSelect} />
           </div>
         </div>
       </section>
+
+      {isFeatureUpdatesOpen ? (
+        <MedscapeFeatureUpdatesModal
+          isOpen
+          onClose={closeFeatureUpdates}
+          onContinue={handleFeatureUpdatesContinue}
+          updates={featureUpdates}
+        />
+      ) : null}
     </main>
   );
 }

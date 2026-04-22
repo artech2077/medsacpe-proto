@@ -25,8 +25,7 @@ const RAW_PROMPT_CAPTURE_ENABLED =
   process.env.NEXT_PUBLIC_POSTHOG_CAPTURE_RAW_PROMPTS === "true";
 const OPT_OUT_USER_AGENT_FILTER =
   process.env.NEXT_PUBLIC_POSTHOG_OPT_OUT_USERAGENT_FILTER === "true";
-const FORCE_SIMPLE_LOCAL_TRANSPORT =
-  process.env.NODE_ENV !== "production" && POSTHOG_HOST === "/ingest";
+const FORCE_SIMPLE_PROXY_TRANSPORT = POSTHOG_HOST === "/ingest";
 
 let hasInitializedPostHog = false;
 let hasWarnedAboutMissingConfig = false;
@@ -97,7 +96,7 @@ export function initPostHog() {
 
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
-    api_transport: FORCE_SIMPLE_LOCAL_TRANSPORT ? "XHR" : undefined,
+    api_transport: FORCE_SIMPLE_PROXY_TRANSPORT ? "XHR" : undefined,
     ui_host: POSTHOG_UI_HOST,
     autocapture: false,
     capture_pageleave: false,
@@ -111,13 +110,13 @@ export function initPostHog() {
       "user_id",
     ],
     defaults: "2026-01-30",
-    disable_compression: FORCE_SIMPLE_LOCAL_TRANSPORT,
+    disable_compression: FORCE_SIMPLE_PROXY_TRANSPORT,
     disable_session_recording: !REPLAY_ENABLED,
     mask_personal_data_properties: true,
     opt_out_useragent_filter: OPT_OUT_USER_AGENT_FILTER,
     person_profiles: "never",
     rageclick: false,
-    request_batching: !FORCE_SIMPLE_LOCAL_TRANSPORT,
+    request_batching: !FORCE_SIMPLE_PROXY_TRANSPORT,
     session_recording: {
       maskAllInputs: false,
       maskInputOptions: {

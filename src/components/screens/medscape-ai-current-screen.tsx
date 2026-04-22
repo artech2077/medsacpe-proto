@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
+import { MedscapePaidTrafficQuickStart } from "@/components/medscape/ai-current/paid-traffic-quick-start";
 import { MedscapeCurrentTopRailActions } from "@/components/medscape/ai-current/current-top-rail-actions";
 import { CurrentScrollDownIcon, CurrentSparkIcon } from "@/components/medscape/ai-current/current-icons";
 import { MedscapeCurrentHeader } from "@/components/medscape/ai-current/global-header";
@@ -63,24 +64,32 @@ type MedscapeAiCurrentScreenAdPlacement =
   | "above-question"
   | "after-keypoints";
 
+type MedscapeAiCurrentEntryExperience = "default" | "paid-traffic-quick-start";
+
 type MedscapeAiCurrentScreenProps = {
   adPlacement?: MedscapeAiCurrentScreenAdPlacement;
+  composerPlaceholder?: string;
+  entryExperience?: MedscapeAiCurrentEntryExperience;
   initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
   initialQuestionSource?: string;
   keyPointsDefaultExpanded?: boolean;
   keyPointsVariant?: AiResponseKeyPointsVariant;
   prototypeRoute?: string;
+  showHistoryAction?: boolean;
 };
 
 export function MedscapeAiCurrentScreen({
   adPlacement = "after-progress",
+  composerPlaceholder = "Ask anything",
+  entryExperience = "default",
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
   initialQuestionSource = "direct_url",
   keyPointsDefaultExpanded = true,
   keyPointsVariant = "default",
   prototypeRoute = "/medscape-ai-current",
+  showHistoryAction = true,
 }: MedscapeAiCurrentScreenProps) {
   const router = useRouter();
   const responseScrollRef = useRef<HTMLDivElement>(null);
@@ -106,6 +115,7 @@ export function MedscapeAiCurrentScreen({
     () =>
       ({
         ad_placement: adPlacement,
+        entry_experience: entryExperience,
         key_points_default_expanded: keyPointsDefaultExpanded,
         key_points_variant: keyPointsVariant,
         prototype_family: "medscape-ai-current",
@@ -113,7 +123,14 @@ export function MedscapeAiCurrentScreen({
         prototype_slug: prototypeSlug,
         screen_type: "prototype_chat",
       }) as const,
-    [adPlacement, keyPointsDefaultExpanded, keyPointsVariant, prototypeRoute, prototypeSlug],
+    [
+      adPlacement,
+      entryExperience,
+      keyPointsDefaultExpanded,
+      keyPointsVariant,
+      prototypeRoute,
+      prototypeSlug,
+    ],
   );
 
   const navigate = useCallback(
@@ -534,6 +551,19 @@ export function MedscapeAiCurrentScreen({
     submitQuestion(composerDraft);
   };
 
+  const focusComposerForPaidEntry = useCallback(
+    (turnId: number) => {
+      captureAnalyticsEvent("paid_entry_ask_own_question_clicked", {
+        ...prototypeAnalytics,
+        conversation_id: conversationId,
+        turn_id: turnId,
+      });
+      composerInputRef.current?.focus();
+      scrollResponseToBottom("smooth");
+    },
+    [conversationId, prototypeAnalytics, scrollResponseToBottom],
+  );
+
   return (
     <main
       className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#e8f0fb] text-[#161b1d]"
@@ -564,6 +594,7 @@ export function MedscapeAiCurrentScreen({
                 });
                 navigate(prototypeRoute);
               }}
+              showHistory={showHistoryAction}
             />
           </div>
 
@@ -599,6 +630,7 @@ export function MedscapeAiCurrentScreen({
                   });
                   navigate(prototypeRoute);
                 }}
+                showHistory={showHistoryAction}
               />
             }
             rightClassName="relative z-10 ml-auto flex items-center gap-4"
@@ -616,6 +648,9 @@ export function MedscapeAiCurrentScreen({
                   const keyPoints = turn.answer ? splitLeadingKeyPoints(turn.answer).keyPoints : [];
                   const showAfterKeypointsAd =
                     adPlacement === "after-keypoints" && keyPoints.length > 0;
+                  const isPaidEntryTurn =
+                    entryExperience === "paid-traffic-quick-start" && turn.id === 1;
+                  const paidEntryKeyPoints = splitLeadingKeyPoints(turn.fullAnswer).keyPoints;
 
                   return (
                     <article
@@ -641,7 +676,29 @@ export function MedscapeAiCurrentScreen({
                         {turn.question}
                       </h1>
 
-                      {turn.status === "preparing" ? (
+                      {isPaidEntryTurn ? (
+                        <MedscapePaidTrafficQuickStart
+                          answer={turn.fullAnswer}
+                          detailState={turn.status}
+                          followUpQuestions={turn.supportingContent.followUpQuestions}
+                          onActionSelect={(question, actionIndex) => {
+                            captureAnalyticsEvent("paid_entry_quick_action_clicked", {
+                              ...prototypeAnalytics,
+                              action_index: actionIndex,
+                              action_text: question,
+                              conversation_id: conversationId,
+                              parent_turn_id: turn.id,
+                            });
+                            submitQuestion(question, {
+                              questionSource: "paid_entry_quick_action",
+                            });
+                          }}
+                          onAskOwnQuestion={() => focusComposerForPaidEntry(turn.id)}
+                          referencesCount={turn.supportingContent.references.length}
+                        />
+                      ) : null}
+
+                      {turn.status === "preparing" && !isPaidEntryTurn ? (
                         <>
                           <AiPreparingAnswerNotice
                             className={`flex max-w-[520px] items-start gap-4 text-[16px] leading-[1.45] text-[#5f6972] md:items-center md:gap-3 md:text-[14px] ${
@@ -667,7 +724,7 @@ export function MedscapeAiCurrentScreen({
                         </>
                       ) : null}
 
-                      {turn.answer ? (
+                      {turn.answer && !isPaidEntryTurn ? (
                         <AiResponseKeyPoints
                           analyticsContext={{
                             conversationId,
@@ -685,7 +742,7 @@ export function MedscapeAiCurrentScreen({
                         />
                       ) : null}
 
-                      {showAfterKeypointsAd ? (
+                      {showAfterKeypointsAd && !isPaidEntryTurn ? (
                         <MedscapeCurrentAdBlock
                           adPlacement={adPlacement}
                           adSlot="after_keypoints"
@@ -699,7 +756,56 @@ export function MedscapeAiCurrentScreen({
                         />
                       ) : null}
 
-                      {turn.answer ? (
+                      {isPaidEntryTurn ? (
+                        <section className="mt-7 border-t border-[#d7e2ec] pt-5">
+                          <div>
+                            <p className="text-[12px] leading-none font-semibold tracking-[0.08em] text-[#51616c] uppercase">
+                              Detailed answer
+                            </p>
+                            <p className="mt-1 text-[14px] leading-[1.45] text-[#51616c]">
+                              Full clinical rationale, references, and follow-up options stay available below the quick preview.
+                            </p>
+                          </div>
+
+                          {turn.status === "preparing" ? (
+                            <AiPreparingAnswerNotice
+                              className="mt-4 flex max-w-[560px] items-start gap-3 text-[15px] leading-[1.45] text-[#5f6972] md:items-center md:text-[14px]"
+                              iconClassName="h-[18px] w-[18px]"
+                              text={getCurrentProgressText(turn.question)}
+                              textClassName=""
+                            />
+                          ) : (
+                            <>
+                              {paidEntryKeyPoints.length > 0 ? (
+                                <AiResponseKeyPoints
+                                  analyticsContext={{
+                                    conversationId,
+                                    prototypeFamily: "medscape-ai-current",
+                                    prototypeRoute,
+                                    prototypeSlug,
+                                    question: turn.question,
+                                    screenType: "prototype_chat",
+                                    turnId: turn.id,
+                                  }}
+                                  className="mt-4"
+                                  defaultExpanded={false}
+                                  keyPoints={paidEntryKeyPoints}
+                                  variant="collapsed-read-more"
+                                />
+                              ) : null}
+
+                              {turn.answer ? (
+                                <AiResponseAnswerContent
+                                  answer={turn.answer}
+                                  className="mt-5"
+                                  fullAnswer={turn.fullAnswer}
+                                  references={turn.supportingContent.references}
+                                />
+                              ) : null}
+                            </>
+                          )}
+                        </section>
+                      ) : turn.answer ? (
                         <AiResponseAnswerContent
                           answer={turn.answer}
                           fullAnswer={turn.fullAnswer}
@@ -799,6 +905,7 @@ export function MedscapeAiCurrentScreen({
                   onStopGeneration={handleStopGeneration}
                   onSubmit={handleSubmitQuestion}
                   onValueChange={setComposerDraft}
+                  placeholder={composerPlaceholder}
                   submitButtonClassName="inline-flex h-8 w-8 shrink-0 items-center justify-center"
                   value={composerDraft}
                 />

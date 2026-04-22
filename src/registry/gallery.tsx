@@ -1,7 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 import type { ComponentType } from "react";
 import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
+import { MedscapeFeatureUpdatesModal } from "@/components/medscape/ai-current/feature-updates-modal";
 import { MedscapeCurrentHeader } from "@/components/medscape/ai-current/global-header";
+import { MedscapePaidTrafficQuickStart } from "@/components/medscape/ai-current/paid-traffic-quick-start";
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
 import {
   AiResponseAnswerContent,
@@ -24,6 +26,7 @@ import {
   defaultInitialQuestion,
   promptSections,
 } from "@/data/ai-response";
+import { defaultMedscapeFeatureUpdates } from "@/data/medscape-feature-updates";
 
 export type GalleryCategory =
   | "content"
@@ -182,6 +185,19 @@ function CurrentAdBlockPreview() {
   );
 }
 
+function FeatureUpdatesModalPreview() {
+  return (
+    <div className="rounded-[28px] bg-[linear-gradient(180deg,#65707f_0%,#586374_100%)] p-4">
+      <MedscapeFeatureUpdatesModal
+        mode="embedded"
+        onClose={() => undefined}
+        onContinue={() => undefined}
+        updates={defaultMedscapeFeatureUpdates}
+      />
+    </div>
+  );
+}
+
 function SupportingContentPreview() {
   const supportingContent = buildMockAnswerSupportingContent(defaultInitialQuestion);
 
@@ -191,6 +207,23 @@ function SupportingContentPreview() {
         followUpQuestions={supportingContent.followUpQuestions}
         onFollowUpQuestionSelect={() => undefined}
         references={supportingContent.references}
+      />
+    </div>
+  );
+}
+
+function PaidTrafficQuickStartPreview() {
+  const supportingContent = buildMockAnswerSupportingContent(defaultInitialQuestion);
+
+  return (
+    <div className="max-w-[860px] rounded-[24px] bg-white p-5">
+      <MedscapePaidTrafficQuickStart
+        answer={buildMockAnswer(defaultInitialQuestion)}
+        detailState="preparing"
+        followUpQuestions={supportingContent.followUpQuestions}
+        onActionSelect={() => undefined}
+        onAskOwnQuestion={() => undefined}
+        referencesCount={supportingContent.references.length}
       />
     </div>
   );
@@ -246,6 +279,18 @@ export const galleryRegistry: GalleryEntry[] = [
     ],
   },
   {
+    category: "content",
+    description: "Reusable Medscape AI feature-update popup with optional carousel behavior for multiple announcements.",
+    id: "medscape-feature-updates-modal",
+    preview: FeatureUpdatesModalPreview,
+    sourcePath: "src/components/medscape/ai-current/feature-updates-modal.tsx",
+    title: "MedscapeFeatureUpdatesModal",
+    usageNotes: [
+      "Pass typed update data so the same modal can render one or many slides.",
+      "Use overlay mode in product screens and embedded mode for previews or configuration flows.",
+    ],
+  },
+  {
     category: "input",
     description: "Reusable chat composer for AI prototype answer views with send and stop states.",
     id: "ai-response-chat-composer",
@@ -290,6 +335,18 @@ export const galleryRegistry: GalleryEntry[] = [
     usageNotes: [
       "Pass parsed leading bullet points rather than duplicating key-points markup in the screen.",
       "Use the default expanded state to match the Figma answer treatment.",
+    ],
+  },
+  {
+    category: "content",
+    description: "Paid-entry quick-value layer that surfaces a short answer, compact summary, next-step actions, and trust cue before the detailed response.",
+    id: "medscape-paid-traffic-quick-start",
+    preview: PaidTrafficQuickStartPreview,
+    sourcePath: "src/components/medscape/ai-current/paid-traffic-quick-start.tsx",
+    title: "MedscapePaidTrafficQuickStart",
+    usageNotes: [
+      "Use for paid-traffic and ad-entry experiments that need immediate value before full answer reading.",
+      "Pass answer and supporting content from the same turn so quick actions remain clinically aligned.",
     ],
   },
   {
