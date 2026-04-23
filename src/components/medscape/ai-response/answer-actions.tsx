@@ -21,6 +21,7 @@ type AiResponseAnswerActionsProps = {
     turnId: number;
   };
   answer: string;
+  className?: string;
 };
 
 async function copyAnswerText(answer: string) {
@@ -44,6 +45,7 @@ async function copyAnswerText(answer: string) {
 export function AiResponseAnswerActions({
   analyticsContext,
   answer,
+  className,
 }: AiResponseAnswerActionsProps) {
   const [copied, setCopied] = useState(false);
   const [reaction, setReaction] = useState<AnswerReaction>(null);
@@ -92,7 +94,9 @@ export function AiResponseAnswerActions({
     "inline-flex items-center gap-2 rounded-full px-1 py-1 text-[16px] leading-none font-medium text-[var(--mscp-color-brand-primary)] transition hover:text-[#043b84] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white";
 
   return (
-    <div className="mt-7 flex flex-wrap items-center gap-4 text-[var(--mscp-color-brand-primary)]">
+    <div
+      className={`${className ?? "mt-7"} flex flex-wrap items-center gap-4 text-[var(--mscp-color-brand-primary)]`}
+    >
       <button
         type="button"
         aria-label="Mark answer helpful"

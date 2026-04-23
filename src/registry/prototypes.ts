@@ -37,12 +37,21 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   },
   {
     description:
-      "Paid-entry variant of the ad-above-the-question flow that leads with a quick answer preview, tap-ready follow-up actions, and a lighter mobile-first first screen before the full answer.",
+      "Ad-above-the-question variant that keeps the FWQ test 1 organization while collapsing the answer into a quick summary with a read-more expansion for key points and the full response.",
     route: "/ad-exp-test1",
     slug: "ad-exp-test1",
     status: "active",
-    tags: ["medscape-ai", "current-ui", "paid-entry", "ad-placement"],
+    tags: ["medscape-ai", "current-ui", "ad-placement", "follow-up-questions"],
     title: "Ad exp test1",
+  },
+  {
+    description:
+      "Ad-above-the-question variant that moves Figma-style chip follow-up questions directly below the completed answer and above the action row.",
+    route: "/fwq-test-1",
+    slug: "fwq-test-1",
+    status: "active",
+    tags: ["medscape-ai", "current-ui", "ad-placement", "follow-up-questions"],
+    title: "FWQ test 1",
   },
   {
     description:

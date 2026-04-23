@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { MedscapeAiCurrentScreen } from "@/components/screens/medscape-ai-current-screen";
 
-type AdExpTest1ChatPageProps = {
+type FwqTest1ChatPageProps = {
   searchParams: Promise<{
     mode?: string | string[];
     q?: string | string[];
@@ -9,9 +9,9 @@ type AdExpTest1ChatPageProps = {
   }>;
 };
 
-export default async function AdExpTest1ChatPage({
+export default async function FwqTest1ChatPage({
   searchParams,
-}: AdExpTest1ChatPageProps) {
+}: FwqTest1ChatPageProps) {
   const params = await searchParams;
   const modeValue = Array.isArray(params.mode) ? params.mode[0] : params.mode;
   const questionValue = Array.isArray(params.q) ? params.q[0] : params.q;
@@ -20,21 +20,18 @@ export default async function AdExpTest1ChatPage({
   const initialConversationMode = modeValue === "complete" ? "complete" : "stream";
 
   if (!initialQuestion) {
-    redirect("/ad-exp-test1");
+    redirect("/fwq-test-1");
   }
 
   return (
     <MedscapeAiCurrentScreen
       adPlacement="above-question"
-      answerVariant="summary-read-more"
-      composerPlaceholder="Ask Medscape AI to tailor this to your patient, setting, or next step"
       followUpQuestionsPlacement="before-actions"
       followUpQuestionsVariant="chips"
       initialConversationMode={initialConversationMode}
       initialQuestion={initialQuestion}
       initialQuestionSource={sourceValue ?? "direct_url"}
-      prototypeRoute="/ad-exp-test1"
-      showHistoryAction={false}
+      prototypeRoute="/fwq-test-1"
     />
   );
 }

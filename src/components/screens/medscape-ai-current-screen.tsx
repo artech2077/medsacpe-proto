@@ -11,18 +11,24 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
-import { MedscapePaidTrafficQuickStart } from "@/components/medscape/ai-current/paid-traffic-quick-start";
 import { MedscapeCurrentTopRailActions } from "@/components/medscape/ai-current/current-top-rail-actions";
 import { CurrentScrollDownIcon, CurrentSparkIcon } from "@/components/medscape/ai-current/current-icons";
 import { MedscapeCurrentHeader } from "@/components/medscape/ai-current/global-header";
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
 import {
   AiResponseAnswerContent,
+  buildAnswerBlocks,
   getLeadingKeyPointsLength,
+  renderInlineText,
   splitLeadingKeyPoints,
 } from "@/components/medscape/ai-response/answer-content";
 import { AiResponseAnswerSupportingContent } from "@/components/medscape/ai-response/answer-supporting-content";
+import { AiChevronIcon } from "@/components/medscape/ai-response/answer-section-icons";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
+import {
+  AiResponseFollowUpQuestions,
+  type AiResponseFollowUpQuestionsVariant,
+} from "@/components/medscape/ai-response/follow-up-questions";
 import {
   AiResponseKeyPoints,
   type AiResponseKeyPointsVariant,
@@ -31,6 +37,7 @@ import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-ra
 import { AiPreparingAnswerNotice } from "@/components/medscape/ai-response/preparing-answer-notice";
 import {
   type AiAnswerSupportingContent,
+  type AiAnswerReference,
   buildMockAnswer,
   buildMockAnswerSupportingContent,
   defaultInitialQuestion,
@@ -64,12 +71,15 @@ type MedscapeAiCurrentScreenAdPlacement =
   | "above-question"
   | "after-keypoints";
 
-type MedscapeAiCurrentEntryExperience = "default" | "paid-traffic-quick-start";
+type MedscapeAiCurrentAnswerVariant = "default" | "summary-read-more";
+type MedscapeAiCurrentFollowUpPlacement = "supporting-content" | "before-actions";
 
 type MedscapeAiCurrentScreenProps = {
   adPlacement?: MedscapeAiCurrentScreenAdPlacement;
+  answerVariant?: MedscapeAiCurrentAnswerVariant;
   composerPlaceholder?: string;
-  entryExperience?: MedscapeAiCurrentEntryExperience;
+  followUpQuestionsPlacement?: MedscapeAiCurrentFollowUpPlacement;
+  followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
   initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
   initialQuestionSource?: string;
@@ -79,10 +89,136 @@ type MedscapeAiCurrentScreenProps = {
   showHistoryAction?: boolean;
 };
 
+type MedscapeAiCurrentAnswerSummaryProps = {
+  analyticsContext: {
+    conversationId?: string;
+    prototypeFamily?: string;
+    prototypeRoute?: string;
+    prototypeSlug?: string;
+    question?: string;
+    screenType?: string;
+    turnId?: number;
+  };
+  answer: string;
+  fullAnswer: string;
+  isComplete: boolean;
+  keyPoints: string[];
+  references: AiAnswerReference[];
+};
+
+function buildAnswerSummary(answer: string) {
+  const { body, keyPoints } = splitLeadingKeyPoints(answer);
+  const blocks = buildAnswerBlocks(body);
+
+  const paragraph = blocks.find((block) => block.type === "paragraph");
+  if (paragraph?.type === "paragraph") {
+    return paragraph.text;
+  }
+
+  const list = blocks.find((block) => block.type === "list");
+  if (list?.type === "list" && list.items.length > 0) {
+    return list.items[0];
+  }
+
+  if (keyPoints.length > 0) {
+    return keyPoints[0];
+  }
+
+  return body.trim();
+}
+
+function MedscapeAiCurrentAnswerSummary({
+  analyticsContext,
+  answer,
+  fullAnswer,
+  isComplete,
+  keyPoints,
+  references,
+}: MedscapeAiCurrentAnswerSummaryProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const summaryText = buildAnswerSummary(isComplete ? fullAnswer : answer);
+  const hasExpandedContent = keyPoints.length > 0 || Boolean(fullAnswer.trim());
+
+  if (!summaryText) {
+    return null;
+  }
+
+  return (
+    <section className="rounded-[24px] border border-[#d8e3ef] bg-[#f7fafe] px-4 py-4 md:px-5 md:py-5">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0 flex-1">
+          <p className="text-[12px] leading-none font-semibold tracking-[0.08em] text-[#51616c] uppercase">
+            Quick summary
+          </p>
+          <p className="mt-2 text-[18px] leading-[1.45] font-semibold text-[#11181d] md:max-w-[760px] md:text-[21px]">
+            {renderInlineText(summaryText)}
+          </p>
+          {!isComplete ? (
+            <p className="mt-3 text-[13px] leading-[1.45] text-[#51616c]">
+              Full answer is still generating below.
+            </p>
+          ) : null}
+        </div>
+
+        {isComplete && hasExpandedContent ? (
+          <button
+            type="button"
+            onClick={() => {
+              setIsExpanded((current) => {
+                const nextExpanded = !current;
+                captureAnalyticsEvent("summary_answer_toggled", {
+                  conversation_id: analyticsContext.conversationId,
+                  expanded: nextExpanded,
+                  key_points_count: keyPoints.length,
+                  prototype_family: analyticsContext.prototypeFamily,
+                  prototype_route: analyticsContext.prototypeRoute,
+                  prototype_slug: analyticsContext.prototypeSlug,
+                  question_text: analyticsContext.question,
+                  screen_type: analyticsContext.screenType,
+                  turn_id: analyticsContext.turnId,
+                });
+                return nextExpanded;
+              });
+            }}
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 self-start rounded-full border border-[#c9d7e8] bg-white px-4 py-2 text-[14px] leading-none font-semibold text-[#064aa7] transition hover:border-[#b5c8de] hover:bg-[#f1f6fd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7fafe]"
+          >
+            <span>{isExpanded ? "Show less" : "Read more"}</span>
+            <AiChevronIcon
+              direction={isExpanded ? "up" : "down"}
+              className="h-4 w-4 shrink-0"
+            />
+          </button>
+        ) : null}
+      </div>
+
+      {isExpanded && isComplete ? (
+        <div className="mt-5 border-t border-[#d8e3ef] pt-5">
+          {keyPoints.length > 0 ? (
+            <AiResponseKeyPoints
+              analyticsContext={analyticsContext}
+              className="mb-6"
+              defaultExpanded
+              keyPoints={keyPoints}
+            />
+          ) : null}
+
+          <AiResponseAnswerContent
+            answer={fullAnswer}
+            fullAnswer={fullAnswer}
+            references={references}
+          />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export function MedscapeAiCurrentScreen({
   adPlacement = "after-progress",
+  answerVariant = "default",
   composerPlaceholder = "Ask anything",
-  entryExperience = "default",
+  followUpQuestionsPlacement = "supporting-content",
+  followUpQuestionsVariant = "default",
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
   initialQuestionSource = "direct_url",
@@ -115,7 +251,7 @@ export function MedscapeAiCurrentScreen({
     () =>
       ({
         ad_placement: adPlacement,
-        entry_experience: entryExperience,
+        answer_variant: answerVariant,
         key_points_default_expanded: keyPointsDefaultExpanded,
         key_points_variant: keyPointsVariant,
         prototype_family: "medscape-ai-current",
@@ -125,7 +261,7 @@ export function MedscapeAiCurrentScreen({
       }) as const,
     [
       adPlacement,
-      entryExperience,
+      answerVariant,
       keyPointsDefaultExpanded,
       keyPointsVariant,
       prototypeRoute,
@@ -551,19 +687,6 @@ export function MedscapeAiCurrentScreen({
     submitQuestion(composerDraft);
   };
 
-  const focusComposerForPaidEntry = useCallback(
-    (turnId: number) => {
-      captureAnalyticsEvent("paid_entry_ask_own_question_clicked", {
-        ...prototypeAnalytics,
-        conversation_id: conversationId,
-        turn_id: turnId,
-      });
-      composerInputRef.current?.focus();
-      scrollResponseToBottom("smooth");
-    },
-    [conversationId, prototypeAnalytics, scrollResponseToBottom],
-  );
-
   return (
     <main
       className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#e8f0fb] text-[#161b1d]"
@@ -647,10 +770,10 @@ export function MedscapeAiCurrentScreen({
                 (() => {
                   const keyPoints = turn.answer ? splitLeadingKeyPoints(turn.answer).keyPoints : [];
                   const showAfterKeypointsAd =
-                    adPlacement === "after-keypoints" && keyPoints.length > 0;
-                  const isPaidEntryTurn =
-                    entryExperience === "paid-traffic-quick-start" && turn.id === 1;
-                  const paidEntryKeyPoints = splitLeadingKeyPoints(turn.fullAnswer).keyPoints;
+                    adPlacement === "after-keypoints" &&
+                    answerVariant === "default" &&
+                    keyPoints.length > 0;
+                  const summaryReadMoreKeyPoints = splitLeadingKeyPoints(turn.fullAnswer).keyPoints;
 
                   return (
                     <article
@@ -676,29 +799,7 @@ export function MedscapeAiCurrentScreen({
                         {turn.question}
                       </h1>
 
-                      {isPaidEntryTurn ? (
-                        <MedscapePaidTrafficQuickStart
-                          answer={turn.fullAnswer}
-                          detailState={turn.status}
-                          followUpQuestions={turn.supportingContent.followUpQuestions}
-                          onActionSelect={(question, actionIndex) => {
-                            captureAnalyticsEvent("paid_entry_quick_action_clicked", {
-                              ...prototypeAnalytics,
-                              action_index: actionIndex,
-                              action_text: question,
-                              conversation_id: conversationId,
-                              parent_turn_id: turn.id,
-                            });
-                            submitQuestion(question, {
-                              questionSource: "paid_entry_quick_action",
-                            });
-                          }}
-                          onAskOwnQuestion={() => focusComposerForPaidEntry(turn.id)}
-                          referencesCount={turn.supportingContent.references.length}
-                        />
-                      ) : null}
-
-                      {turn.status === "preparing" && !isPaidEntryTurn ? (
+                      {turn.status === "preparing" ? (
                         <>
                           <AiPreparingAnswerNotice
                             className={`flex max-w-[520px] items-start gap-4 text-[16px] leading-[1.45] text-[#5f6972] md:items-center md:gap-3 md:text-[14px] ${
@@ -724,7 +825,7 @@ export function MedscapeAiCurrentScreen({
                         </>
                       ) : null}
 
-                      {turn.answer && !isPaidEntryTurn ? (
+                      {turn.answer && answerVariant === "default" ? (
                         <AiResponseKeyPoints
                           analyticsContext={{
                             conversationId,
@@ -742,7 +843,7 @@ export function MedscapeAiCurrentScreen({
                         />
                       ) : null}
 
-                      {showAfterKeypointsAd && !isPaidEntryTurn ? (
+                      {showAfterKeypointsAd ? (
                         <MedscapeCurrentAdBlock
                           adPlacement={adPlacement}
                           adSlot="after_keypoints"
@@ -756,55 +857,23 @@ export function MedscapeAiCurrentScreen({
                         />
                       ) : null}
 
-                      {isPaidEntryTurn ? (
-                        <section className="mt-7 border-t border-[#d7e2ec] pt-5">
-                          <div>
-                            <p className="text-[12px] leading-none font-semibold tracking-[0.08em] text-[#51616c] uppercase">
-                              Detailed answer
-                            </p>
-                            <p className="mt-1 text-[14px] leading-[1.45] text-[#51616c]">
-                              Full clinical rationale, references, and follow-up options stay available below the quick preview.
-                            </p>
-                          </div>
-
-                          {turn.status === "preparing" ? (
-                            <AiPreparingAnswerNotice
-                              className="mt-4 flex max-w-[560px] items-start gap-3 text-[15px] leading-[1.45] text-[#5f6972] md:items-center md:text-[14px]"
-                              iconClassName="h-[18px] w-[18px]"
-                              text={getCurrentProgressText(turn.question)}
-                              textClassName=""
-                            />
-                          ) : (
-                            <>
-                              {paidEntryKeyPoints.length > 0 ? (
-                                <AiResponseKeyPoints
-                                  analyticsContext={{
-                                    conversationId,
-                                    prototypeFamily: "medscape-ai-current",
-                                    prototypeRoute,
-                                    prototypeSlug,
-                                    question: turn.question,
-                                    screenType: "prototype_chat",
-                                    turnId: turn.id,
-                                  }}
-                                  className="mt-4"
-                                  defaultExpanded={false}
-                                  keyPoints={paidEntryKeyPoints}
-                                  variant="collapsed-read-more"
-                                />
-                              ) : null}
-
-                              {turn.answer ? (
-                                <AiResponseAnswerContent
-                                  answer={turn.answer}
-                                  className="mt-5"
-                                  fullAnswer={turn.fullAnswer}
-                                  references={turn.supportingContent.references}
-                                />
-                              ) : null}
-                            </>
-                          )}
-                        </section>
+                      {turn.answer && answerVariant === "summary-read-more" ? (
+                        <MedscapeAiCurrentAnswerSummary
+                          analyticsContext={{
+                            conversationId,
+                            prototypeFamily: "medscape-ai-current",
+                            prototypeRoute,
+                            prototypeSlug,
+                            question: turn.question,
+                            screenType: "prototype_chat",
+                            turnId: turn.id,
+                          }}
+                          answer={turn.answer}
+                          fullAnswer={turn.fullAnswer}
+                          isComplete={turn.status === "complete"}
+                          keyPoints={summaryReadMoreKeyPoints}
+                          references={turn.supportingContent.references}
+                        />
                       ) : turn.answer ? (
                         <AiResponseAnswerContent
                           answer={turn.answer}
@@ -815,6 +884,26 @@ export function MedscapeAiCurrentScreen({
 
                       {turn.status === "complete" && turn.answer ? (
                         <>
+                          {followUpQuestionsPlacement === "before-actions" ? (
+                            <AiResponseFollowUpQuestions
+                              className="mt-5 md:mt-6"
+                              onQuestionSelect={(question) => {
+                                captureAnalyticsEvent("follow_up_question_clicked", {
+                                  ...prototypeAnalytics,
+                                  conversation_id: conversationId,
+                                  follow_up_index:
+                                    turn.supportingContent.followUpQuestions.indexOf(question),
+                                  follow_up_text: question,
+                                  parent_turn_id: turn.id,
+                                });
+                                submitQuestion(question, {
+                                  questionSource: "follow_up_question",
+                                });
+                              }}
+                              questions={turn.supportingContent.followUpQuestions}
+                              variant={followUpQuestionsVariant}
+                            />
+                          ) : null}
                           <AiResponseAnswerActions
                             analyticsContext={{
                               conversationId,
@@ -826,6 +915,9 @@ export function MedscapeAiCurrentScreen({
                               turnId: turn.id,
                             }}
                             answer={turn.answer}
+                            className={
+                              followUpQuestionsPlacement === "before-actions" ? "mt-5" : undefined
+                            }
                           />
                           <AiResponseAnswerSupportingContent
                             adPlacement="answer-footer"
@@ -839,6 +931,10 @@ export function MedscapeAiCurrentScreen({
                             }}
                             className="mt-5"
                             followUpQuestions={turn.supportingContent.followUpQuestions}
+                            followUpQuestionsVariant={followUpQuestionsVariant}
+                            hideFollowUpQuestions={
+                              followUpQuestionsPlacement === "before-actions"
+                            }
                             onFollowUpQuestionSelect={(question) => {
                               captureAnalyticsEvent("follow_up_question_clicked", {
                                 ...prototypeAnalytics,
