@@ -25,7 +25,9 @@ export default async function AdAfterKeypointsCollapsedWithReadMoreChatPage({
 
   return (
     <MedscapeAiCurrentScreen
-      adPlacement="after-keypoints"
+      adPlacement="above-question"
+      followUpQuestionsPlacement="before-actions"
+      followUpQuestionsVariant="chips"
       initialConversationMode={initialConversationMode}
       initialQuestion={initialQuestion}
       initialQuestionSource={sourceValue ?? "direct_url"}

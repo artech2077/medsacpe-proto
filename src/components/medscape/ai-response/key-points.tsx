@@ -26,7 +26,10 @@ type AiResponseKeyPointsProps = {
   };
   className?: string;
   defaultExpanded?: boolean;
+  expanded?: boolean;
   keyPoints: string[];
+  onExpandedChange?: (expanded: boolean, trigger: "header" | "read_more") => void;
+  summaryText?: string;
   variant?: AiResponseKeyPointsVariant;
 };
 
@@ -98,18 +101,33 @@ export function AiResponseKeyPoints({
   analyticsContext,
   className,
   defaultExpanded = true,
+  expanded,
   keyPoints,
+  onExpandedChange,
+  summaryText,
   variant = "default",
 }: AiResponseKeyPointsProps) {
-  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [uncontrolledIsExpanded, setUncontrolledIsExpanded] = useState(defaultExpanded);
 
   if (keyPoints.length === 0) {
     return null;
   }
 
   const isCollapsedReadMoreVariant = variant === "collapsed-read-more";
-  const collapsedPreview = buildCollapsedPreview(keyPoints[0]);
-  const showCollapsedPreview = isCollapsedReadMoreVariant && !isExpanded;
+  const isExpanded = expanded ?? uncontrolledIsExpanded;
+  const summaryContent = summaryText ?? keyPoints[0];
+  const collapsedPreview = buildCollapsedPreview(summaryContent);
+  const summarySegments = isCollapsedReadMoreVariant
+    ? buildInlineTextSegments(summaryContent)
+    : collapsedPreview.segments;
+  const updateExpanded = (nextExpanded: boolean, trigger: "header" | "read_more") => {
+    if (expanded === undefined) {
+      setUncontrolledIsExpanded(nextExpanded);
+    }
+
+    onExpandedChange?.(nextExpanded, trigger);
+    trackToggle(nextExpanded, trigger);
+  };
   const trackToggle = (nextExpanded: boolean, trigger: "header" | "read_more") => {
     captureAnalyticsEvent("key_points_toggled", {
       conversation_id: analyticsContext?.conversationId,
@@ -134,45 +152,43 @@ export function AiResponseKeyPoints({
         type="button"
         aria-expanded={isExpanded}
         onClick={() => {
-          setIsExpanded((current) => {
-            const nextExpanded = !current;
-            trackToggle(nextExpanded, "header");
-            return nextExpanded;
-          });
+          updateExpanded(!isExpanded, "header");
         }}
         className="flex w-full items-center gap-2 text-left text-[#2c353a]"
       >
         <AiLightbulbIcon className="h-5 w-5 shrink-0 text-[#2c353a] md:h-6 md:w-6" />
         <span className="flex-1 text-[20px] leading-[1.3] font-bold md:text-[24px]">
-          Key Points
+          {isCollapsedReadMoreVariant ? "Summary" : "Key Points"}
         </span>
-        <AiChevronIcon
-          direction={isExpanded || isCollapsedReadMoreVariant ? "up" : "down"}
-          className="h-5 w-5 shrink-0 text-[#2c353a]"
-        />
+        {isCollapsedReadMoreVariant ? null : (
+          <AiChevronIcon
+            direction={isExpanded ? "up" : "down"}
+            className="h-5 w-5 shrink-0 text-[#2c353a]"
+          />
+        )}
       </button>
 
-      {showCollapsedPreview ? (
-        <div className="mt-4 flex items-start gap-3 text-[16px] leading-[1.3] text-[#2c353a]">
-          <span aria-hidden="true" className="mt-[8px] h-[6px] w-[6px] shrink-0 rounded-full bg-[#2c353a]" />
-          <div className="min-w-0 flex-1">
-            {renderInlineSegments(collapsedPreview.segments)}
-            {collapsedPreview.wasTruncated ? <span>... </span> : <span> </span>}
+      {isCollapsedReadMoreVariant ? (
+        <div className="mt-4 text-[16px] leading-[1.3] text-[#2c353a]">
+          <p>
+            {renderInlineSegments(summarySegments)}
+            {!isCollapsedReadMoreVariant && collapsedPreview.wasTruncated ? <span>...</span> : null}
+          </p>
+          <div className="mt-5 text-center">
             <button
               type="button"
               onClick={() => {
-                setIsExpanded(true);
-                trackToggle(true, "read_more");
+                updateExpanded(!isExpanded, "read_more");
               }}
               className="font-semibold text-[#064aa7] transition hover:text-[#043b84] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ecf1f9]"
             >
-              Read More
+              {isExpanded ? "Hide full answer" : "Read full answer"}
             </button>
           </div>
         </div>
       ) : null}
 
-      {isExpanded ? (
+      {isExpanded && !isCollapsedReadMoreVariant ? (
         <ul className="mt-4 list-disc space-y-3 pl-5 text-[16px] leading-[1.3] text-[#2c353a] marker:text-[#2c353a]">
           {keyPoints.map((item, index) => (
             <li key={`${item}-${index}`}>

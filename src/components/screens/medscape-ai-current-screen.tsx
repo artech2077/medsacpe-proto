@@ -110,14 +110,16 @@ function buildAnswerSummary(answer: string) {
   const { body, keyPoints } = splitLeadingKeyPoints(answer);
   const blocks = buildAnswerBlocks(body);
 
-  const paragraph = blocks.find((block) => block.type === "paragraph");
-  if (paragraph?.type === "paragraph") {
-    return paragraph.text;
+  const paragraphTexts = blocks.flatMap((block) =>
+    block.type === "paragraph" ? [block.text] : [],
+  );
+  if (paragraphTexts.length > 0) {
+    return paragraphTexts.slice(0, 2).join(" ");
   }
 
   const list = blocks.find((block) => block.type === "list");
   if (list?.type === "list" && list.items.length > 0) {
-    return list.items[0];
+    return list.items.slice(0, 2).join(" ");
   }
 
   if (keyPoints.length > 0) {
@@ -144,14 +146,43 @@ function MedscapeAiCurrentAnswerSummary({
   }
 
   return (
-    <section className="rounded-[24px] border border-[#d8e3ef] bg-[#f7fafe] px-4 py-4 md:px-5 md:py-5">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0 flex-1">
-          <p className="text-[12px] leading-none font-semibold tracking-[0.08em] text-[#51616c] uppercase">
-            Quick summary
-          </p>
-          <p className="mt-2 text-[18px] leading-[1.45] font-semibold text-[#11181d] md:max-w-[760px] md:text-[21px]">
+    <section>
+      <div>
+        <div className="min-w-0">
+          <p className="text-[18px] leading-[1.45] font-semibold text-[#11181d] md:max-w-[760px] md:text-[21px]">
             {renderInlineText(summaryText)}
+            {isComplete && hasExpandedContent ? (
+              <>
+                {" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsExpanded((current) => {
+                      const nextExpanded = !current;
+                      captureAnalyticsEvent("summary_answer_toggled", {
+                        conversation_id: analyticsContext.conversationId,
+                        expanded: nextExpanded,
+                        key_points_count: keyPoints.length,
+                        prototype_family: analyticsContext.prototypeFamily,
+                        prototype_route: analyticsContext.prototypeRoute,
+                        prototype_slug: analyticsContext.prototypeSlug,
+                        question_text: analyticsContext.question,
+                        screen_type: analyticsContext.screenType,
+                        turn_id: analyticsContext.turnId,
+                      });
+                      return nextExpanded;
+                    });
+                  }}
+                  className="inline-flex items-center gap-1.5 align-baseline text-[16px] leading-none font-semibold text-[#064aa7] underline decoration-[#9db8dc] decoration-2 underline-offset-4 transition hover:text-[#043b84] hover:decoration-[#064aa7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.24)] focus-visible:ring-offset-2 focus-visible:ring-offset-white md:text-[18px]"
+                >
+                  <span>{isExpanded ? "Show less" : "Read more"}</span>
+                  <AiChevronIcon
+                    direction={isExpanded ? "up" : "down"}
+                    className="h-4 w-4 shrink-0"
+                  />
+                </button>
+              </>
+            ) : null}
           </p>
           {!isComplete ? (
             <p className="mt-3 text-[13px] leading-[1.45] text-[#51616c]">
@@ -159,36 +190,6 @@ function MedscapeAiCurrentAnswerSummary({
             </p>
           ) : null}
         </div>
-
-        {isComplete && hasExpandedContent ? (
-          <button
-            type="button"
-            onClick={() => {
-              setIsExpanded((current) => {
-                const nextExpanded = !current;
-                captureAnalyticsEvent("summary_answer_toggled", {
-                  conversation_id: analyticsContext.conversationId,
-                  expanded: nextExpanded,
-                  key_points_count: keyPoints.length,
-                  prototype_family: analyticsContext.prototypeFamily,
-                  prototype_route: analyticsContext.prototypeRoute,
-                  prototype_slug: analyticsContext.prototypeSlug,
-                  question_text: analyticsContext.question,
-                  screen_type: analyticsContext.screenType,
-                  turn_id: analyticsContext.turnId,
-                });
-                return nextExpanded;
-              });
-            }}
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 self-start rounded-full border border-[#c9d7e8] bg-white px-4 py-2 text-[14px] leading-none font-semibold text-[#064aa7] transition hover:border-[#b5c8de] hover:bg-[#f1f6fd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7fafe]"
-          >
-            <span>{isExpanded ? "Show less" : "Read more"}</span>
-            <AiChevronIcon
-              direction={isExpanded ? "up" : "down"}
-              className="h-4 w-4 shrink-0"
-            />
-          </button>
-        ) : null}
       </div>
 
       {isExpanded && isComplete ? (
@@ -241,6 +242,9 @@ export function MedscapeAiCurrentScreen({
   const [conversationId] = useState(() => createAnalyticsId("conversation"));
   const [composerDraft, setComposerDraft] = useState("");
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
+  const [expandedKeyPointTurnIds, setExpandedKeyPointTurnIds] = useState<Set<number>>(
+    () => new Set(),
+  );
   const [bottomSpacerHeight, setBottomSpacerHeight] = useState(0);
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
   const isGenerationInProgress = chatTurns.some(
@@ -774,6 +778,20 @@ export function MedscapeAiCurrentScreen({
                     answerVariant === "default" &&
                     keyPoints.length > 0;
                   const summaryReadMoreKeyPoints = splitLeadingKeyPoints(turn.fullAnswer).keyPoints;
+                  const isCollapsedReadMoreKeyPoints =
+                    answerVariant === "default" && keyPointsVariant === "collapsed-read-more";
+                  const isKeyPointsExpanded = expandedKeyPointTurnIds.has(turn.id);
+                  const showFullAnswer =
+                    turn.answer && (!isCollapsedReadMoreKeyPoints || isKeyPointsExpanded);
+                  const showInlineAnswer =
+                    showFullAnswer && !isCollapsedReadMoreKeyPoints;
+                  const showBottomAnswer =
+                    showFullAnswer && isCollapsedReadMoreKeyPoints;
+                  const showCompletedTurnExtras =
+                    turn.status === "complete" && turn.answer;
+                  const answerSummaryText = buildAnswerSummary(
+                    turn.status === "complete" ? turn.fullAnswer : turn.answer,
+                  );
 
                   return (
                     <article
@@ -838,7 +856,28 @@ export function MedscapeAiCurrentScreen({
                           }}
                           className="mb-6"
                           defaultExpanded={keyPointsDefaultExpanded}
+                          expanded={
+                            isCollapsedReadMoreKeyPoints ? isKeyPointsExpanded : undefined
+                          }
                           keyPoints={keyPoints}
+                          onExpandedChange={
+                            isCollapsedReadMoreKeyPoints
+                              ? (expanded) => {
+                                  setExpandedKeyPointTurnIds((current) => {
+                                    const next = new Set(current);
+
+                                    if (expanded) {
+                                      next.add(turn.id);
+                                    } else {
+                                      next.delete(turn.id);
+                                    }
+
+                                    return next;
+                                  });
+                                }
+                              : undefined
+                          }
+                          summaryText={answerSummaryText}
                           variant={keyPointsVariant}
                         />
                       ) : null}
@@ -874,7 +913,7 @@ export function MedscapeAiCurrentScreen({
                           keyPoints={summaryReadMoreKeyPoints}
                           references={turn.supportingContent.references}
                         />
-                      ) : turn.answer ? (
+                      ) : showInlineAnswer ? (
                         <AiResponseAnswerContent
                           answer={turn.answer}
                           fullAnswer={turn.fullAnswer}
@@ -882,8 +921,16 @@ export function MedscapeAiCurrentScreen({
                         />
                       ) : null}
 
-                      {turn.status === "complete" && turn.answer ? (
+                      {showCompletedTurnExtras ? (
                         <>
+                          {showBottomAnswer ? (
+                            <AiResponseAnswerContent
+                              answer={turn.answer}
+                              className="mt-5"
+                              fullAnswer={turn.fullAnswer}
+                              references={turn.supportingContent.references}
+                            />
+                          ) : null}
                           {followUpQuestionsPlacement === "before-actions" ? (
                             <AiResponseFollowUpQuestions
                               className="mt-5 md:mt-6"

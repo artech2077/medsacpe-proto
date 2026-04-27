@@ -1,0 +1,99 @@
+
+> medscape-ai-prototype@0.1.0 dev C:\Users\fbousaaid\Vibes\medsacpe-proto-master
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.26.56.39:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 7s
+○ Compiling /ad-exp-test1 ...
+ GET /ad-exp-test1 200 in 14.6s (compile: 11.6s, render: 3.0s)
+ GET /ad-exp-test1 200 in 1120ms (compile: 244ms, render: 875ms)
+ GET / 200 in 1732ms (compile: 844ms, render: 888ms)
+ GET / 200 in 652ms (compile: 23ms, render: 629ms)
+ GET /ingest/static/web-vitals.js?v=1.369.1 200 in 8.9s (compile: 7.9s, render: 990ms)
+ GET /ingest/array/phc_wcQiMarJAT9a6JSurrEDkYZRkbYTXbA6XSXjJX5sjsgQ/config.js 200 in 9.0s (compile: 7.8s, render: 1118ms)
+ POST /ingest/e/?ip=0&_=1777296739813&ver=1.369.1 200 in 4.1s (compile: 3.0s, render: 1149ms)
+ GET /ingest/array/phc_wcQiMarJAT9a6JSurrEDkYZRkbYTXbA6XSXjJX5sjsgQ/config.js 200 in 6.1s (compile: 4.9s, render: 1164ms)
+ POST /ingest/e/?ip=0&_=1777296739593&ver=1.369.1 200 in 4.4s (compile: 3.2s, render: 1179ms)
+ GET /ingest/array/phc_wcQiMarJAT9a6JSurrEDkYZRkbYTXbA6XSXjJX5sjsgQ/config.js 200 in 332ms (compile: 131ms, render: 201ms)
+ GET /ingest/static/surveys.js?v=1.369.1 200 in 422ms (compile: 33ms, render: 390ms)
+ GET /ingest/static/surveys.js?v=1.369.1 200 in 309ms (compile: 23ms, render: 286ms)
+ GET /ingest/static/web-vitals.js?v=1.369.1 200 in 239ms (compile: 14ms, render: 225ms)
+ GET /ingest/static/posthog-recorder.js?v=1.369.1 200 in 826ms (compile: 72ms, render: 754ms)
+ GET /ingest/static/dead-clicks-autocapture.js?v=1.369.1 200 in 832ms (compile: 69ms, render: 763ms)
+○ Compiling /ad-after-keypoints ...
+ GET /ad-after-keypoints-collapsed-with-read-more 200 in 1606ms (compile: 524ms, render: 1082ms)
+ GET /ad-after-keypoints-collapsed 200 in 7.2s (compile: 5.7s, render: 1511ms)
+ GET /ad-after-keypoints 200 in 9.1s (compile: 8.5s, render: 590ms)
+ POST /ingest/i/v0/e/?ip=0&_=1777296752917&ver=1.369.1 200 in 628ms (compile: 121ms, render: 507ms)
+ GET /ad-exp-test1/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 1794ms (compile: 1049ms, render: 744ms)
+ GET /ingest/array/phc_wcQiMarJAT9a6JSurrEDkYZRkbYTXbA6XSXjJX5sjsgQ/config.js 200 in 410ms (compile: 11ms, render: 400ms)
+ GET /ingest/array/phc_wcQiMarJAT9a6JSurrEDkYZRkbYTXbA6XSXjJX5sjsgQ/config.js 200 in 273ms (compile: 141ms, render: 131ms)
+ GET /ingest/array/phc_wcQiMarJAT9a6JSurrEDkYZRkbYTXbA6XSXjJX5sjsgQ/config.js 200 in 232ms (compile: 61ms, render: 171ms)
+○ Compiling /ad-after-keypoints-collapsed/chat ...
+ GET /ad-after-keypoints-collapsed/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 4.4s (compile: 3.9s, render: 506ms)
+ GET /ingest/static/web-vitals.js.map 200 in 654ms (compile: 94ms, render: 560ms)
+ GET /ingest/static/surveys.js.map 200 in 1570ms (compile: 22ms, render: 1548ms)
+✓ Compiled in 799ms
+✓ Compiled in 741ms
+ POST /ingest/flags/?v=2&ip=0&_=1777297044168&ver=1.369.1 200 in 684ms (compile: 79ms, render: 605ms)
+ GET /ad-after-keypoints/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 1169ms (compile: 1017ms, render: 152ms)
+ GET /ad-after-keypoints-collapsed/chat?q=How%20would%20you%20adjust%20vancomycin%20dosing%20(loading%20and%20interval)%20in%20a%2070%20kg%20patient%20on%20intermittent%20hemodialysis%3F&source=prompt_suggestion 200 in 551ms (compile: 107ms, render: 444ms)
+ GET /ingest/array/phc_wcQiMarJAT9a6JSurrEDkYZRkbYTXbA6XSXjJX5sjsgQ/config.js 200 in 662ms (compile: 62ms, render: 600ms)
+ GET /ingest/static/web-vitals.js?v=1.369.1 200 in 759ms (compile: 48ms, render: 711ms)
+ GET /ingest/static/surveys.js?v=1.369.1 200 in 603ms (compile: 7ms, render: 597ms)
+ GET /ingest/array/phc_wcQiMarJAT9a6JSurrEDkYZRkbYTXbA6XSXjJX5sjsgQ/config.js 200 in 394ms (compile: 56ms, render: 338ms)
+ GET /ingest/static/surveys.js?v=1.369.1 200 in 397ms (compile: 75ms, render: 322ms)
+ GET /ingest/static/web-vitals.js?v=1.369.1 200 in 586ms (compile: 98ms, render: 488ms)
+ GET /ad-after-keypoints-collapsed-with-read-more/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 173ms (compile: 124ms, render: 50ms)
+ GET /ingest/static/web-vitals.js.map 200 in 677ms (compile: 53ms, render: 624ms)
+ GET /ingest/static/surveys.js.map 200 in 1309ms (compile: 59ms, render: 1250ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777297345513&ver=1.369.1 200 in 907ms (compile: 159ms, render: 748ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777297645468&ver=1.369.1 200 in 589ms (compile: 53ms, render: 537ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777297945485&ver=1.369.1 200 in 663ms (compile: 53ms, render: 610ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777298245485&ver=1.369.1 200 in 618ms (compile: 60ms, render: 558ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777298545496&ver=1.369.1 200 in 635ms (compile: 69ms, render: 566ms)
+ GET /ingest/static/web-vitals.js.map 200 in 1474ms (compile: 153ms, render: 1320ms)
+ GET /ingest/static/surveys.js.map 200 in 2.2s (compile: 31ms, render: 2.2s)
+ POST /ingest/s/?ip=0&_=1777298733517&ver=1.369.1 200 in 3.8s (compile: 91ms, render: 3.7s)
+ POST /ingest/flags/?v=2&ip=0&_=1777298919567&ver=1.369.1 200 in 619ms (compile: 89ms, render: 530ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777299145540&ver=1.369.1 200 in 725ms (compile: 110ms, render: 614ms)
+ GET /ad-after-keypoints-collapsed-with-read-more/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 3.0s (compile: 573ms, render: 2.4s)
+ GET /ad-exp-test1 200 in 2.0s (compile: 807ms, render: 1200ms)
+ GET /ad-after-keypoints/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 2.1s (compile: 391ms, render: 1674ms)
+ GET /ad-after-keypoints-collapsed/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 2.1s (compile: 91ms, render: 1990ms)
+ GET /ad-exp-test1/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 2.1s (compile: 1569ms, render: 524ms)
+ GET / 200 in 2.2s (compile: 567ms, render: 1595ms)
+✓ Compiled in 602ms
+✓ Compiled in 378ms
+✓ Compiled in 297ms
+ POST /ingest/flags/?v=2&ip=0&_=1777299445565&ver=1.369.1 200 in 937ms (compile: 88ms, render: 849ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777299745539&ver=1.369.1 200 in 590ms (compile: 71ms, render: 518ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777300119596&ver=1.369.1 200 in 630ms (compile: 77ms, render: 553ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777300419604&ver=1.369.1 200 in 634ms (compile: 57ms, render: 577ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777300645568&ver=1.369.1 200 in 640ms (compile: 83ms, render: 556ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777300945564&ver=1.369.1 200 in 846ms (compile: 59ms, render: 788ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777301244320&ver=1.369.1 200 in 855ms (compile: 63ms, render: 792ms)
+✓ Compiled in 385ms
+✓ Compiled in 365ms
+✓ Compiled in 313ms
+✓ Compiled in 358ms
+ GET /ad-after-keypoints-collapsed-with-read-more/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 3.9s (compile: 822ms, render: 3.1s)
+ GET /ad-exp-test1 200 in 2.6s (compile: 594ms, render: 2.0s)
+ GET /ad-after-keypoints-collapsed/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 2.7s (compile: 1024ms, render: 1626ms)
+ GET /ad-after-keypoints/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 2.6s (compile: 1745ms, render: 899ms)
+ GET /ad-exp-test1/chat?q=How+would+you+adjust+vancomycin+dosing+%28loading+and+interval%29+in+a+70+kg+patient+on+intermittent+hemodialysis%3F&source=prompt_suggestion 200 in 2.6s (compile: 2.3s, render: 328ms)
+ GET / 200 in 2.8s (compile: 126ms, render: 2.7s)
+✓ Compiled in 393ms
+✓ Compiled in 1237ms
+ POST /ingest/flags/?v=2&ip=0&_=1777301544307&ver=1.369.1 200 in 705ms (compile: 58ms, render: 647ms)
+✓ Compiled in 303ms
+✓ Compiled in 329ms
+✓ Compiled in 271ms
+ POST /ingest/flags/?v=2&ip=0&_=1777301844300&ver=1.369.1 200 in 648ms (compile: 92ms, render: 556ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777302145579&ver=1.369.1 200 in 597ms (compile: 66ms, render: 531ms)
+ POST /ingest/flags/?v=2&ip=0&_=1777302519586&ver=1.369.1 200 in 716ms (compile: 60ms, render: 656ms)
