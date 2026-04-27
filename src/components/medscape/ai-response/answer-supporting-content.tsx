@@ -22,6 +22,7 @@ type AiResponseAnswerSupportingContentProps = {
   className?: string;
   followUpQuestions: string[];
   followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
+  hideAd?: boolean;
   hideFollowUpQuestions?: boolean;
   onFollowUpQuestionSelect?: (question: string) => void;
   references: AiAnswerReference[];
@@ -34,6 +35,7 @@ export function AiResponseAnswerSupportingContent({
   className,
   followUpQuestions,
   followUpQuestionsVariant = "default",
+  hideAd = false,
   hideFollowUpQuestions = false,
   onFollowUpQuestionSelect,
   references,
@@ -41,18 +43,20 @@ export function AiResponseAnswerSupportingContent({
   return (
     <section className={className}>
       <AiResponseReferences references={references} />
-      <MedscapeCurrentAdBlock
-        adPlacement={adPlacement}
-        adSlot="answer_footer"
-        className="mt-4 md:mt-5"
-        conversationId={analyticsContext?.conversationId}
-        contentDelayMs={adContentDelayMs}
-        prototypeFamily={analyticsContext?.prototypeFamily}
-        prototypeRoute={analyticsContext?.prototypeRoute}
-        prototypeSlug={analyticsContext?.prototypeSlug}
-        screenType={analyticsContext?.screenType}
-        turnId={analyticsContext?.turnId}
-      />
+      {hideAd ? null : (
+        <MedscapeCurrentAdBlock
+          adPlacement={adPlacement}
+          adSlot="answer_footer"
+          className="mt-4 md:mt-5"
+          conversationId={analyticsContext?.conversationId}
+          contentDelayMs={adContentDelayMs}
+          prototypeFamily={analyticsContext?.prototypeFamily}
+          prototypeRoute={analyticsContext?.prototypeRoute}
+          prototypeSlug={analyticsContext?.prototypeSlug}
+          screenType={analyticsContext?.screenType}
+          turnId={analyticsContext?.turnId}
+        />
+      )}
       {hideFollowUpQuestions ? null : (
         <AiResponseFollowUpQuestions
           className="mt-4 md:mt-5"

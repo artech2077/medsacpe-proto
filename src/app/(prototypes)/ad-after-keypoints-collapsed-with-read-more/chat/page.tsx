@@ -29,9 +29,11 @@ export default async function AdAfterKeypointsCollapsedWithReadMoreChatPage({
       adPlacement="above-question"
       followUpQuestionsPlacement="before-actions"
       followUpQuestionsVariant="chips"
+      hideAnswerFooterAdForFirstTurn
       initialConversationMode={initialConversationMode}
       initialQuestion={initialQuestion}
       initialQuestionSource={sourceValue ?? "direct_url"}
+      instantAnswerDelayMs={3000}
       instantAnswers
       keyPointsDefaultExpanded={false}
       keyPointsVariant="collapsed-read-more"

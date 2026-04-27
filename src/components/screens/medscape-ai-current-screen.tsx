@@ -81,9 +81,11 @@ type MedscapeAiCurrentScreenProps = {
   composerPlaceholder?: string;
   followUpQuestionsPlacement?: MedscapeAiCurrentFollowUpPlacement;
   followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
+  hideAnswerFooterAdForFirstTurn?: boolean;
   initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
   initialQuestionSource?: string;
+  instantAnswerDelayMs?: number;
   instantAnswers?: boolean;
   keyPointsDefaultExpanded?: boolean;
   keyPointsVariant?: AiResponseKeyPointsVariant;
@@ -227,9 +229,11 @@ export function MedscapeAiCurrentScreen({
   composerPlaceholder = "Ask anything",
   followUpQuestionsPlacement = "supporting-content",
   followUpQuestionsVariant = "default",
+  hideAnswerFooterAdForFirstTurn = false,
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
   initialQuestionSource = "direct_url",
+  instantAnswerDelayMs = 0,
   instantAnswers = false,
   keyPointsDefaultExpanded = true,
   keyPointsVariant = "default",
@@ -565,6 +569,38 @@ export function MedscapeAiCurrentScreen({
         turn_id: nextTurnId,
       });
 
+      if (instantAnswerDelayMs > 0) {
+        activeTurnIdRef.current = nextTurnId;
+        setChatTurns((currentTurns): ChatTurn[] => [
+          ...currentTurns.map((turn): ChatTurn =>
+            turn.status === "complete" ? turn : { ...turn, status: "complete" },
+          ),
+          {
+            ...nextTurn,
+            answer: "",
+            status: "preparing",
+          },
+        ]);
+
+        responseDelayTimeoutRef.current = setTimeout(() => {
+          if (activeTurnIdRef.current !== nextTurnId) return;
+
+          setChatTurns((currentTurns): ChatTurn[] =>
+            currentTurns.map((turn): ChatTurn =>
+              turn.id === nextTurnId ? nextTurn : turn,
+            ),
+          );
+          activeTurnIdRef.current = null;
+          responseDelayTimeoutRef.current = null;
+        }, instantAnswerDelayMs);
+
+        if (options.focusComposer !== false) {
+          composerInputRef.current?.focus();
+        }
+
+        return;
+      }
+
       setChatTurns((currentTurns): ChatTurn[] => [
         ...currentTurns.map((turn): ChatTurn =>
           turn.status === "complete" ? turn : { ...turn, status: "complete" },
@@ -576,7 +612,7 @@ export function MedscapeAiCurrentScreen({
         composerInputRef.current?.focus();
       }
     },
-    [clearResponseTimers, conversationId, prototypeAnalytics],
+    [clearResponseTimers, conversationId, instantAnswerDelayMs, prototypeAnalytics],
   );
 
   const showInitialCompletedTurn = useCallback(
@@ -686,7 +722,7 @@ export function MedscapeAiCurrentScreen({
 
       startedInitialConversationRef.current = initialConversationKey;
 
-      if (initialConversationMode === "complete" || instantAnswers) {
+      if (initialConversationMode === "complete") {
         showInitialCompletedTurn(trimmedInitialQuestion);
         return;
       }
@@ -1059,6 +1095,7 @@ export function MedscapeAiCurrentScreen({
                             className="mt-5"
                             followUpQuestions={turn.supportingContent.followUpQuestions}
                             followUpQuestionsVariant={followUpQuestionsVariant}
+                            hideAd={hideAnswerFooterAdForFirstTurn && turn.id === 1}
                             hideFollowUpQuestions={
                               followUpQuestionsPlacement === "before-actions"
                             }
