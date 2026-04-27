@@ -18,6 +18,7 @@ type AiResponseAnswerSupportingContentProps = {
     turnId?: number;
   };
   adPlacement?: string;
+  adContentDelayMs?: number;
   className?: string;
   followUpQuestions: string[];
   followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
@@ -29,6 +30,7 @@ type AiResponseAnswerSupportingContentProps = {
 export function AiResponseAnswerSupportingContent({
   analyticsContext,
   adPlacement,
+  adContentDelayMs = 0,
   className,
   followUpQuestions,
   followUpQuestionsVariant = "default",
@@ -44,6 +46,7 @@ export function AiResponseAnswerSupportingContent({
         adSlot="answer_footer"
         className="mt-4 md:mt-5"
         conversationId={analyticsContext?.conversationId}
+        contentDelayMs={adContentDelayMs}
         prototypeFamily={analyticsContext?.prototypeFamily}
         prototypeRoute={analyticsContext?.prototypeRoute}
         prototypeSlug={analyticsContext?.prototypeSlug}

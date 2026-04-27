@@ -75,6 +75,7 @@ type MedscapeAiCurrentAnswerVariant = "default" | "summary-read-more";
 type MedscapeAiCurrentFollowUpPlacement = "supporting-content" | "before-actions";
 
 type MedscapeAiCurrentScreenProps = {
+  adContentDelayMs?: number;
   adPlacement?: MedscapeAiCurrentScreenAdPlacement;
   answerVariant?: MedscapeAiCurrentAnswerVariant;
   composerPlaceholder?: string;
@@ -83,6 +84,7 @@ type MedscapeAiCurrentScreenProps = {
   initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
   initialQuestionSource?: string;
+  instantAnswers?: boolean;
   keyPointsDefaultExpanded?: boolean;
   keyPointsVariant?: AiResponseKeyPointsVariant;
   prototypeRoute?: string;
@@ -110,20 +112,24 @@ function buildAnswerSummary(answer: string) {
   const { body, keyPoints } = splitLeadingKeyPoints(answer);
   const blocks = buildAnswerBlocks(body);
 
-  const paragraphTexts = blocks.flatMap((block) =>
-    block.type === "paragraph" ? [block.text] : [],
-  );
-  if (paragraphTexts.length > 0) {
-    return paragraphTexts.slice(0, 2).join(" ");
-  }
+  const summaryPieces = blocks.flatMap((block) => {
+    if (block.type === "paragraph") {
+      return [block.text];
+    }
 
-  const list = blocks.find((block) => block.type === "list");
-  if (list?.type === "list" && list.items.length > 0) {
-    return list.items.slice(0, 2).join(" ");
+    if (block.type === "list") {
+      return block.items.slice(0, 2);
+    }
+
+    return [];
+  });
+
+  if (summaryPieces.length > 0) {
+    return summaryPieces.slice(0, 2).join(" ");
   }
 
   if (keyPoints.length > 0) {
-    return keyPoints[0];
+    return keyPoints.slice(0, 3).join(" ");
   }
 
   return body.trim();
@@ -215,6 +221,7 @@ function MedscapeAiCurrentAnswerSummary({
 }
 
 export function MedscapeAiCurrentScreen({
+  adContentDelayMs = 0,
   adPlacement = "after-progress",
   answerVariant = "default",
   composerPlaceholder = "Ask anything",
@@ -223,6 +230,7 @@ export function MedscapeAiCurrentScreen({
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
   initialQuestionSource = "direct_url",
+  instantAnswers = false,
   keyPointsDefaultExpanded = true,
   keyPointsVariant = "default",
   prototypeRoute = "/medscape-ai-current",
@@ -510,6 +518,68 @@ export function MedscapeAiCurrentScreen({
   );
 
   const showCompletedTurn = useCallback(
+    (
+      question: string,
+      options: { focusComposer?: boolean; questionSource?: string } = {},
+    ) => {
+      const trimmedQuestion = question.trim();
+      if (!trimmedQuestion) return;
+
+      clearResponseTimers();
+      activeTurnIdRef.current = null;
+      setBottomSpacerHeight(0);
+      setComposerDraft("");
+
+      const nextTurnId = nextTurnIdRef.current;
+      nextTurnIdRef.current += 1;
+
+      const nextTurn: ChatTurn = {
+        answer: buildMockAnswer(trimmedQuestion),
+        fullAnswer: buildMockAnswer(trimmedQuestion),
+        id: nextTurnId,
+        question: trimmedQuestion,
+        status: "complete",
+        supportingContent: buildMockAnswerSupportingContent(trimmedQuestion),
+      };
+
+      captureAnalyticsEvent("question_submitted", {
+        ...prototypeAnalytics,
+        conversation_id: conversationId,
+        entry_surface: options.questionSource ?? "composer",
+        question_length: trimmedQuestion.length,
+        question_source: options.questionSource ?? "composer",
+        question_text: trimmedQuestion,
+        session_id: getPostHogSessionId(),
+        turn_id: nextTurnId,
+      });
+
+      captureAnalyticsEvent("generation_completed", {
+        ...prototypeAnalytics,
+        answer_length: nextTurn.answer.length,
+        conversation_id: conversationId,
+        follow_up_count: nextTurn.supportingContent.followUpQuestions.length,
+        generation_mode: "complete",
+        mock_generation: true,
+        reference_count: nextTurn.supportingContent.references.length,
+        time_to_complete_ms: 0,
+        turn_id: nextTurnId,
+      });
+
+      setChatTurns((currentTurns): ChatTurn[] => [
+        ...currentTurns.map((turn): ChatTurn =>
+          turn.status === "complete" ? turn : { ...turn, status: "complete" },
+        ),
+        nextTurn,
+      ]);
+
+      if (options.focusComposer !== false) {
+        composerInputRef.current?.focus();
+      }
+    },
+    [clearResponseTimers, conversationId, prototypeAnalytics],
+  );
+
+  const showInitialCompletedTurn = useCallback(
     (question: string) => {
       const trimmedQuestion = question.trim();
       if (!trimmedQuestion) return;
@@ -541,9 +611,14 @@ export function MedscapeAiCurrentScreen({
       question: string,
       options?: { focusComposer?: boolean; questionSource?: string },
     ) => {
+      if (instantAnswers) {
+        showCompletedTurn(question, options);
+        return;
+      }
+
       startStreamingTurn(question, options);
     },
-    [startStreamingTurn],
+    [instantAnswers, showCompletedTurn, startStreamingTurn],
   );
 
   useEffect(() => {
@@ -611,8 +686,8 @@ export function MedscapeAiCurrentScreen({
 
       startedInitialConversationRef.current = initialConversationKey;
 
-      if (initialConversationMode === "complete") {
-        showCompletedTurn(trimmedInitialQuestion);
+      if (initialConversationMode === "complete" || instantAnswers) {
+        showInitialCompletedTurn(trimmedInitialQuestion);
         return;
       }
 
@@ -629,7 +704,8 @@ export function MedscapeAiCurrentScreen({
     initialConversationMode,
     initialQuestion,
     initialQuestionSource,
-    showCompletedTurn,
+    instantAnswers,
+    showInitialCompletedTurn,
     submitQuestion,
   ]);
 
@@ -805,6 +881,7 @@ export function MedscapeAiCurrentScreen({
                           adSlot="above_question"
                           className="mb-5 md:mb-4"
                           conversationId={conversationId}
+                          contentDelayMs={adContentDelayMs}
                           prototypeFamily="medscape-ai-current"
                           prototypeRoute={prototypeRoute}
                           prototypeSlug={prototypeSlug}
@@ -833,6 +910,7 @@ export function MedscapeAiCurrentScreen({
                               adSlot="preparing"
                               className="mt-5 md:mt-4"
                               conversationId={conversationId}
+                              contentDelayMs={adContentDelayMs}
                               prototypeFamily="medscape-ai-current"
                               prototypeRoute={prototypeRoute}
                               prototypeSlug={prototypeSlug}
@@ -888,6 +966,7 @@ export function MedscapeAiCurrentScreen({
                           adSlot="after_keypoints"
                           className="mb-6"
                           conversationId={conversationId}
+                          contentDelayMs={adContentDelayMs}
                           prototypeFamily="medscape-ai-current"
                           prototypeRoute={prototypeRoute}
                           prototypeSlug={prototypeSlug}
@@ -968,6 +1047,7 @@ export function MedscapeAiCurrentScreen({
                           />
                           <AiResponseAnswerSupportingContent
                             adPlacement="answer-footer"
+                            adContentDelayMs={adContentDelayMs}
                             analyticsContext={{
                               conversationId,
                               prototypeFamily: "medscape-ai-current",

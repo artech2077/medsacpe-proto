@@ -9,6 +9,7 @@ type MedscapeCurrentAdBlockProps = {
   adSlot?: string;
   className?: string;
   conversationId?: string;
+  contentDelayMs?: number;
   prototypeFamily?: string;
   prototypeRoute?: string;
   prototypeSlug?: string;
@@ -21,6 +22,7 @@ export function MedscapeCurrentAdBlock({
   adSlot = "medscape_current_ad",
   className = "",
   conversationId,
+  contentDelayMs = 0,
   prototypeFamily,
   prototypeRoute,
   prototypeSlug,
@@ -31,7 +33,23 @@ export function MedscapeCurrentAdBlock({
   const hasTrackedViewRef = useRef(false);
   const viewTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const visibleSinceRef = useRef<number | null>(null);
+  const [isContentDelayComplete, setIsContentDelayComplete] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const showContent = contentDelayMs === 0 || isContentDelayComplete;
+
+  useEffect(() => {
+    if (contentDelayMs === 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setIsContentDelayComplete(true);
+    }, contentDelayMs);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [contentDelayMs]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 768px)");
@@ -120,15 +138,19 @@ export function MedscapeCurrentAdBlock({
       aria-label="Advertisement"
     >
       <div className="mx-auto h-[250px] w-[300px] max-w-full overflow-hidden md:h-[90px] md:w-[728px]">
-        <img
-          src={isDesktop ? "/assets/Salutrib_728x90.png" : "/assets/ad.png"}
-          alt="Salutrib advertisement"
-          className="block h-full w-full object-cover"
-        />
+        {showContent ? (
+          <img
+            src={isDesktop ? "/assets/Salutrib_728x90.png" : "/assets/ad.png"}
+            alt="Salutrib advertisement"
+            className="block h-full w-full object-cover"
+          />
+        ) : null}
       </div>
-      <p className="mt-1 pt-1 text-[12px] leading-[12px] text-[#435056]">
-        Advertisement
-      </p>
+      {showContent ? (
+        <p className="mt-1 pt-1 text-[12px] leading-[12px] text-[#435056]">
+          Advertisement
+        </p>
+      ) : null}
     </aside>
   );
 }

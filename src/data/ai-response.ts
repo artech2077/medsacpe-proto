@@ -194,10 +194,10 @@ function buildReferenceList(
 function buildGenericSupportingContent(question: string): AiAnswerSupportingContent {
   return {
     followUpQuestions: [
-      `What additional patient factors would change the answer for ${question}?`,
-      "Which findings would make this issue more urgent to evaluate?",
-      "What follow-up monitoring would you recommend after the initial plan?",
-      "When should a clinician escalate to specialist input for this scenario?",
+      "Tailor to patient profile",
+      "Identify key red flags",
+      "Build a focused workup",
+      "Draft patient counseling language",
     ],
     references: buildReferenceList([
       {
@@ -497,10 +497,10 @@ export function buildMockAnswerSupportingContent(
   if (normalized.includes("vancomycin")) {
     return {
       followUpQuestions: [
-        "How should vancomycin levels be monitored when the dialysis schedule changes?",
-        "When should post-hemodialysis vancomycin doses be increased for deep-seated infection?",
-        "How does residual kidney function affect vancomycin dosing in dialysis patients?",
-        "What target exposure should clinicians use when AUC monitoring is available?",
+        "Apply changing dialysis schedule",
+        "Adjust post-HD dosing",
+        "Account for residual kidney function",
+        "Translate AUC targets clinically",
       ],
       references: buildReferenceList([
         {
@@ -533,11 +533,11 @@ export function buildMockAnswerSupportingContent(
   ) {
     return {
       followUpQuestions: [
-        "What clinical guidelines recommend monitoring for pancreatitis in patients on GLP-1 therapies",
-        "What are the signs of an allergic reaction to GLP-1 injections",
-        "Are there any dietary changes that can help reduce gastrointestinal side effects of GLP-1s",
-        "How common are severe side effects like pancreatitis with GLP-1 medications",
-        "Can GLP-1 medications affect kidney function",
+        "Screen for serious warnings",
+        "Reduce GI side effects",
+        "Stratify GLP-1 risk",
+        "Plan renal monitoring",
+        "Draft injection counseling",
       ],
       references: buildReferenceList([
         {
@@ -571,10 +571,10 @@ export function buildMockAnswerSupportingContent(
   if (normalized.includes("omega-3") || normalized.includes("omega 3")) {
     return {
       followUpQuestions: [
-        "Which cardiovascular populations appear most likely to benefit from prescription omega-3 therapy?",
-        "How should clinicians interpret EPA-only trials versus mixed EPA/DHA formulations?",
-        "When is 4 g/day omega-3 used for triglyceride lowering rather than cardiovascular risk reduction?",
-        "What adverse effects and monitoring issues matter most with high-dose omega-3 products?",
+        "Match the right CV population",
+        "Compare EPA and EPA/DHA",
+        "Separate TG and CV goals",
+        "Plan high-dose monitoring",
       ],
       references: buildReferenceList([
         {
@@ -613,10 +613,10 @@ export function buildMockAnswerSupportingContent(
   ) {
     return {
       followUpQuestions: [
-        "Which outcome measures from the latest trials are most practice-changing?",
-        "How should absolute benefit and harm be communicated to patients from these data?",
-        "Which subgroups were underrepresented in the available evidence?",
-        "What would still prevent these findings from changing first-line care?",
+        "Extract practice-changing outcomes",
+        "Frame benefit and harm",
+        "Check patient applicability",
+        "Reassess first-line management",
       ],
       references: buildReferenceList([
         {

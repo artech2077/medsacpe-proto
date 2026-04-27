@@ -25,12 +25,14 @@ export default async function AdAfterKeypointsCollapsedWithReadMoreChatPage({
 
   return (
     <MedscapeAiCurrentScreen
+      adContentDelayMs={3000}
       adPlacement="above-question"
       followUpQuestionsPlacement="before-actions"
       followUpQuestionsVariant="chips"
       initialConversationMode={initialConversationMode}
       initialQuestion={initialQuestion}
       initialQuestionSource={sourceValue ?? "direct_url"}
+      instantAnswers
       keyPointsDefaultExpanded={false}
       keyPointsVariant="collapsed-read-more"
       prototypeRoute="/ad-after-keypoints-collapsed-with-read-more"
