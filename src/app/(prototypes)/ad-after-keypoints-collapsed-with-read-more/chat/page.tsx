@@ -36,6 +36,7 @@ export default async function AdAfterKeypointsCollapsedWithReadMoreChatPage({
     <MedscapeAiCurrentScreen
       adContentDelayMs={3000}
       adPlacement="above-question"
+      autoScrollToInitialAd
       followUpQuestionsPlacement="before-actions"
       followUpQuestionsVariant="chips"
       hideAnswerFooterAdForFirstTurn

@@ -78,6 +78,7 @@ type MedscapeAiCurrentScreenProps = {
   adContentDelayMs?: number;
   adPlacement?: MedscapeAiCurrentScreenAdPlacement;
   answerVariant?: MedscapeAiCurrentAnswerVariant;
+  autoScrollToInitialAd?: boolean;
   composerPlaceholder?: string;
   followUpQuestionsPlacement?: MedscapeAiCurrentFollowUpPlacement;
   followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
@@ -229,6 +230,7 @@ export function MedscapeAiCurrentScreen({
   adContentDelayMs = 0,
   adPlacement = "after-progress",
   answerVariant = "default",
+  autoScrollToInitialAd = false,
   composerPlaceholder = "Ask anything",
   followUpQuestionsPlacement = "supporting-content",
   followUpQuestionsVariant = "default",
@@ -248,10 +250,14 @@ export function MedscapeAiCurrentScreen({
 }: MedscapeAiCurrentScreenProps) {
   const router = useRouter();
   const responseScrollRef = useRef<HTMLDivElement>(null);
+  const initialAdRef = useRef<HTMLDivElement>(null);
   const turnArticleRefs = useRef(new Map<number, HTMLElement>());
   const composerInputRef = useRef<HTMLInputElement>(null);
+  const autoScrollFrameRef = useRef<number | null>(null);
+  const hasAutoScrolledInitialAdRef = useRef(false);
   const responseDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const responseStreamIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activeTurnIdRef = useRef<number | null>(null);
   const generationStartedAtRef = useRef(new Map<number, number>());
   const nextTurnIdRef = useRef(1);
@@ -273,7 +279,8 @@ export function MedscapeAiCurrentScreen({
     () =>
       ({
         ad_placement: adPlacement,
-        answer_variant: answerVariant,
+      answer_variant: answerVariant,
+      auto_scroll_to_initial_ad: autoScrollToInitialAd,
         key_points_default_expanded: keyPointsDefaultExpanded,
         key_points_variant: keyPointsVariant,
         prototype_family: "medscape-ai-current",
@@ -284,6 +291,7 @@ export function MedscapeAiCurrentScreen({
     [
       adPlacement,
       answerVariant,
+      autoScrollToInitialAd,
       keyPointsDefaultExpanded,
       keyPointsVariant,
       prototypeRoute,
@@ -328,6 +336,56 @@ export function MedscapeAiCurrentScreen({
       clearInterval(responseStreamIntervalRef.current);
       responseStreamIntervalRef.current = null;
     }
+
+    if (autoScrollTimeoutRef.current) {
+      clearTimeout(autoScrollTimeoutRef.current);
+      autoScrollTimeoutRef.current = null;
+    }
+
+    if (autoScrollFrameRef.current !== null) {
+      cancelAnimationFrame(autoScrollFrameRef.current);
+      autoScrollFrameRef.current = null;
+    }
+  }, []);
+
+  const animateResponseScrollTo = useCallback((targetTop: number, durationMs = 1200) => {
+    const responseScroll = responseScrollRef.current;
+    if (!responseScroll) return Promise.resolve();
+
+    if (autoScrollFrameRef.current !== null) {
+      cancelAnimationFrame(autoScrollFrameRef.current);
+      autoScrollFrameRef.current = null;
+    }
+
+    const startTop = responseScroll.scrollTop;
+    const distance = targetTop - startTop;
+
+    if (Math.abs(distance) < 1) {
+      return Promise.resolve();
+    }
+
+    const startedAt = performance.now();
+    const easeInOutCubic = (progress: number) =>
+      progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+    return new Promise<void>((resolve) => {
+      const step = (now: number) => {
+        const progress = Math.min((now - startedAt) / durationMs, 1);
+        responseScroll.scrollTop = startTop + distance * easeInOutCubic(progress);
+
+        if (progress < 1) {
+          autoScrollFrameRef.current = requestAnimationFrame(step);
+          return;
+        }
+
+        autoScrollFrameRef.current = null;
+        resolve();
+      };
+
+      autoScrollFrameRef.current = requestAnimationFrame(step);
+    });
   }, []);
 
   const scrollResponseToBottom = useCallback((behavior: ScrollBehavior) => {
@@ -735,6 +793,43 @@ export function MedscapeAiCurrentScreen({
   }, [conversationId, prototypeAnalytics, showScrollToBottomButton]);
 
   useEffect(() => {
+    if (!autoScrollToInitialAd || hasAutoScrolledInitialAdRef.current) return;
+
+    const firstTurn = chatTurns[0];
+    if (!firstTurn || firstTurn.status !== "complete" || !firstTurn.answer) return;
+
+    autoScrollTimeoutRef.current = setTimeout(() => {
+      const responseScroll = responseScrollRef.current;
+      const initialAd = initialAdRef.current;
+
+      if (!responseScroll || !initialAd) return;
+
+      const responseRect = responseScroll.getBoundingClientRect();
+      const adRect = initialAd.getBoundingClientRect();
+      const adTop = adRect.top - responseRect.top + responseScroll.scrollTop;
+      const maxScrollTop = Math.max(responseScroll.scrollHeight - responseScroll.clientHeight, 0);
+      const targetTop = Math.min(
+        Math.max(adTop + adRect.height * 0.85, responseScroll.scrollTop),
+        maxScrollTop,
+      );
+
+      hasAutoScrolledInitialAdRef.current = true;
+      void animateResponseScrollTo(targetTop, 1400).then(() => {
+        autoScrollTimeoutRef.current = setTimeout(() => {
+          void animateResponseScrollTo(0, 1000);
+        }, 250);
+      });
+    }, 150);
+
+    return () => {
+      if (autoScrollTimeoutRef.current) {
+        clearTimeout(autoScrollTimeoutRef.current);
+        autoScrollTimeoutRef.current = null;
+      }
+    };
+  }, [animateResponseScrollTo, autoScrollToInitialAd, chatTurns]);
+
+  useEffect(() => {
     const trimmedInitialQuestion = initialQuestion.trim();
     if (!trimmedInitialQuestion) return;
 
@@ -955,19 +1050,21 @@ export function MedscapeAiCurrentScreen({
                       className="mx-auto mb-10 max-w-[900px] last:mb-0"
                     >
                       {adPlacement === "above-question" ? (
-                        <MedscapeCurrentAdBlock
-                          adPlacement={adPlacement}
-                          adSlot="above_question"
-                          className="mb-5 md:mb-4"
-                          conversationId={conversationId}
-                          contentDelayMs={adContentDelayMs}
-                          hideImage={hideAdImage}
-                          prototypeFamily="medscape-ai-current"
-                          prototypeRoute={prototypeRoute}
-                          prototypeSlug={prototypeSlug}
-                          screenType="prototype_chat"
-                          turnId={turn.id}
-                        />
+                        <div ref={turn.id === 1 ? initialAdRef : undefined}>
+                          <MedscapeCurrentAdBlock
+                            adPlacement={adPlacement}
+                            adSlot="above_question"
+                            className="mb-5 md:mb-4"
+                            conversationId={conversationId}
+                            contentDelayMs={adContentDelayMs}
+                            hideImage={hideAdImage}
+                            prototypeFamily="medscape-ai-current"
+                            prototypeRoute={prototypeRoute}
+                            prototypeSlug={prototypeSlug}
+                            screenType="prototype_chat"
+                            turnId={turn.id}
+                          />
+                        </div>
                       ) : null}
 
                       <h1 className="mb-7 text-[19px] leading-[1.25] font-extrabold tracking-[0] text-[#11181d] md:mb-5 md:mt-5 md:text-[24px] md:leading-[1.25]">
