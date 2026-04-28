@@ -44,28 +44,47 @@ export function AiResponseReferenceCard({
         .filter(Boolean)
         .join(" ")}
     >
-      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#ecf1f9] text-[13px] leading-none font-semibold text-[#161b1d]">
+      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#ecf1f9] text-[13px] leading-none font-semibold text-[#5b6871]">
         {reference.id}
       </div>
 
       <div className="min-w-0 flex-1">
-        <p
-          className={[
-            "text-[#064aa7]",
-            isCompact ? "text-[16px] leading-[1.3]" : "text-[18px] leading-[1.35]",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          {reference.title}
-        </p>
-
-        <p className="mt-1 text-[16px] leading-[1.2] font-bold text-[#161b1d]">
-          {reference.source}
-        </p>
+        {reference.url ? (
+          <a
+            href={reference.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={[
+              "block !text-[#064aa7] transition visited:!text-[#064aa7] hover:!text-[#043b84] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+              isCompact ? "text-[16px] leading-[1.3]" : "text-[18px] leading-[1.35]",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {reference.title}
+          </a>
+        ) : (
+          <p
+            className={[
+              "!text-[#064aa7]",
+              isCompact ? "text-[16px] leading-[1.3]" : "text-[18px] leading-[1.35]",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {reference.title}
+          </p>
+        )}
 
         {isCompact ? (
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-[14px] leading-[1.2] text-[#064aa7]">
+          <>
+            <p className="mt-1 text-[13px] leading-[1.3] text-[#161b1d]">
+              <span className="font-bold">{reference.sourceLabel}</span>
+              {" - "}
+              {reference.publishedAt ? `${reference.publishedAt} - ` : ""}
+              {reference.source}.
+            </p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-5 gap-y-1 text-[14px] leading-[1.2] text-[#064aa7]">
             <button
               type="button"
               className="cursor-pointer rounded-sm transition hover:text-[#043b84] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
@@ -73,41 +92,26 @@ export function AiResponseReferenceCard({
               View full reference
             </button>
 
-            <button
-              type="button"
-              className="inline-flex cursor-pointer items-center gap-1 rounded-sm transition hover:text-[#043b84] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-            >
-              <span>View source</span>
-              <AiExternalLinkIcon />
-            </button>
-          </div>
-        ) : (
-          <>
-            {reference.publishedAt ? (
-              <p className="mt-1 text-[16px] leading-[1.2] text-[#161b1d]">
-                {reference.publishedAt}
-              </p>
+            {reference.url ? (
+              <a
+                href={reference.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-sm text-[#064aa7] transition hover:text-[#043b84] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              >
+                <span>View source</span>
+                <AiExternalLinkIcon />
+              </a>
             ) : null}
-
-            <p className="mt-1 text-[16px] leading-[1.3] text-[#161b1d]">{reference.detail}</p>
-
-            {reference.doi ? (
-              <p className="mt-1 text-[12px] leading-[1.5] text-[#435056]">{reference.doi}</p>
-            ) : null}
-
-            {reference.tags?.length ? (
-              <div className="mt-2 flex flex-wrap gap-1">
-                {reference.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-[#d6f5eb] px-2 py-[3px] text-[13px] leading-[1.2] text-[#0f573f]"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            ) : null}
+            </div>
           </>
+        ) : (
+          <p className="mt-1 text-[13px] leading-[1.3] text-[#161b1d]">
+            <span className="font-bold">{reference.sourceLabel}</span>
+            {" - "}
+            {reference.publishedAt ? `${reference.publishedAt} - ` : ""}
+            {reference.source}.
+          </p>
         )}
       </div>
     </article>

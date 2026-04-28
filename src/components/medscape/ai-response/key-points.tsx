@@ -13,6 +13,7 @@ type InlineTextSegment = {
 };
 
 export type AiResponseKeyPointsVariant = "default" | "collapsed-read-more";
+export type AiResponseKeyPointsReadMorePlacement = "outside-summary" | "inside-summary";
 
 type AiResponseKeyPointsProps = {
   analyticsContext?: {
@@ -29,6 +30,7 @@ type AiResponseKeyPointsProps = {
   expanded?: boolean;
   keyPoints: string[];
   onExpandedChange?: (expanded: boolean, trigger: "header" | "read_more") => void;
+  readMorePlacement?: AiResponseKeyPointsReadMorePlacement;
   summaryText?: string;
   variant?: AiResponseKeyPointsVariant;
 };
@@ -104,6 +106,7 @@ export function AiResponseKeyPoints({
   expanded,
   keyPoints,
   onExpandedChange,
+  readMorePlacement = "outside-summary",
   summaryText,
   variant = "default",
 }: AiResponseKeyPointsProps) {
@@ -120,6 +123,8 @@ export function AiResponseKeyPoints({
   const summarySegments = isCollapsedReadMoreVariant
     ? buildInlineTextSegments(summaryContent)
     : collapsedPreview.segments;
+  const placeReadMoreInsideSummary =
+    isCollapsedReadMoreVariant && readMorePlacement === "inside-summary";
   const updateExpanded = (nextExpanded: boolean, trigger: "header" | "read_more") => {
     if (expanded === undefined) {
       setUncontrolledIsExpanded(nextExpanded);
@@ -143,60 +148,72 @@ export function AiResponseKeyPoints({
       variant,
     });
   };
+  const readMoreButton = isCollapsedReadMoreVariant ? (
+    <button
+      type="button"
+      onClick={() => {
+        updateExpanded(!isExpanded, "read_more");
+      }}
+      className="font-semibold text-[#064aa7] transition hover:text-[#043b84] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+    >
+      {isExpanded ? "Hide full answer" : "Read full answer"}
+    </button>
+  ) : null;
+
+  const sectionClassName = `rounded-[20px] bg-[#ecf1f9] px-4 py-4 md:px-5 md:py-5 ${
+    isCollapsedReadMoreVariant ? "" : className ?? ""
+  }`.trim();
 
   return (
-    <section
-      className={`rounded-[20px] bg-[#ecf1f9] px-4 py-4 md:px-5 md:py-5 ${className ?? ""}`.trim()}
-    >
-      <button
-        type="button"
-        aria-expanded={isExpanded}
-        onClick={() => {
-          updateExpanded(!isExpanded, "header");
-        }}
-        className="flex w-full items-center gap-2 text-left text-[#2c353a]"
-      >
-        <AiLightbulbIcon className="h-5 w-5 shrink-0 text-[#2c353a] md:h-6 md:w-6" />
-        <span className="flex-1 text-[20px] leading-[1.3] font-bold md:text-[24px]">
-          {isCollapsedReadMoreVariant ? "Summary" : "Key Points"}
-        </span>
-        {isCollapsedReadMoreVariant ? null : (
-          <AiChevronIcon
-            direction={isExpanded ? "up" : "down"}
-            className="h-5 w-5 shrink-0 text-[#2c353a]"
-          />
-        )}
-      </button>
+    <div className={isCollapsedReadMoreVariant ? className : undefined}>
+      <section className={sectionClassName}>
+        <button
+          type="button"
+          aria-expanded={isExpanded}
+          onClick={() => {
+            updateExpanded(!isExpanded, "header");
+          }}
+          className="flex w-full items-center gap-2 text-left text-[#2c353a]"
+        >
+          <AiLightbulbIcon className="h-5 w-5 shrink-0 text-[#2c353a] md:h-6 md:w-6" />
+          <span className="flex-1 text-[20px] leading-[1.3] font-bold md:text-[24px]">
+            {isCollapsedReadMoreVariant ? "Summary" : "Key Points"}
+          </span>
+          {isCollapsedReadMoreVariant ? null : (
+            <AiChevronIcon
+              direction={isExpanded ? "up" : "down"}
+              className="h-5 w-5 shrink-0 text-[#2c353a]"
+            />
+          )}
+        </button>
 
-      {isCollapsedReadMoreVariant ? (
-        <div className="mt-4 text-[16px] leading-[1.3] text-[#2c353a]">
-          <p>
-            {renderInlineSegments(summarySegments)}
-            {!isCollapsedReadMoreVariant && collapsedPreview.wasTruncated ? <span>...</span> : null}
-          </p>
-          <div className="mt-5 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                updateExpanded(!isExpanded, "read_more");
-              }}
-              className="font-semibold text-[#064aa7] transition hover:text-[#043b84] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ecf1f9]"
-            >
-              {isExpanded ? "Hide full answer" : "Read full answer"}
-            </button>
+        {isCollapsedReadMoreVariant ? (
+          <div className="mt-4 text-[16px] leading-[1.3] text-[#2c353a]">
+            <p>
+              {renderInlineSegments(summarySegments)}
+              {!isCollapsedReadMoreVariant && collapsedPreview.wasTruncated ? (
+                <span>...</span>
+              ) : null}
+            </p>
+            {placeReadMoreInsideSummary ? (
+              <div className="mt-2 text-center">{readMoreButton}</div>
+            ) : null}
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
-      {isExpanded && !isCollapsedReadMoreVariant ? (
-        <ul className="mt-4 list-disc space-y-3 pl-5 text-[16px] leading-[1.3] text-[#2c353a] marker:text-[#2c353a]">
-          {keyPoints.map((item, index) => (
-            <li key={`${item}-${index}`}>
-              {renderInlineText(item)}
-            </li>
-          ))}
-        </ul>
+        {isExpanded && !isCollapsedReadMoreVariant ? (
+          <ul className="mt-4 list-disc space-y-3 pl-5 text-[16px] leading-[1.3] text-[#2c353a] marker:text-[#2c353a]">
+            {keyPoints.map((item, index) => (
+              <li key={`${item}-${index}`}>
+                {renderInlineText(item)}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
+      {isCollapsedReadMoreVariant && !placeReadMoreInsideSummary ? (
+        <div className="mt-2 text-center">{readMoreButton}</div>
       ) : null}
-    </section>
+    </div>
   );
 }

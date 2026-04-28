@@ -82,6 +82,7 @@ type MedscapeAiCurrentScreenProps = {
   followUpQuestionsPlacement?: MedscapeAiCurrentFollowUpPlacement;
   followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
   hideAnswerFooterAdForFirstTurn?: boolean;
+  hideAdImage?: boolean;
   initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
   initialQuestionSource?: string;
@@ -90,7 +91,9 @@ type MedscapeAiCurrentScreenProps = {
   keyPointsDefaultExpanded?: boolean;
   keyPointsVariant?: AiResponseKeyPointsVariant;
   prototypeRoute?: string;
+  queryRedirectUrl?: string;
   showHistoryAction?: boolean;
+  summaryOverride?: string;
 };
 
 type MedscapeAiCurrentAnswerSummaryProps = {
@@ -230,6 +233,7 @@ export function MedscapeAiCurrentScreen({
   followUpQuestionsPlacement = "supporting-content",
   followUpQuestionsVariant = "default",
   hideAnswerFooterAdForFirstTurn = false,
+  hideAdImage = false,
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
   initialQuestionSource = "direct_url",
@@ -238,7 +242,9 @@ export function MedscapeAiCurrentScreen({
   keyPointsDefaultExpanded = true,
   keyPointsVariant = "default",
   prototypeRoute = "/medscape-ai-current",
+  queryRedirectUrl,
   showHistoryAction = true,
+  summaryOverride,
 }: MedscapeAiCurrentScreenProps) {
   const router = useRouter();
   const responseScrollRef = useRef<HTMLDivElement>(null);
@@ -292,6 +298,24 @@ export function MedscapeAiCurrentScreen({
       });
     },
     [router],
+  );
+
+  const openQueryRedirect = useCallback(
+    (question: string, questionSource: string) => {
+      if (!queryRedirectUrl) return false;
+
+      captureAnalyticsEvent("external_ai_search_opened", {
+        ...prototypeAnalytics,
+        conversation_id: conversationId,
+        destination_url: queryRedirectUrl,
+        question_source: questionSource,
+        question_text: question,
+      });
+      window.open(queryRedirectUrl, "_blank", "noopener,noreferrer");
+      setComposerDraft("");
+      return true;
+    },
+    [conversationId, prototypeAnalytics, queryRedirectUrl],
   );
 
   const clearResponseTimers = useCallback(() => {
@@ -723,6 +747,14 @@ export function MedscapeAiCurrentScreen({
       startedInitialConversationRef.current = initialConversationKey;
 
       if (initialConversationMode === "complete") {
+        if (instantAnswerDelayMs > 0) {
+          showCompletedTurn(trimmedInitialQuestion, {
+            focusComposer: false,
+            questionSource: initialQuestionSource,
+          });
+          return;
+        }
+
         showInitialCompletedTurn(trimmedInitialQuestion);
         return;
       }
@@ -740,7 +772,9 @@ export function MedscapeAiCurrentScreen({
     initialConversationMode,
     initialQuestion,
     initialQuestionSource,
+    instantAnswerDelayMs,
     instantAnswers,
+    showCompletedTurn,
     showInitialCompletedTurn,
     submitQuestion,
   ]);
@@ -799,8 +833,14 @@ export function MedscapeAiCurrentScreen({
   };
 
   const handleSubmitQuestion = () => {
-    if (!composerDraft.trim()) return;
-    submitQuestion(composerDraft);
+    const trimmedQuestion = composerDraft.trim();
+    if (!trimmedQuestion) return;
+
+    if (openQueryRedirect(trimmedQuestion, "composer")) {
+      return;
+    }
+
+    submitQuestion(trimmedQuestion);
   };
 
   return (
@@ -901,9 +941,12 @@ export function MedscapeAiCurrentScreen({
                     showFullAnswer && isCollapsedReadMoreKeyPoints;
                   const showCompletedTurnExtras =
                     turn.status === "complete" && turn.answer;
-                  const answerSummaryText = buildAnswerSummary(
-                    turn.status === "complete" ? turn.fullAnswer : turn.answer,
-                  );
+                  const answerSummaryText =
+                    summaryOverride && turn.question === initialQuestion
+                      ? summaryOverride
+                      : buildAnswerSummary(
+                          turn.status === "complete" ? turn.fullAnswer : turn.answer,
+                        );
 
                   return (
                     <article
@@ -918,6 +961,7 @@ export function MedscapeAiCurrentScreen({
                           className="mb-5 md:mb-4"
                           conversationId={conversationId}
                           contentDelayMs={adContentDelayMs}
+                          hideImage={hideAdImage}
                           prototypeFamily="medscape-ai-current"
                           prototypeRoute={prototypeRoute}
                           prototypeSlug={prototypeSlug}
@@ -947,6 +991,7 @@ export function MedscapeAiCurrentScreen({
                               className="mt-5 md:mt-4"
                               conversationId={conversationId}
                               contentDelayMs={adContentDelayMs}
+                              hideImage={hideAdImage}
                               prototypeFamily="medscape-ai-current"
                               prototypeRoute={prototypeRoute}
                               prototypeSlug={prototypeSlug}
@@ -991,6 +1036,11 @@ export function MedscapeAiCurrentScreen({
                                 }
                               : undefined
                           }
+                          readMorePlacement={
+                            isCollapsedReadMoreKeyPoints && turn.id > 1
+                              ? "inside-summary"
+                              : "outside-summary"
+                          }
                           summaryText={answerSummaryText}
                           variant={keyPointsVariant}
                         />
@@ -1003,6 +1053,7 @@ export function MedscapeAiCurrentScreen({
                           className="mb-6"
                           conversationId={conversationId}
                           contentDelayMs={adContentDelayMs}
+                          hideImage={hideAdImage}
                           prototypeFamily="medscape-ai-current"
                           prototypeRoute={prototypeRoute}
                           prototypeSlug={prototypeSlug}
@@ -1058,6 +1109,10 @@ export function MedscapeAiCurrentScreen({
                                   follow_up_text: question,
                                   parent_turn_id: turn.id,
                                 });
+                                if (openQueryRedirect(question, "follow_up_question")) {
+                                  return;
+                                }
+
                                 submitQuestion(question, {
                                   questionSource: "follow_up_question",
                                 });
@@ -1096,6 +1151,7 @@ export function MedscapeAiCurrentScreen({
                             followUpQuestions={turn.supportingContent.followUpQuestions}
                             followUpQuestionsVariant={followUpQuestionsVariant}
                             hideAd={hideAnswerFooterAdForFirstTurn && turn.id === 1}
+                            hideAdImage={hideAdImage}
                             hideFollowUpQuestions={
                               followUpQuestionsPlacement === "before-actions"
                             }
@@ -1107,6 +1163,10 @@ export function MedscapeAiCurrentScreen({
                                 follow_up_text: question,
                                 parent_turn_id: turn.id,
                               });
+                              if (openQueryRedirect(question, "follow_up_question")) {
+                                return;
+                              }
+
                               submitQuestion(question, {
                                 questionSource: "follow_up_question",
                               });

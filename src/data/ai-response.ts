@@ -175,6 +175,7 @@ export type AiAnswerReference = {
   sourceLabel: string;
   tags?: string[];
   title: string;
+  url?: string;
 };
 
 export type AiAnswerSupportingContent = {
@@ -247,28 +248,29 @@ const osteoporosisAnswer = [
 function buildVancomycinAnswer() {
   return [
     "Key Points",
-    "- **Loading dose decisions** should be separated from post-dialysis maintenance dosing.",
-    "- **A common starting range** for serious infection is 20-25 mg/kg actual body weight.",
-    "- **Maintenance dosing** is typically given after hemodialysis and adjusted using serum levels.",
-    "- **Monitoring priorities** include pre-dialysis levels, dialysis schedule changes, residual kidney function, and clinical response.",
+    "- Treat as **functionally anephric** for dosing",
+    "- **Loading ≈15 mg/kg** (≈1 g for 70 kg)",
+    "- **Maintenance ~1.9 mg/kg/24 hr** (≈130 mg/day)",
+    "- Adjust using **troughs**; serious infections trough **15-20 mg/L**",
+    "- Monitor **renal function**, especially if residual urine output",
     "",
-    "For a 70 kg patient on intermittent hemodialysis, start by separating the loading dose decision from the post-dialysis maintenance strategy.",
+    "In a 70-kg adult on intermittent hemodialysis, use **functionally anephric dosing principles** with a **15 mg/kg load** and **trough-guided maintenance**.",
     "",
-    "Initial dosing approach",
-    "- Loading dose: 20-25 mg/kg actual body weight is a common starting range for serious infection.",
-    "- For 70 kg, that typically lands around 1.5 g as an initial dose, with severity of illness and residual renal function guiding the final choice.",
+    "Initial (loading) dose",
+    "- For adults with renal impairment, the initial daily dose should be **no less than 15 mg/kg IV**.[1]",
+    "- In **functionally anephric patients**, the recommended initial dose is **15 mg/kg** to rapidly achieve therapeutic serum concentrations.[1]",
+    "- For a 70-kg patient: **15 mg/kg ≈ 1,050 mg**, typically rounded to **1 g IV**, infused over **≥60 minutes** (**≤10 mg/min**).[1][2]",
     "",
-    "Maintenance after dialysis",
-    "- Redose after hemodialysis rather than on a fixed every-12-hour or every-24-hour interval.",
-    "- A common prototype approach is 500-750 mg after each dialysis session, then individualize using serum levels and infection severity.",
+    "Maintenance dose and interval (functionally anephric)",
+    "- For functionally anephric adults, after the **15 mg/kg load**, labeling suggests starting at **1.9 mg/kg/24 hr**.[1]",
+    "- For 70 kg: **1.9 mg/kg ≈ 130 mg per 24 hours IV** as an initial maintenance estimate.[1]",
     "",
-    "Monitoring",
-    "- Check a pre-dialysis level before the next session and trend toward the program's target, often aligned with AUC-based monitoring where available.",
-    "- Reassess after schedule changes, missed dialysis, changes in residual kidney function, or signs of inadequate response.",
+    "Therapeutic drug monitoring and adjustment",
+    "- In renal impairment, measure **trough serum concentrations** to guide therapy, especially in seriously ill patients or with changing renal function.[1]",
+    "- Conventional target peak **18-26 mg/L**; trough **5-10 mg/L**, but IDSA and other guidelines urge troughs **15-20 mg/L for serious infections**.[1]",
+    "- Adjust the **post-dialysis supplemental dose** and **effective interval** based on measured troughs and **clinical response**, as labeling emphasizes individualized dosing in renal dysfunction.[1]",
     "",
-    "Clinical cautions",
-    "- Larger post-dialysis doses may be needed for deep-seated infection, obesity, or incomplete clinical response.",
-    "- Coordination with nephrology and pharmacy is important because dialysis modality and filter characteristics materially change drug clearance.",
+    "Would you like a focused outline of trough timing and dose adjustment steps around each hemodialysis session?",
   ].join("\n");
 }
 
@@ -497,29 +499,29 @@ export function buildMockAnswerSupportingContent(
   if (normalized.includes("vancomycin")) {
     return {
       followUpQuestions: [
-        "Apply changing dialysis schedule",
-        "Adjust post-HD dosing",
-        "Account for residual kidney function",
-        "Translate AUC targets clinically",
+        "Check vancomycin drug interactions",
+        "Monitor for nephrotoxicity symptoms",
+        "Review hemodialysis dosing literature",
+        "Confirm post-dialysis trough timing",
       ],
       references: buildReferenceList([
         {
-          detail: "Rybak MJ, Le J, Lodise TP, et al.",
-          doi: "doi: 10.1093/ajhp/zxaa036.",
-          publishedAt: "Mar 19, 2020",
-          source: "American Journal of Health-System Pharmacy",
-          sourceLabel: "AJHP",
-          tags: ["Guideline"],
-          title:
-            "Therapeutic monitoring of vancomycin for serious methicillin-resistant Staphylococcus aureus infections: a revised consensus guideline.",
+          detail: "Adult dosing and renal impairment guidance for vancomycin.",
+          publishedAt: "November 18, 2025",
+          source: "Drugs",
+          sourceLabel: "Medscape",
+          tags: ["Drug Reference"],
+          title: "Vancomycin (Vancocin) - Adult Dosing & Uses.",
+          url: "http://reference.medscape.com/drug/firvanq-vancocin-vancomycin-342573#0",
         },
         {
-          detail: "Pai AB, Pai MP.",
-          publishedAt: "Jul 01, 2004",
-          source: "Seminars in Dialysis",
-          sourceLabel: "Seminars in Dialysis",
-          tags: ["Review"],
-          title: "Vancomycin dosing considerations in high-flux hemodialysis.",
+          detail: "Administration guidance, including infusion rate considerations.",
+          publishedAt: "November 18, 2025",
+          source: "Drugs",
+          sourceLabel: "Medscape",
+          tags: ["Drug Reference"],
+          title: "Vancomycin (Vancocin) - Administration.",
+          url: "http://reference.medscape.com/drug/firvanq-vancocin-vancomycin-342573#11",
         },
       ]),
     };

@@ -47,11 +47,14 @@ export default function Home() {
             </div>
           </article>
 
-          {prototypeRegistry.map((prototype, index) => (
-            <article
-              key={prototype.slug}
-              className="flex min-h-[320px] flex-col justify-between rounded-[32px] border border-white/80 bg-white/84 p-7 shadow-[0_24px_60px_rgba(16,24,40,0.06)] backdrop-blur-xl"
-            >
+          {prototypeRegistry.map((prototype, index) => {
+            const entryRoute = prototype.entryRoute ?? prototype.route;
+
+            return (
+              <article
+                key={prototype.slug}
+                className="flex min-h-[320px] flex-col justify-between rounded-[32px] border border-white/80 bg-white/84 p-7 shadow-[0_24px_60px_rgba(16,24,40,0.06)] backdrop-blur-xl"
+              >
               <div>
                 <div className="flex items-start justify-between gap-4">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
@@ -90,11 +93,11 @@ export default function Home() {
                   {prototype.route}
                 </span>
                 <AnalyticsLink
-                  href={prototype.route}
+                  href={entryRoute}
                   eventName="prototype_card_clicked"
                   eventProperties={{
                     card_position: index + 1,
-                    destination_route: prototype.route,
+                    destination_route: entryRoute,
                     prototype_family: prototype.tags?.includes("current-ui")
                       ? "medscape-ai-current"
                       : "ai-response",
@@ -108,7 +111,8 @@ export default function Home() {
                 </AnalyticsLink>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
     </main>

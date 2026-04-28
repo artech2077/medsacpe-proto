@@ -28,6 +28,7 @@ type LeadingKeyPointsSplit = {
 type TooltipPosition = {
   arrowLeft: number;
   left: number;
+  markerKey: string;
   top: number;
   width: number;
 };
@@ -152,7 +153,7 @@ function buildAnswerBlocksWithRanges(answer: string): AiAnswerBlockWithRange[] {
     flushList();
 
     if (
-      /^[A-Z][A-Za-z0-9\s&/:-]+$/.test(trimmedLine) &&
+      /^[A-Z][A-Za-z0-9\s&/():-]+$/.test(trimmedLine) &&
       trimmedLine.length <= 40 &&
       !trimmedLine.endsWith(".")
     ) {
@@ -187,22 +188,24 @@ type AiResponseAnswerContentProps = {
 function AiResponseCitationMarker({
   citationId,
   isActive,
+  markerKey,
   onClick,
   registerButton,
 }: {
   citationId: number;
   isActive: boolean;
-  onClick: (citationId: number) => void;
-  registerButton: (citationId: number, node: HTMLButtonElement | null) => void;
+  markerKey: string;
+  onClick: (citationId: number, markerKey: string) => void;
+  registerButton: (markerKey: string, node: HTMLButtonElement | null) => void;
 }) {
   return (
     <button
-      ref={(node) => registerButton(citationId, node)}
+      ref={(node) => registerButton(markerKey, node)}
       type="button"
       aria-label={`Open citation ${citationId}`}
       aria-pressed={isActive}
-      onClick={() => onClick(citationId)}
-      className={`ml-1 inline-flex h-5 w-5 translate-y-[-1px] items-center justify-center rounded-full text-[13px] leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
+      onClick={() => onClick(citationId, markerKey)}
+      className={`mx-0.5 inline-flex h-5 min-w-5 translate-y-[-1px] items-center justify-center rounded-full px-1.5 text-[13px] leading-none font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
         isActive ? "bg-[#dfeafb] text-[#161b1d]" : "bg-[#ecf1f9] text-[#161b1d] hover:bg-[#dfeafb]"
       }`}
     >
@@ -211,9 +214,12 @@ function AiResponseCitationMarker({
   );
 }
 
-export function renderInlineText(text: string): ReactNode[] {
+export function renderInlineText(
+  text: string,
+  renderCitation?: (citationId: number, key: string) => ReactNode,
+): ReactNode[] {
   return text
-    .split(/(\*\*[^*]+\*\*)/g)
+    .split(/(\*\*[^*]+\*\*|\[\d+\])/g)
     .filter(Boolean)
     .map((part, index) => {
       if (part.startsWith("**") && part.endsWith("**")) {
@@ -222,6 +228,10 @@ export function renderInlineText(text: string): ReactNode[] {
             {part.slice(2, -2)}
           </strong>
         );
+      }
+
+      if (renderCitation && /^\[\d+\]$/.test(part)) {
+        return renderCitation(Number(part.slice(1, -1)), `${part}-${index}`);
       }
 
       return part;
@@ -235,26 +245,33 @@ export function AiResponseAnswerContent({
   references = [],
 }: AiResponseAnswerContentProps) {
   const [openCitationId, setOpenCitationId] = useState<number | null>(null);
+  const [openCitationMarkerKey, setOpenCitationMarkerKey] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const citationButtonRefs = useRef(new Map<number, HTMLButtonElement>());
+  const citationButtonRefs = useRef(new Map<string, HTMLButtonElement>());
 
   const { body } = splitLeadingKeyPoints(answer);
   const { body: fullBody } = splitLeadingKeyPoints(fullAnswer ?? answer);
+  const hasInlineCitations = /\[\d+\]/.test(fullBody);
   const blocks = useMemo(() => buildAnswerBlocks(body), [body]);
   const fullBlocks = useMemo(() => buildAnswerBlocksWithRanges(fullBody), [fullBody]);
   const citationTargets = useMemo(
-    () =>
-      new Map(
+    () => {
+      if (hasInlineCitations) {
+        return new Map<number, { citationId: number; end: number }>();
+      }
+
+      return new Map(
         Array.from(getCitationBlockIndexes(fullBlocks, references.length).entries()).map(
           ([blockIndex, citationId]) => [
             blockIndex,
             { citationId, end: fullBlocks[blockIndex]?.end ?? 0 },
           ],
         ),
-      ),
-    [fullBlocks, references.length],
+      );
+    },
+    [fullBlocks, hasInlineCitations, references.length],
   );
   const openReference = useMemo(
     () => references.find((reference) => reference.id === openCitationId) ?? null,
@@ -262,25 +279,25 @@ export function AiResponseAnswerContent({
   );
 
   const registerCitationButton = useCallback(
-    (citationId: number, node: HTMLButtonElement | null) => {
+    (markerKey: string, node: HTMLButtonElement | null) => {
       if (node) {
-        citationButtonRefs.current.set(citationId, node);
+        citationButtonRefs.current.set(markerKey, node);
         return;
       }
 
-      citationButtonRefs.current.delete(citationId);
+      citationButtonRefs.current.delete(markerKey);
     },
     [],
   );
 
   const updateTooltipPosition = useCallback(() => {
-    if (!openCitationId) {
+    if (!openCitationId || !openCitationMarkerKey) {
       setTooltipPosition(null);
       return;
     }
 
     const contentElement = contentRef.current;
-    const citationButton = citationButtonRefs.current.get(openCitationId);
+    const citationButton = citationButtonRefs.current.get(openCitationMarkerKey);
     if (!contentElement || !citationButton) {
       setTooltipPosition(null);
       return;
@@ -297,10 +314,11 @@ export function AiResponseAnswerContent({
     setTooltipPosition({
       arrowLeft,
       left,
+      markerKey: openCitationMarkerKey,
       top,
       width: maxWidth,
     });
-  }, [openCitationId]);
+  }, [openCitationId, openCitationMarkerKey]);
 
   useEffect(() => {
     if (!openCitationId) {
@@ -347,11 +365,13 @@ export function AiResponseAnswerContent({
       }
 
       setOpenCitationId(null);
+      setOpenCitationMarkerKey(null);
     };
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setOpenCitationId(null);
+        setOpenCitationMarkerKey(null);
       }
     };
 
@@ -367,6 +387,28 @@ export function AiResponseAnswerContent({
   if (blocks.length === 0) {
     return null;
   }
+
+  const renderCitationMarker = (citationId: number, key: string) => (
+    <AiResponseCitationMarker
+      key={key}
+      citationId={citationId}
+      isActive={openCitationId === citationId && openCitationMarkerKey === key}
+      markerKey={key}
+      onClick={(nextCitationId, nextMarkerKey) => {
+        if (openCitationId === nextCitationId && openCitationMarkerKey === nextMarkerKey) {
+          setOpenCitationId(null);
+          setOpenCitationMarkerKey(null);
+          setTooltipPosition(null);
+          return;
+        }
+
+        setTooltipPosition(null);
+        setOpenCitationId(nextCitationId);
+        setOpenCitationMarkerKey(nextMarkerKey);
+      }}
+      registerButton={registerCitationButton}
+    />
+  );
 
   return (
     <div
@@ -405,16 +447,35 @@ export function AiResponseAnswerContent({
 
                 return (
                   <li key={`${item}-${itemIndex}`}>
-                    {renderInlineText(item)}
+                    {renderInlineText(item, (nextCitationId, key) =>
+                      renderCitationMarker(
+                        nextCitationId,
+                        `list-${index}-${itemIndex}-${key}`,
+                      ),
+                    )}
                     {citationId && isLastItem ? (
                       <AiResponseCitationMarker
                         citationId={citationId}
-                        isActive={openCitationId === citationId}
-                        onClick={(nextCitationId) =>
-                          setOpenCitationId((current) =>
-                            current === nextCitationId ? null : nextCitationId,
-                          )
+                        isActive={
+                          openCitationId === citationId &&
+                          openCitationMarkerKey === `auto-list-${index}`
                         }
+                        markerKey={`auto-list-${index}`}
+                        onClick={(nextCitationId, nextMarkerKey) => {
+                          if (
+                            openCitationId === nextCitationId &&
+                            openCitationMarkerKey === nextMarkerKey
+                          ) {
+                            setOpenCitationId(null);
+                            setOpenCitationMarkerKey(null);
+                            setTooltipPosition(null);
+                            return;
+                          }
+
+                          setTooltipPosition(null);
+                          setOpenCitationId(nextCitationId);
+                          setOpenCitationMarkerKey(nextMarkerKey);
+                        }}
                         registerButton={registerCitationButton}
                       />
                     ) : null}
@@ -427,14 +488,32 @@ export function AiResponseAnswerContent({
 
         return (
           <p key={`${block.type}-${index}`} className="mt-5 first:mt-0">
-            {renderInlineText(block.text)}
+            {renderInlineText(block.text, (nextCitationId, key) =>
+              renderCitationMarker(nextCitationId, `paragraph-${index}-${key}`),
+            )}
             {citationId ? (
               <AiResponseCitationMarker
                 citationId={citationId}
-                isActive={openCitationId === citationId}
-                onClick={(nextCitationId) =>
-                  setOpenCitationId((current) => (current === nextCitationId ? null : nextCitationId))
+                isActive={
+                  openCitationId === citationId &&
+                  openCitationMarkerKey === `auto-paragraph-${index}`
                 }
+                markerKey={`auto-paragraph-${index}`}
+                onClick={(nextCitationId, nextMarkerKey) => {
+                  if (
+                    openCitationId === nextCitationId &&
+                    openCitationMarkerKey === nextMarkerKey
+                  ) {
+                    setOpenCitationId(null);
+                    setOpenCitationMarkerKey(null);
+                    setTooltipPosition(null);
+                    return;
+                  }
+
+                  setTooltipPosition(null);
+                  setOpenCitationId(nextCitationId);
+                  setOpenCitationMarkerKey(nextMarkerKey);
+                }}
                 registerButton={registerCitationButton}
               />
             ) : null}
@@ -442,7 +521,9 @@ export function AiResponseAnswerContent({
         );
       })}
 
-      {openReference && tooltipPosition ? (
+      {openReference &&
+      tooltipPosition &&
+      tooltipPosition.markerKey === openCitationMarkerKey ? (
         <div
           ref={tooltipRef}
           className="absolute z-20"

@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
 import { MedscapeAiCurrentScreen } from "@/components/screens/medscape-ai-current-screen";
 
+const paidAdsInitialQuestion =
+  "How would you adjust vancomycin dosing (loading and interval) in a 70 kg patient on intermittent hemodialysis?";
+const paidAdsSummary =
+  "Use **functionally anephric dosing**: give a **loading dose of ~15 mg/kg** (≈1 g IV for a 70-kg patient), then start a **low maintenance regimen**. Adjust the **dosing interval** and **post-dialysis supplementation** based on **trough levels** (target **~15-20 mg/L for serious infections**) and **clinical response**.";
+
 type AdAfterKeypointsCollapsedWithReadMoreChatPageProps = {
   searchParams: Promise<{
     mode?: string | string[];
@@ -20,7 +25,11 @@ export default async function AdAfterKeypointsCollapsedWithReadMoreChatPage({
   const initialConversationMode = modeValue === "complete" ? "complete" : "stream";
 
   if (!initialQuestion) {
-    redirect("/ad-after-keypoints-collapsed-with-read-more");
+    redirect(
+      `/ad-after-keypoints-collapsed-with-read-more/chat?q=${encodeURIComponent(
+        paidAdsInitialQuestion,
+      )}&mode=complete&source=${encodeURIComponent("direct_url")}`,
+    );
   }
 
   return (
@@ -30,6 +39,7 @@ export default async function AdAfterKeypointsCollapsedWithReadMoreChatPage({
       followUpQuestionsPlacement="before-actions"
       followUpQuestionsVariant="chips"
       hideAnswerFooterAdForFirstTurn
+      hideAdImage
       initialConversationMode={initialConversationMode}
       initialQuestion={initialQuestion}
       initialQuestionSource={sourceValue ?? "direct_url"}
@@ -37,7 +47,9 @@ export default async function AdAfterKeypointsCollapsedWithReadMoreChatPage({
       instantAnswers
       keyPointsDefaultExpanded={false}
       keyPointsVariant="collapsed-read-more"
+      queryRedirectUrl="https://www.medscape.com/ai-search"
       prototypeRoute="/ad-after-keypoints-collapsed-with-read-more"
+      summaryOverride={paidAdsSummary}
     />
   );
 }

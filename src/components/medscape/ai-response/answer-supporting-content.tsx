@@ -23,6 +23,7 @@ type AiResponseAnswerSupportingContentProps = {
   followUpQuestions: string[];
   followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
   hideAd?: boolean;
+  hideAdImage?: boolean;
   hideFollowUpQuestions?: boolean;
   onFollowUpQuestionSelect?: (question: string) => void;
   references: AiAnswerReference[];
@@ -36,6 +37,7 @@ export function AiResponseAnswerSupportingContent({
   followUpQuestions,
   followUpQuestionsVariant = "default",
   hideAd = false,
+  hideAdImage = false,
   hideFollowUpQuestions = false,
   onFollowUpQuestionSelect,
   references,
@@ -50,6 +52,7 @@ export function AiResponseAnswerSupportingContent({
           className="mt-4 md:mt-5"
           conversationId={analyticsContext?.conversationId}
           contentDelayMs={adContentDelayMs}
+          hideImage={hideAdImage}
           prototypeFamily={analyticsContext?.prototypeFamily}
           prototypeRoute={analyticsContext?.prototypeRoute}
           prototypeSlug={analyticsContext?.prototypeSlug}

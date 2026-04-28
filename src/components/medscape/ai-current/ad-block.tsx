@@ -10,6 +10,7 @@ type MedscapeCurrentAdBlockProps = {
   className?: string;
   conversationId?: string;
   contentDelayMs?: number;
+  hideImage?: boolean;
   prototypeFamily?: string;
   prototypeRoute?: string;
   prototypeSlug?: string;
@@ -23,6 +24,7 @@ export function MedscapeCurrentAdBlock({
   className = "",
   conversationId,
   contentDelayMs = 0,
+  hideImage = false,
   prototypeFamily,
   prototypeRoute,
   prototypeSlug,
@@ -138,7 +140,7 @@ export function MedscapeCurrentAdBlock({
       aria-label="Advertisement"
     >
       <div className="mx-auto h-[250px] w-[300px] max-w-full overflow-hidden md:h-[90px] md:w-[728px]">
-        {showContent ? (
+        {showContent && !hideImage ? (
           <img
             src={isDesktop ? "/assets/Salutrib_728x90.png" : "/assets/ad.png"}
             alt="Salutrib advertisement"

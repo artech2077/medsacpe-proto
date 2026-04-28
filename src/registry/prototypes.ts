@@ -1,5 +1,6 @@
 export type PrototypeDefinition = {
   description: string;
+  entryRoute?: string;
   route: string;
   slug: string;
   status?: "active" | "draft";
@@ -74,11 +75,13 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   {
     description:
       "Medscape AI current with the first ad pinned below a collapsed key points card that previews the first bullet and expands with a Read More action.",
+    entryRoute:
+      "/ad-after-keypoints-collapsed-with-read-more/chat?q=How%20would%20you%20adjust%20vancomycin%20dosing%20(loading%20and%20interval)%20in%20a%2070%20kg%20patient%20on%20intermittent%20hemodialysis%3F&mode=complete&source=workspace_card",
     route: "/ad-after-keypoints-collapsed-with-read-more",
     slug: "ad-after-keypoints-collapsed-with-read-more",
     status: "active",
     tags: ["medscape-ai", "current-ui", "ad-placement"],
-    title: "Ad after keypoints collapsed with read more",
+    title: "Paid ads experience",
   },
   {
     description:
