@@ -34,6 +34,7 @@ const PERSONAL_URL_PARAMS = new Set([
 ]);
 
 const PROMPT_URL_PARAMS = new Set(["q", "question", "prompt"]);
+const CAMPAIGN_URL_PARAMS = ["utm_source", "utm_medium", "utm_campaign"] as const;
 
 function stripForbiddenProperties(
   properties: AnalyticsProperties,
@@ -97,6 +98,38 @@ export function getQuestionLengthBucket(length: number) {
   return "251+";
 }
 
+function readUrlParam(url: string | undefined, paramName: string) {
+  if (!url) return undefined;
+
+  try {
+    const parsedUrl = new URL(url, "https://medscape-ai.local");
+    return parsedUrl.searchParams.get(paramName) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function fillCampaignPropertiesFromUrl(
+  properties: AnalyticsProperties,
+  candidateUrls: Array<string | undefined>,
+) {
+  const nextProperties = { ...properties };
+
+  for (const paramName of CAMPAIGN_URL_PARAMS) {
+    if (nextProperties[paramName]) continue;
+
+    for (const candidateUrl of candidateUrls) {
+      const value = readUrlParam(candidateUrl, paramName);
+      if (!value) continue;
+
+      nextProperties[paramName] = value;
+      break;
+    }
+  }
+
+  return nextProperties;
+}
+
 export function createAnalyticsId(prefix: string) {
   const randomPart =
     typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -121,7 +154,8 @@ export function getBrowserAnalyticsProperties(
   const route = `${window.location.pathname}${window.location.search}`;
   const searchParams = new URLSearchParams(window.location.search);
 
-  return {
+  return fillCampaignPropertiesFromUrl(
+    {
     app_environment: process.env.NODE_ENV ?? "development",
     app_version:
       process.env.NEXT_PUBLIC_APP_VERSION ??
@@ -138,7 +172,9 @@ export function getBrowserAnalyticsProperties(
     utm_source: searchParams.get("utm_source"),
     viewport_height: window.innerHeight,
     viewport_width: window.innerWidth,
-  };
+    },
+    [window.location.href, route],
+  );
 }
 
 export function buildAnalyticsPayload(
@@ -153,10 +189,17 @@ export function buildAnalyticsPayload(
     raw_prompt_capture: options.rawPromptCaptureEnabled,
   };
 
+  const propertiesWithCampaign = fillCampaignPropertiesFromUrl(mergedProperties, [
+    typeof mergedProperties.$current_url === "string"
+      ? mergedProperties.$current_url
+      : undefined,
+    typeof mergedProperties.route === "string" ? mergedProperties.route : undefined,
+  ]);
+
   return {
     eventName,
     properties: stripForbiddenProperties(
-      mergedProperties,
+      propertiesWithCampaign,
       options.rawPromptCaptureEnabled,
     ),
   };
@@ -175,8 +218,13 @@ export function sanitizePostHogProperties(
     }
   }
 
-  sanitized.is_authenticated = false;
-  sanitized.raw_prompt_capture = rawPromptCaptureEnabled;
+  const withCampaignProperties = fillCampaignPropertiesFromUrl(sanitized, [
+    typeof sanitized.$current_url === "string" ? sanitized.$current_url : undefined,
+    typeof sanitized.route === "string" ? sanitized.route : undefined,
+  ]);
 
-  return sanitized;
+  withCampaignProperties.is_authenticated = false;
+  withCampaignProperties.raw_prompt_capture = rawPromptCaptureEnabled;
+
+  return withCampaignProperties;
 }

@@ -65,4 +65,36 @@ describe("buildAnalyticsPayload", () => {
     expect(properties).not.toHaveProperty("email");
     expect(properties.question_length).toBe(23);
   });
+
+  it("fills campaign properties from route when explicit UTM properties are missing", () => {
+    const properties = sanitizePostHogProperties(
+      {
+        route:
+          "/paid-ads-exp/chat?source=workspace_card&utm_source=test_source&utm_medium=test_medium&utm_campaign=test_campaign",
+      },
+      true,
+    );
+
+    expect(properties.utm_source).toBe("test_source");
+    expect(properties.utm_medium).toBe("test_medium");
+    expect(properties.utm_campaign).toBe("test_campaign");
+  });
+
+  it("keeps explicit campaign properties when route also has UTM properties", () => {
+    const payload = buildAnalyticsPayload(
+      "paid_ads_landing_viewed",
+      {
+        route:
+          "/paid-ads-exp/chat?utm_source=route_source&utm_medium=route_medium&utm_campaign=route_campaign",
+        utm_campaign: "explicit_campaign",
+        utm_medium: "explicit_medium",
+        utm_source: "explicit_source",
+      },
+      { rawPromptCaptureEnabled: true },
+    );
+
+    expect(payload.properties.utm_source).toBe("explicit_source");
+    expect(payload.properties.utm_medium).toBe("explicit_medium");
+    expect(payload.properties.utm_campaign).toBe("explicit_campaign");
+  });
 });
