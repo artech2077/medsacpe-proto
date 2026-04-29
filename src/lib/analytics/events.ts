@@ -182,7 +182,7 @@ export function buildAnalyticsPayload(
   properties: AnalyticsProperties = {},
   options: AnalyticsPayloadOptions,
 ) {
-  const mergedProperties = {
+  const mergedProperties: AnalyticsProperties = {
     ...getBrowserAnalyticsProperties(options.rawPromptCaptureEnabled),
     ...properties,
     is_authenticated: false,
@@ -190,10 +190,10 @@ export function buildAnalyticsPayload(
   };
 
   const propertiesWithCampaign = fillCampaignPropertiesFromUrl(mergedProperties, [
-    typeof mergedProperties.$current_url === "string"
-      ? mergedProperties.$current_url
+    typeof mergedProperties["$current_url"] === "string"
+      ? mergedProperties["$current_url"]
       : undefined,
-    typeof mergedProperties.route === "string" ? mergedProperties.route : undefined,
+    typeof mergedProperties["route"] === "string" ? mergedProperties["route"] : undefined,
   ]);
 
   return {
@@ -219,8 +219,8 @@ export function sanitizePostHogProperties(
   }
 
   const withCampaignProperties = fillCampaignPropertiesFromUrl(sanitized, [
-    typeof sanitized.$current_url === "string" ? sanitized.$current_url : undefined,
-    typeof sanitized.route === "string" ? sanitized.route : undefined,
+    typeof sanitized["$current_url"] === "string" ? sanitized["$current_url"] : undefined,
+    typeof sanitized["route"] === "string" ? sanitized["route"] : undefined,
   ]);
 
   withCampaignProperties.is_authenticated = false;
