@@ -801,6 +801,7 @@ export function AiResponseScreen({
                               turnId: turn.id,
                             }}
                             answer={turn.answer}
+                            copyText={turn.fullAnswer}
                           />
                           <AiResponseAnswerSupportingContent
                             adPlacement="answer-footer"

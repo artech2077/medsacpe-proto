@@ -11,6 +11,7 @@ type MedscapeCurrentAdBlockProps = {
   conversationId?: string;
   contentDelayMs?: number;
   hideImage?: boolean;
+  onAdViewed?: () => void;
   prototypeFamily?: string;
   prototypeRoute?: string;
   prototypeSlug?: string;
@@ -25,6 +26,7 @@ export function MedscapeCurrentAdBlock({
   conversationId,
   contentDelayMs = 0,
   hideImage = false,
+  onAdViewed,
   prototypeFamily,
   prototypeRoute,
   prototypeSlug,
@@ -97,6 +99,7 @@ export function MedscapeCurrentAdBlock({
                 turn_id: turnId,
                 visible_ratio: visibleRatio,
               });
+              onAdViewed?.();
               viewTimeoutRef.current = null;
             }, 1000);
           }
@@ -126,6 +129,7 @@ export function MedscapeCurrentAdBlock({
     adPlacement,
     adSlot,
     conversationId,
+    onAdViewed,
     prototypeFamily,
     prototypeRoute,
     prototypeSlug,

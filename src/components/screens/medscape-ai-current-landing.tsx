@@ -16,6 +16,8 @@ import { defaultInitialQuestion, promptSections, type PromptSection } from "@/da
 import { featureUpdatesTriggerPrompt } from "@/data/medscape-feature-updates";
 import { captureAnalyticsEvent } from "@/lib/analytics/posthog";
 
+const MEDSCAPE_AI_SEARCH_URL = "https://www.medscape.com/ai-search";
+
 type MedscapeAiCurrentLandingProps = {
   composerPlaceholder?: string;
   promptIntro?: string;
@@ -58,6 +60,10 @@ export function MedscapeAiCurrentLanding({
         questionSource,
       )}`,
     );
+  };
+
+  const redirectToMedscapeAiSearch = () => {
+    window.location.assign(MEDSCAPE_AI_SEARCH_URL);
   };
 
   const handleSubmit = () => {
@@ -148,7 +154,7 @@ export function MedscapeAiCurrentLanding({
                 question_text: defaultInitialQuestion,
                 screen_type: "prototype_landing",
               });
-              navigateToChat(defaultInitialQuestion, "complete", "history");
+              redirectToMedscapeAiSearch();
             }}
             onNewChatClick={() => {
               setDraft("");
@@ -158,6 +164,7 @@ export function MedscapeAiCurrentLanding({
                 prototype_slug: prototypeSlug,
                 screen_type: "prototype_landing",
               });
+              redirectToMedscapeAiSearch();
             }}
             showHistory={showHistoryAction}
           />
@@ -180,7 +187,7 @@ export function MedscapeAiCurrentLanding({
                     question_text: defaultInitialQuestion,
                     screen_type: "prototype_landing",
                   });
-                  navigateToChat(defaultInitialQuestion, "complete", "history");
+                  redirectToMedscapeAiSearch();
                 }}
                 onNewChatClick={() => {
                   setDraft("");
@@ -190,6 +197,7 @@ export function MedscapeAiCurrentLanding({
                     prototype_slug: prototypeSlug,
                     screen_type: "prototype_landing",
                   });
+                  redirectToMedscapeAiSearch();
                 }}
                 showHistory={showHistoryAction}
               />

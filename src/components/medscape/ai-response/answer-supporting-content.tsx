@@ -25,7 +25,9 @@ type AiResponseAnswerSupportingContentProps = {
   hideAd?: boolean;
   hideAdImage?: boolean;
   hideFollowUpQuestions?: boolean;
+  onAdViewed?: () => void;
   onFollowUpQuestionSelect?: (question: string) => void;
+  referencesDefaultExpanded?: boolean;
   references: AiAnswerReference[];
 };
 
@@ -39,12 +41,18 @@ export function AiResponseAnswerSupportingContent({
   hideAd = false,
   hideAdImage = false,
   hideFollowUpQuestions = false,
+  onAdViewed,
   onFollowUpQuestionSelect,
+  referencesDefaultExpanded = false,
   references,
 }: AiResponseAnswerSupportingContentProps) {
   return (
     <section className={className}>
-      <AiResponseReferences references={references} />
+      <AiResponseReferences
+        analyticsContext={analyticsContext}
+        defaultExpanded={referencesDefaultExpanded}
+        references={references}
+      />
       {hideAd ? null : (
         <MedscapeCurrentAdBlock
           adPlacement={adPlacement}
@@ -53,6 +61,7 @@ export function AiResponseAnswerSupportingContent({
           conversationId={analyticsContext?.conversationId}
           contentDelayMs={adContentDelayMs}
           hideImage={hideAdImage}
+          onAdViewed={onAdViewed}
           prototypeFamily={analyticsContext?.prototypeFamily}
           prototypeRoute={analyticsContext?.prototypeRoute}
           prototypeSlug={analyticsContext?.prototypeSlug}

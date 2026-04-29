@@ -5,7 +5,7 @@ const initialQuestion =
 
 export default function AdAfterKeypointsCollapsedWithReadMorePage() {
   redirect(
-    `/ad-after-keypoints-collapsed-with-read-more/chat?q=${encodeURIComponent(
+    `/paid-ads-exp/chat?q=${encodeURIComponent(
       initialQuestion,
     )}&mode=complete&source=${encodeURIComponent("workspace_card")}`,
   );

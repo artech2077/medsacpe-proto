@@ -14,7 +14,7 @@ The workspace currently tracks:
   - `/ad-above-the-question`
   - `/ad-after-keypoints`
   - `/ad-after-keypoints-collapsed`
-  - `/ad-after-keypoints-collapsed-with-read-more`
+  - `/paid-ads-exp`
 - Quality telemetry:
   - `$pageview`
   - `web_vital_reported`
@@ -332,7 +332,7 @@ Prototype flows additionally use these common fields when relevant:
   - `/ad-above-the-question/chat?q=test`
   - `/ad-after-keypoints/chat?q=test`
   - `/ad-after-keypoints-collapsed/chat?q=test`
-  - `/ad-after-keypoints-collapsed-with-read-more/chat?q=test`
+  - `/paid-ads-exp/chat?q=test`
 - Expect `ad_slot_viewed` for the relevant slot:
   - `preparing`
   - `above_question`
@@ -345,7 +345,7 @@ Prototype flows additionally use these common fields when relevant:
 - `/ad-after-keypoints-collapsed/chat?q=test`
   - Validate `key_points_default_expanded=false`
   - Validate `key_points_variant=default`
-- `/ad-after-keypoints-collapsed-with-read-more/chat?q=test`
+- `/paid-ads-exp/chat?q=test`
   - Click `Read More`
   - Expect: `key_points_toggled` with `trigger=read_more`
   - Validate `key_points_variant=collapsed-read-more`

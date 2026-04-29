@@ -22,34 +22,49 @@ type AiResponseAnswerActionsProps = {
   };
   answer: string;
   className?: string;
+  copyText?: string;
 };
 
-async function copyAnswerText(answer: string) {
+async function copyAnswerText(text: string) {
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(answer);
+    await navigator.clipboard.writeText(text);
     return;
   }
 
   const textarea = document.createElement("textarea");
-  textarea.value = answer;
+  textarea.value = text;
   textarea.setAttribute("readonly", "");
-  textarea.style.position = "absolute";
+  textarea.style.position = "fixed";
+  textarea.style.top = "0";
+  textarea.style.left = "0";
   textarea.style.opacity = "0";
   textarea.style.pointerEvents = "none";
   document.body.appendChild(textarea);
-  textarea.select();
-  document.execCommand("copy");
-  document.body.removeChild(textarea);
+
+  try {
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, text.length);
+
+    if (!document.execCommand("copy")) {
+      throw new Error("Copy command failed");
+    }
+  } finally {
+    document.body.removeChild(textarea);
+  }
 }
 
 export function AiResponseAnswerActions({
   analyticsContext,
   answer,
   className,
+  copyText,
 }: AiResponseAnswerActionsProps) {
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
   const [reaction, setReaction] = useState<AnswerReaction>(null);
   const copyResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const answerTextToCopy = copyText ?? answer;
 
   useEffect(() => {
     return () => {
@@ -62,11 +77,25 @@ export function AiResponseAnswerActions({
   const handleCopy = async () => {
     const copyMethod = navigator.clipboard ? "clipboard_api" : "exec_command";
 
+    captureAnalyticsEvent("button_clicked", {
+      button_id: "answer_copy",
+      button_label: "Copy",
+      button_role: "copy",
+      button_surface: "answer_actions",
+      conversation_id: analyticsContext?.conversationId,
+      prototype_family: analyticsContext?.prototypeFamily,
+      prototype_route: analyticsContext?.prototypeRoute,
+      prototype_slug: analyticsContext?.prototypeSlug,
+      screen_type: analyticsContext?.screenType,
+      turn_id: analyticsContext?.turnId,
+    });
+
     try {
-      await copyAnswerText(answer);
+      await copyAnswerText(answerTextToCopy);
       setCopied(true);
+      setCopyFailed(false);
       captureAnalyticsEvent("answer_copied", {
-        answer_length: answer.length,
+        answer_length: answerTextToCopy.length,
         conversation_id: analyticsContext?.conversationId,
         copy_method: copyMethod,
         prototype_family: analyticsContext?.prototypeFamily,
@@ -87,6 +116,7 @@ export function AiResponseAnswerActions({
       }, 1800);
     } catch {
       setCopied(false);
+      setCopyFailed(true);
     }
   };
 
@@ -103,6 +133,18 @@ export function AiResponseAnswerActions({
         aria-pressed={reaction === "like"}
         onClick={() => {
           setReaction("like");
+          captureAnalyticsEvent("button_clicked", {
+            button_id: "answer_helpful",
+            button_label: "Helpful",
+            button_role: "feedback",
+            button_surface: "answer_actions",
+            conversation_id: analyticsContext?.conversationId,
+            prototype_family: analyticsContext?.prototypeFamily,
+            prototype_route: analyticsContext?.prototypeRoute,
+            prototype_slug: analyticsContext?.prototypeSlug,
+            screen_type: analyticsContext?.screenType,
+            turn_id: analyticsContext?.turnId,
+          });
           captureAnalyticsEvent("answer_feedback_submitted", {
             answer_length: answer.length,
             conversation_id: analyticsContext?.conversationId,
@@ -127,6 +169,18 @@ export function AiResponseAnswerActions({
         aria-pressed={reaction === "dislike"}
         onClick={() => {
           setReaction("dislike");
+          captureAnalyticsEvent("button_clicked", {
+            button_id: "answer_not_helpful",
+            button_label: "Not Helpful",
+            button_role: "feedback",
+            button_surface: "answer_actions",
+            conversation_id: analyticsContext?.conversationId,
+            prototype_family: analyticsContext?.prototypeFamily,
+            prototype_route: analyticsContext?.prototypeRoute,
+            prototype_slug: analyticsContext?.prototypeSlug,
+            screen_type: analyticsContext?.screenType,
+            turn_id: analyticsContext?.turnId,
+          });
           captureAnalyticsEvent("answer_feedback_submitted", {
             answer_length: answer.length,
             conversation_id: analyticsContext?.conversationId,
@@ -147,12 +201,12 @@ export function AiResponseAnswerActions({
 
       <button
         type="button"
-        aria-label="Copy answer"
+        aria-label={copied ? "Answer copied" : "Copy answer"}
         onClick={handleCopy}
         className={actionButtonClassName}
       >
         <AiAnswerCopyIcon />
-        <span>{copied ? "copied!" : "Copy"}</span>
+        <span>{copied ? "Copied" : copyFailed ? "Copy failed" : "Copy"}</span>
       </button>
     </div>
   );

@@ -88,15 +88,29 @@ function buildCollapsedPreview(text: string) {
 }
 
 function renderInlineSegments(segments: InlineTextSegment[]) {
-  return segments.map((segment, index) =>
-    segment.isBold ? (
-      <strong key={`${segment.text}-${index}`} className="font-extrabold">
-        {segment.text}
-      </strong>
-    ) : (
-      <span key={`${segment.text}-${index}`}>{segment.text}</span>
-    ),
-  );
+  return segments.flatMap((segment, index) => {
+    const lines = segment.text.split("\n");
+
+    return lines.flatMap((line, lineIndex) => {
+      const content = segment.isBold ? (
+        <strong
+          key={`${segment.text}-${index}-${lineIndex}-text`}
+          className="font-extrabold"
+        >
+          {line}
+        </strong>
+      ) : (
+        <span key={`${segment.text}-${index}-${lineIndex}-text`}>{line}</span>
+      );
+
+      return lineIndex === lines.length - 1
+        ? [content]
+        : [
+            content,
+            <br key={`${segment.text}-${index}-${lineIndex}-break`} />,
+          ];
+    });
+  });
 }
 
 export function AiResponseKeyPoints({
@@ -134,6 +148,30 @@ export function AiResponseKeyPoints({
     trackToggle(nextExpanded, trigger);
   };
   const trackToggle = (nextExpanded: boolean, trigger: "header" | "read_more") => {
+    captureAnalyticsEvent("button_clicked", {
+      button_id:
+        trigger === "read_more"
+          ? nextExpanded
+            ? "key_points_read_full_answer"
+            : "key_points_hide_full_answer"
+          : "key_points_header_toggle",
+      button_label:
+        trigger === "read_more"
+          ? nextExpanded
+            ? "Read full answer"
+            : "Hide full answer"
+          : variant === "collapsed-read-more"
+            ? "Summary"
+            : "Key Points",
+      button_role: "toggle",
+      button_surface: "key_points",
+      conversation_id: analyticsContext?.conversationId,
+      prototype_family: analyticsContext?.prototypeFamily,
+      prototype_route: analyticsContext?.prototypeRoute,
+      prototype_slug: analyticsContext?.prototypeSlug,
+      screen_type: analyticsContext?.screenType,
+      turn_id: analyticsContext?.turnId,
+    });
     captureAnalyticsEvent("key_points_toggled", {
       conversation_id: analyticsContext?.conversationId,
       expanded: nextExpanded,

@@ -39,14 +39,16 @@ export function CurrentMissingIcon({ label }: { label: string }) {
 }
 
 export function CurrentHeaderIcon({
+  className = "h-4 w-4",
   iconSrc,
   label,
 }: {
+  className?: string;
   iconSrc: string;
   label: string;
 }) {
   return (
-    <img src={iconSrc} alt={label} className="h-4 w-4 object-contain" />
+    <img src={iconSrc} alt={label} className={`${className} object-contain`} />
   );
 }
 

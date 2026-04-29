@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  startTransition,
   type WheelEvent,
   useCallback,
   useEffect,
@@ -9,7 +8,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
 import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
 import { MedscapeCurrentTopRailActions } from "@/components/medscape/ai-current/current-top-rail-actions";
 import { CurrentScrollDownIcon, CurrentSparkIcon } from "@/components/medscape/ai-current/current-icons";
@@ -43,7 +41,11 @@ import {
   defaultInitialQuestion,
 } from "@/data/ai-response";
 import { getCurrentProgressText } from "@/data/medscape-ai-current";
-import { createAnalyticsId } from "@/lib/analytics/events";
+import {
+  type AnalyticsProperties,
+  createAnalyticsId,
+  getQuestionLengthBucket,
+} from "@/lib/analytics/events";
 import {
   captureAnalyticsEvent,
   getPostHogSessionId,
@@ -54,6 +56,11 @@ const STREAM_TICK_MS = 18;
 const STREAM_CHUNK_SIZE = 4;
 const CHAT_BOTTOM_CONTENT_PADDING_PX = 112;
 const SCROLL_DOWN_VISIBILITY_THRESHOLD_PX = 8;
+const MEDSCAPE_AI_SEARCH_URL = "https://www.medscape.com/ai-search";
+const PAID_ADS_ROUTE = "/paid-ads-exp";
+const PAID_ADS_ENGAGEMENT_MILESTONES_SECONDS = [5, 15, 30, 60, 120] as const;
+const PAID_ADS_SCROLL_DEPTH_MILESTONES = [25, 50, 75, 90, 100] as const;
+const PAID_ADS_USER_SCROLL_INPUT_WINDOW_MS = 2000;
 
 type ChatTurnStatus = "preparing" | "streaming" | "complete";
 
@@ -93,6 +100,7 @@ type MedscapeAiCurrentScreenProps = {
   keyPointsVariant?: AiResponseKeyPointsVariant;
   prototypeRoute?: string;
   queryRedirectUrl?: string;
+  referencesDefaultExpanded?: boolean;
   showHistoryAction?: boolean;
   summaryOverride?: string;
 };
@@ -141,6 +149,10 @@ function buildAnswerSummary(answer: string) {
   return body.trim();
 }
 
+function captureButtonClicked(properties: AnalyticsProperties) {
+  captureAnalyticsEvent("button_clicked", properties);
+}
+
 function MedscapeAiCurrentAnswerSummary({
   analyticsContext,
   answer,
@@ -171,6 +183,20 @@ function MedscapeAiCurrentAnswerSummary({
                   onClick={() => {
                     setIsExpanded((current) => {
                       const nextExpanded = !current;
+                      captureButtonClicked({
+                        button_id: nextExpanded
+                          ? "summary_read_more"
+                          : "summary_show_less",
+                        button_label: nextExpanded ? "Read more" : "Show less",
+                        button_role: "toggle",
+                        button_surface: "summary_answer",
+                        conversation_id: analyticsContext.conversationId,
+                        prototype_family: analyticsContext.prototypeFamily,
+                        prototype_route: analyticsContext.prototypeRoute,
+                        prototype_slug: analyticsContext.prototypeSlug,
+                        screen_type: analyticsContext.screenType,
+                        turn_id: analyticsContext.turnId,
+                      });
                       captureAnalyticsEvent("summary_answer_toggled", {
                         conversation_id: analyticsContext.conversationId,
                         expanded: nextExpanded,
@@ -245,10 +271,10 @@ export function MedscapeAiCurrentScreen({
   keyPointsVariant = "default",
   prototypeRoute = "/medscape-ai-current",
   queryRedirectUrl,
+  referencesDefaultExpanded = false,
   showHistoryAction = true,
   summaryOverride,
 }: MedscapeAiCurrentScreenProps) {
-  const router = useRouter();
   const responseScrollRef = useRef<HTMLDivElement>(null);
   const initialAdRef = useRef<HTMLDivElement>(null);
   const turnArticleRefs = useRef(new Map<number, HTMLElement>());
@@ -262,6 +288,15 @@ export function MedscapeAiCurrentScreen({
   const generationStartedAtRef = useRef(new Map<number, number>());
   const nextTurnIdRef = useRef(1);
   const startedInitialConversationRef = useRef<string | null>(null);
+  const paidAdsStartedAtRef = useRef<number | null>(null);
+  const paidAdsEngagementTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const paidAdsTrackedScrollDepthsRef = useRef(new Set<number>());
+  const paidAdsMaxScrollDepthRef = useRef(0);
+  const paidAdsLastUserScrollInputAtRef = useRef<number | null>(null);
+  const paidAdsComposerStartedRef = useRef(false);
+  const paidAdsQuestionSubmittedRef = useRef(false);
+  const paidAdsClickedAnyButtonRef = useRef(false);
+  const paidAdsAdViewedRef = useRef(false);
 
   const [conversationId] = useState(() => createAnalyticsId("conversation"));
   const [composerDraft, setComposerDraft] = useState("");
@@ -275,6 +310,8 @@ export function MedscapeAiCurrentScreen({
     (turn) => turn.status === "preparing" || turn.status === "streaming",
   );
   const prototypeSlug = prototypeRoute.replace(/^\//, "");
+  const isPaidAdsPrototype = prototypeRoute === PAID_ADS_ROUTE;
+  const prototypeFamily = isPaidAdsPrototype ? "paid-ads" : "medscape-ai-current";
   const prototypeAnalytics = useMemo(
     () =>
       ({
@@ -283,7 +320,7 @@ export function MedscapeAiCurrentScreen({
       auto_scroll_to_initial_ad: autoScrollToInitialAd,
         key_points_default_expanded: keyPointsDefaultExpanded,
         key_points_variant: keyPointsVariant,
-        prototype_family: "medscape-ai-current",
+        prototype_family: prototypeFamily,
         prototype_route: prototypeRoute,
         prototype_slug: prototypeSlug,
         screen_type: "prototype_chat",
@@ -294,24 +331,52 @@ export function MedscapeAiCurrentScreen({
       autoScrollToInitialAd,
       keyPointsDefaultExpanded,
       keyPointsVariant,
+      prototypeFamily,
       prototypeRoute,
       prototypeSlug,
     ],
   );
+  const paidAdsAnalytics = useMemo(
+    () => ({
+      ...prototypeAnalytics,
+      campaign_entry: isPaidAdsPrototype,
+    }),
+    [isPaidAdsPrototype, prototypeAnalytics],
+  );
+  const trackPaidAdsButton = useCallback(
+    (properties: AnalyticsProperties) => {
+      if (!isPaidAdsPrototype) return;
 
-  const navigate = useCallback(
-    (href: string) => {
-      startTransition(() => {
-        router.push(href);
+      paidAdsClickedAnyButtonRef.current = true;
+      captureButtonClicked({
+        ...paidAdsAnalytics,
+        ...properties,
       });
     },
-    [router],
+    [isPaidAdsPrototype, paidAdsAnalytics],
   );
+  const markPaidAdsAdViewed = useCallback(() => {
+    if (!isPaidAdsPrototype) return;
+
+    paidAdsAdViewedRef.current = true;
+  }, [isPaidAdsPrototype]);
+  const markPaidAdsUserScrollInput = useCallback(() => {
+    if (!isPaidAdsPrototype) return;
+
+    paidAdsLastUserScrollInputAtRef.current = performance.now();
+  }, [isPaidAdsPrototype]);
 
   const openQueryRedirect = useCallback(
     (question: string, questionSource: string) => {
       if (!queryRedirectUrl) return false;
 
+      trackPaidAdsButton({
+        button_id: "external_ai_search_open",
+        button_label: "Open Medscape AI search",
+        button_role: "external_navigation",
+        button_surface: questionSource,
+        conversation_id: conversationId,
+      });
       captureAnalyticsEvent("external_ai_search_opened", {
         ...prototypeAnalytics,
         conversation_id: conversationId,
@@ -323,7 +388,7 @@ export function MedscapeAiCurrentScreen({
       setComposerDraft("");
       return true;
     },
-    [conversationId, prototypeAnalytics, queryRedirectUrl],
+    [conversationId, prototypeAnalytics, queryRedirectUrl, trackPaidAdsButton],
   );
 
   const clearResponseTimers = useCallback(() => {
@@ -470,12 +535,15 @@ export function MedscapeAiCurrentScreen({
         supportingContent,
       };
       const questionSource = options.questionSource ?? "composer";
+      paidAdsQuestionSubmittedRef.current = true;
 
       captureAnalyticsEvent("question_submitted", {
         ...prototypeAnalytics,
         conversation_id: conversationId,
         entry_surface: questionSource,
+        is_prefilled_question: questionSource !== "composer",
         question_length: trimmedQuestion.length,
+        question_length_bucket: getQuestionLengthBucket(trimmedQuestion.length),
         question_source: questionSource,
         question_text: trimmedQuestion,
         session_id: getPostHogSessionId(),
@@ -627,12 +695,15 @@ export function MedscapeAiCurrentScreen({
         status: "complete",
         supportingContent: buildMockAnswerSupportingContent(trimmedQuestion),
       };
+      paidAdsQuestionSubmittedRef.current = true;
 
       captureAnalyticsEvent("question_submitted", {
         ...prototypeAnalytics,
         conversation_id: conversationId,
         entry_surface: options.questionSource ?? "composer",
+        is_prefilled_question: (options.questionSource ?? "composer") !== "composer",
         question_length: trimmedQuestion.length,
+        question_length_bucket: getQuestionLengthBucket(trimmedQuestion.length),
         question_source: options.questionSource ?? "composer",
         question_text: trimmedQuestion,
         session_id: getPostHogSessionId(),
@@ -747,6 +818,82 @@ export function MedscapeAiCurrentScreen({
   }, [initialConversationMode, prototypeAnalytics]);
 
   useEffect(() => {
+    if (!isPaidAdsPrototype) return;
+
+    captureAnalyticsEvent("paid_ads_landing_viewed", {
+      ...paidAdsAnalytics,
+      has_prefilled_question: initialQuestion.trim().length > 0,
+      initial_mode: initialConversationMode,
+      initial_question_source: initialQuestionSource,
+    });
+  }, [
+    initialConversationMode,
+    initialQuestion,
+    initialQuestionSource,
+    isPaidAdsPrototype,
+    paidAdsAnalytics,
+  ]);
+
+  useEffect(() => {
+    if (!isPaidAdsPrototype) return;
+
+    paidAdsStartedAtRef.current = performance.now();
+    paidAdsEngagementTimersRef.current = PAID_ADS_ENGAGEMENT_MILESTONES_SECONDS.map(
+      (milestoneSeconds) =>
+        setTimeout(() => {
+          captureAnalyticsEvent("engagement_timer_reached", {
+            ...paidAdsAnalytics,
+            milestone_seconds: milestoneSeconds,
+          });
+        }, milestoneSeconds * 1000),
+    );
+
+    const captureEngagementEnd = () => {
+      const startedAt = paidAdsStartedAtRef.current;
+      if (startedAt === null) return;
+
+      captureAnalyticsEvent("page_engagement_ended", {
+        ...paidAdsAnalytics,
+        ad_viewed: paidAdsAdViewedRef.current,
+        clicked_any_button: paidAdsClickedAnyButtonRef.current,
+        composer_started: paidAdsComposerStartedRef.current,
+        engaged_time_ms: Math.round(performance.now() - startedAt),
+        max_scroll_depth_percent: paidAdsMaxScrollDepthRef.current,
+        question_submitted: paidAdsQuestionSubmittedRef.current,
+      });
+      paidAdsStartedAtRef.current = null;
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        captureEngagementEnd();
+      }
+    };
+    const handleDocumentClick = (event: MouseEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest("button, a, [role='button']")
+      ) {
+        paidAdsClickedAnyButtonRef.current = true;
+      }
+    };
+
+    window.addEventListener("pagehide", captureEngagementEnd);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("click", handleDocumentClick, { capture: true });
+
+    return () => {
+      paidAdsEngagementTimersRef.current.forEach((timerId) => clearTimeout(timerId));
+      paidAdsEngagementTimersRef.current = [];
+      captureEngagementEnd();
+      window.removeEventListener("pagehide", captureEngagementEnd);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("click", handleDocumentClick, { capture: true });
+    };
+  }, [isPaidAdsPrototype, paidAdsAnalytics]);
+
+  useEffect(() => {
     return () => {
       clearResponseTimers();
     };
@@ -782,6 +929,71 @@ export function MedscapeAiCurrentScreen({
       resizeObserver.disconnect();
     };
   }, [bottomSpacerHeight]);
+
+  useEffect(() => {
+    if (!isPaidAdsPrototype) return;
+
+    const responseScroll = responseScrollRef.current;
+    if (!responseScroll) return;
+
+    const trackScrollDepth = () => {
+      const lastUserInputAt = paidAdsLastUserScrollInputAtRef.current;
+      const isUserInitiated =
+        lastUserInputAt !== null &&
+        performance.now() - lastUserInputAt <= PAID_ADS_USER_SCROLL_INPUT_WINDOW_MS;
+
+      if (!isUserInitiated) return;
+
+      const contentHeight = Math.max(
+        responseScroll.scrollHeight - CHAT_BOTTOM_CONTENT_PADDING_PX - bottomSpacerHeight,
+        responseScroll.clientHeight,
+      );
+      if (contentHeight <= 0) return;
+
+      const scrollDepthPercent = Math.min(
+        100,
+        Math.max(
+          0,
+          Math.round(((responseScroll.scrollTop + responseScroll.clientHeight) / contentHeight) * 100),
+        ),
+      );
+      paidAdsMaxScrollDepthRef.current = Math.max(
+        paidAdsMaxScrollDepthRef.current,
+        scrollDepthPercent,
+      );
+
+      for (const milestone of PAID_ADS_SCROLL_DEPTH_MILESTONES) {
+        if (
+          scrollDepthPercent >= milestone &&
+          !paidAdsTrackedScrollDepthsRef.current.has(milestone)
+        ) {
+          paidAdsTrackedScrollDepthsRef.current.add(milestone);
+          captureAnalyticsEvent("scroll_depth_reached", {
+            ...paidAdsAnalytics,
+            scroll_container: "chat_response",
+            scroll_depth_basis: "viewport_bottom_content_exposure",
+            scroll_depth_percent: milestone,
+            scroll_source: "user",
+          });
+        }
+      }
+    };
+    const markUserScrollInput = () => {
+      paidAdsLastUserScrollInputAtRef.current = performance.now();
+    };
+
+    responseScroll.addEventListener("wheel", markUserScrollInput, { passive: true });
+    responseScroll.addEventListener("touchmove", markUserScrollInput, { passive: true });
+    responseScroll.addEventListener("pointerdown", markUserScrollInput, { passive: true });
+    responseScroll.addEventListener("scroll", trackScrollDepth, { passive: true });
+
+    return () => {
+      responseScroll.removeEventListener("wheel", markUserScrollInput);
+      responseScroll.removeEventListener("touchmove", markUserScrollInput);
+      responseScroll.removeEventListener("pointerdown", markUserScrollInput);
+      responseScroll.removeEventListener("scroll", trackScrollDepth);
+    };
+  }, [bottomSpacerHeight, isPaidAdsPrototype, paidAdsAnalytics]);
 
   useEffect(() => {
     if (!showScrollToBottomButton) return;
@@ -886,6 +1098,7 @@ export function MedscapeAiCurrentScreen({
     }
 
     if (event.deltaX === 0 && event.deltaY === 0) return;
+    markPaidAdsUserScrollInput();
 
     const deltaUnit =
       event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? responseScroll.clientHeight : 1;
@@ -931,11 +1144,33 @@ export function MedscapeAiCurrentScreen({
     const trimmedQuestion = composerDraft.trim();
     if (!trimmedQuestion) return;
 
+    if (isPaidAdsPrototype) {
+      paidAdsQuestionSubmittedRef.current = true;
+    }
+
     if (openQueryRedirect(trimmedQuestion, "composer")) {
       return;
     }
 
     submitQuestion(trimmedQuestion);
+  };
+
+  const handleComposerValueChange = (nextValue: string) => {
+    const trimmedValue = nextValue.trim();
+
+    if (isPaidAdsPrototype && trimmedValue.length > 0 && !paidAdsComposerStartedRef.current) {
+      paidAdsComposerStartedRef.current = true;
+      captureAnalyticsEvent("composer_typing_started", {
+        ...paidAdsAnalytics,
+        source_surface: "medscape_current_chat",
+      });
+    }
+
+    setComposerDraft(nextValue);
+  };
+
+  const redirectToMedscapeAiSearch = () => {
+    window.location.assign(MEDSCAPE_AI_SEARCH_URL);
   };
 
   return (
@@ -950,23 +1185,33 @@ export function MedscapeAiCurrentScreen({
           <div className="absolute right-4 top-5 z-30 hidden md:left-8 md:right-auto md:top-4 md:block">
             <MedscapeCurrentTopRailActions
               onHistoryClick={() => {
+                trackPaidAdsButton({
+                  button_id: "top_rail_history",
+                  button_label: "History",
+                  button_role: "navigation",
+                  button_surface: "top_rail",
+                  conversation_id: conversationId,
+                });
                 captureAnalyticsEvent("history_conversation_clicked", {
                   ...prototypeAnalytics,
                   conversation_id: conversationId,
                   question_text: defaultInitialQuestion,
                 });
-                navigate(
-                  `${prototypeRoute}/chat?q=${encodeURIComponent(defaultInitialQuestion)}&mode=complete&source=${encodeURIComponent(
-                    "history",
-                  )}`,
-                );
+                redirectToMedscapeAiSearch();
               }}
               onNewChatClick={() => {
+                trackPaidAdsButton({
+                  button_id: "top_rail_new_chat",
+                  button_label: "New Chat",
+                  button_role: "navigation",
+                  button_surface: "top_rail",
+                  conversation_id: conversationId,
+                });
                 captureAnalyticsEvent("new_chat_clicked", {
                   ...prototypeAnalytics,
                   conversation_id: conversationId,
                 });
-                navigate(prototypeRoute);
+                redirectToMedscapeAiSearch();
               }}
               showHistory={showHistoryAction}
             />
@@ -985,24 +1230,34 @@ export function MedscapeAiCurrentScreen({
               <MedscapeCurrentTopRailActions
                 onHistoryClick={() =>
                   {
+                    trackPaidAdsButton({
+                      button_id: "top_rail_history",
+                      button_label: "History",
+                      button_role: "navigation",
+                      button_surface: "mobile_top_rail",
+                      conversation_id: conversationId,
+                    });
                     captureAnalyticsEvent("history_conversation_clicked", {
                       ...prototypeAnalytics,
                       conversation_id: conversationId,
                       question_text: defaultInitialQuestion,
                     });
-                    navigate(
-                      `${prototypeRoute}/chat?q=${encodeURIComponent(defaultInitialQuestion)}&mode=complete&source=${encodeURIComponent(
-                        "history",
-                      )}`,
-                    );
+                    redirectToMedscapeAiSearch();
                   }
                 }
                 onNewChatClick={() => {
+                  trackPaidAdsButton({
+                    button_id: "top_rail_new_chat",
+                    button_label: "New Chat",
+                    button_role: "navigation",
+                    button_surface: "mobile_top_rail",
+                    conversation_id: conversationId,
+                  });
                   captureAnalyticsEvent("new_chat_clicked", {
                     ...prototypeAnalytics,
                     conversation_id: conversationId,
                   });
-                  navigate(prototypeRoute);
+                  redirectToMedscapeAiSearch();
                 }}
                 showHistory={showHistoryAction}
               />
@@ -1058,7 +1313,8 @@ export function MedscapeAiCurrentScreen({
                             conversationId={conversationId}
                             contentDelayMs={adContentDelayMs}
                             hideImage={hideAdImage}
-                            prototypeFamily="medscape-ai-current"
+                            onAdViewed={markPaidAdsAdViewed}
+                            prototypeFamily={prototypeFamily}
                             prototypeRoute={prototypeRoute}
                             prototypeSlug={prototypeSlug}
                             screenType="prototype_chat"
@@ -1089,7 +1345,8 @@ export function MedscapeAiCurrentScreen({
                               conversationId={conversationId}
                               contentDelayMs={adContentDelayMs}
                               hideImage={hideAdImage}
-                              prototypeFamily="medscape-ai-current"
+                              onAdViewed={markPaidAdsAdViewed}
+                              prototypeFamily={prototypeFamily}
                               prototypeRoute={prototypeRoute}
                               prototypeSlug={prototypeSlug}
                               screenType="prototype_chat"
@@ -1103,7 +1360,7 @@ export function MedscapeAiCurrentScreen({
                         <AiResponseKeyPoints
                           analyticsContext={{
                             conversationId,
-                            prototypeFamily: "medscape-ai-current",
+                            prototypeFamily,
                             prototypeRoute,
                             prototypeSlug,
                             question: turn.question,
@@ -1151,7 +1408,8 @@ export function MedscapeAiCurrentScreen({
                           conversationId={conversationId}
                           contentDelayMs={adContentDelayMs}
                           hideImage={hideAdImage}
-                          prototypeFamily="medscape-ai-current"
+                          onAdViewed={markPaidAdsAdViewed}
+                          prototypeFamily={prototypeFamily}
                           prototypeRoute={prototypeRoute}
                           prototypeSlug={prototypeSlug}
                           screenType="prototype_chat"
@@ -1163,7 +1421,7 @@ export function MedscapeAiCurrentScreen({
                         <MedscapeAiCurrentAnswerSummary
                           analyticsContext={{
                             conversationId,
-                            prototypeFamily: "medscape-ai-current",
+                            prototypeFamily,
                             prototypeRoute,
                             prototypeSlug,
                             question: turn.question,
@@ -1198,6 +1456,16 @@ export function MedscapeAiCurrentScreen({
                             <AiResponseFollowUpQuestions
                               className="mt-5 md:mt-6"
                               onQuestionSelect={(question) => {
+                                trackPaidAdsButton({
+                                  button_id: "follow_up_question",
+                                  button_label: "Follow-up question",
+                                  button_role: "suggested_question",
+                                  button_surface: "follow_up_questions",
+                                  conversation_id: conversationId,
+                                  follow_up_index:
+                                    turn.supportingContent.followUpQuestions.indexOf(question),
+                                  parent_turn_id: turn.id,
+                                });
                                 captureAnalyticsEvent("follow_up_question_clicked", {
                                   ...prototypeAnalytics,
                                   conversation_id: conversationId,
@@ -1221,7 +1489,7 @@ export function MedscapeAiCurrentScreen({
                           <AiResponseAnswerActions
                             analyticsContext={{
                               conversationId,
-                              prototypeFamily: "medscape-ai-current",
+                              prototypeFamily,
                               prototypeRoute,
                               prototypeSlug,
                               question: turn.question,
@@ -1232,13 +1500,14 @@ export function MedscapeAiCurrentScreen({
                             className={
                               followUpQuestionsPlacement === "before-actions" ? "mt-5" : undefined
                             }
+                            copyText={turn.fullAnswer}
                           />
                           <AiResponseAnswerSupportingContent
                             adPlacement="answer-footer"
                             adContentDelayMs={adContentDelayMs}
                             analyticsContext={{
                               conversationId,
-                              prototypeFamily: "medscape-ai-current",
+                              prototypeFamily,
                               prototypeRoute,
                               prototypeSlug,
                               screenType: "prototype_chat",
@@ -1252,7 +1521,17 @@ export function MedscapeAiCurrentScreen({
                             hideFollowUpQuestions={
                               followUpQuestionsPlacement === "before-actions"
                             }
+                            onAdViewed={markPaidAdsAdViewed}
                             onFollowUpQuestionSelect={(question) => {
+                              trackPaidAdsButton({
+                                button_id: "follow_up_question",
+                                button_label: "Follow-up question",
+                                button_role: "suggested_question",
+                                button_surface: "follow_up_questions",
+                                conversation_id: conversationId,
+                                follow_up_index: turn.supportingContent.followUpQuestions.indexOf(question),
+                                parent_turn_id: turn.id,
+                              });
                               captureAnalyticsEvent("follow_up_question_clicked", {
                                 ...prototypeAnalytics,
                                 conversation_id: conversationId,
@@ -1268,6 +1547,7 @@ export function MedscapeAiCurrentScreen({
                                 questionSource: "follow_up_question",
                               });
                             }}
+                            referencesDefaultExpanded={referencesDefaultExpanded}
                             references={turn.supportingContent.references}
                           />
                         </>
@@ -1292,6 +1572,13 @@ export function MedscapeAiCurrentScreen({
                 tabIndex={showScrollToBottomButton ? 0 : -1}
                 disabled={!showScrollToBottomButton}
                 onClick={() => {
+                  trackPaidAdsButton({
+                    button_id: "scroll_to_latest",
+                    button_label: "Scroll to latest",
+                    button_role: "scroll",
+                    button_surface: "chat_response",
+                    conversation_id: conversationId,
+                  });
                   captureAnalyticsEvent("scroll_to_latest_clicked", {
                     ...prototypeAnalytics,
                     conversation_id: conversationId,
@@ -1317,11 +1604,16 @@ export function MedscapeAiCurrentScreen({
                   iconClassName="h-8 w-8"
                   inputClassName="h-8 flex-1 border-0 bg-transparent text-[16px] leading-[20px] text-[#1b2b3a] outline-none placeholder:text-[#93a2ae]"
                   inputRef={composerInputRef}
+                  analyticsEventProperties={{
+                    ...paidAdsAnalytics,
+                    conversation_id: conversationId,
+                    redirects_to_ai_search: Boolean(queryRedirectUrl),
+                  }}
                   analyticsSourceSurface="medscape_current_chat"
                   isGenerating={isGenerationInProgress}
                   onStopGeneration={handleStopGeneration}
                   onSubmit={handleSubmitQuestion}
-                  onValueChange={setComposerDraft}
+                  onValueChange={handleComposerValueChange}
                   placeholder={composerPlaceholder}
                   submitButtonClassName="inline-flex h-8 w-8 shrink-0 items-center justify-center"
                   value={composerDraft}
