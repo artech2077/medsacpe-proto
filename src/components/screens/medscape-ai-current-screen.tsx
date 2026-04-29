@@ -88,7 +88,9 @@ type MedscapeAiCurrentScreenProps = {
   autoScrollToInitialAd?: boolean;
   composerPlaceholder?: string;
   followUpQuestionsPlacement?: MedscapeAiCurrentFollowUpPlacement;
+  followUpQuestionsOverride?: string[];
   followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
+  followUpQuestionRedirectUrls?: Record<string, string>;
   hideAnswerFooterAdForFirstTurn?: boolean;
   hideAdImage?: boolean;
   initialConversationMode?: "complete" | "stream";
@@ -259,7 +261,9 @@ export function MedscapeAiCurrentScreen({
   autoScrollToInitialAd = false,
   composerPlaceholder = "Ask anything",
   followUpQuestionsPlacement = "supporting-content",
+  followUpQuestionsOverride,
   followUpQuestionsVariant = "default",
+  followUpQuestionRedirectUrls,
   hideAnswerFooterAdForFirstTurn = false,
   hideAdImage = false,
   initialConversationMode = "stream",
@@ -368,7 +372,12 @@ export function MedscapeAiCurrentScreen({
 
   const openQueryRedirect = useCallback(
     (question: string, questionSource: string) => {
-      if (!queryRedirectUrl) return false;
+      const destinationUrl =
+        questionSource === "follow_up_question"
+          ? followUpQuestionRedirectUrls?.[question] ?? queryRedirectUrl
+          : queryRedirectUrl;
+
+      if (!destinationUrl) return false;
 
       trackPaidAdsButton({
         button_id: "external_ai_search_open",
@@ -380,15 +389,21 @@ export function MedscapeAiCurrentScreen({
       captureAnalyticsEvent("external_ai_search_opened", {
         ...prototypeAnalytics,
         conversation_id: conversationId,
-        destination_url: queryRedirectUrl,
+        destination_url: destinationUrl,
         question_source: questionSource,
         question_text: question,
       });
-      window.open(queryRedirectUrl, "_blank", "noopener,noreferrer");
+      window.location.assign(destinationUrl);
       setComposerDraft("");
       return true;
     },
-    [conversationId, prototypeAnalytics, queryRedirectUrl, trackPaidAdsButton],
+    [
+      conversationId,
+      followUpQuestionRedirectUrls,
+      prototypeAnalytics,
+      queryRedirectUrl,
+      trackPaidAdsButton,
+    ],
   );
 
   const clearResponseTimers = useCallback(() => {
@@ -506,6 +521,21 @@ export function MedscapeAiCurrentScreen({
 
     turnArticleRefs.current.delete(turnId);
   }, []);
+  const buildSupportingContent = useCallback(
+    (question: string): AiAnswerSupportingContent => {
+      const supportingContent = buildMockAnswerSupportingContent(question);
+
+      if (!followUpQuestionsOverride) {
+        return supportingContent;
+      }
+
+      return {
+        ...supportingContent,
+        followUpQuestions: followUpQuestionsOverride,
+      };
+    },
+    [followUpQuestionsOverride],
+  );
 
   const startStreamingTurn = useCallback(
     (
@@ -520,7 +550,7 @@ export function MedscapeAiCurrentScreen({
 
       const newTurnId = nextTurnIdRef.current;
       const answerText = buildMockAnswer(trimmedQuestion);
-      const supportingContent = buildMockAnswerSupportingContent(trimmedQuestion);
+      const supportingContent = buildSupportingContent(trimmedQuestion);
       const startedAt = performance.now();
       nextTurnIdRef.current += 1;
       activeTurnIdRef.current = newTurnId;
@@ -663,6 +693,7 @@ export function MedscapeAiCurrentScreen({
       }, PRE_STREAM_DELAY_MS);
     },
     [
+      buildSupportingContent,
       clearResponseTimers,
       conversationId,
       prototypeAnalytics,
@@ -693,7 +724,7 @@ export function MedscapeAiCurrentScreen({
         id: nextTurnId,
         question: trimmedQuestion,
         status: "complete",
-        supportingContent: buildMockAnswerSupportingContent(trimmedQuestion),
+        supportingContent: buildSupportingContent(trimmedQuestion),
       };
       paidAdsQuestionSubmittedRef.current = true;
 
@@ -765,7 +796,13 @@ export function MedscapeAiCurrentScreen({
         composerInputRef.current?.focus();
       }
     },
-    [clearResponseTimers, conversationId, instantAnswerDelayMs, prototypeAnalytics],
+    [
+      buildSupportingContent,
+      clearResponseTimers,
+      conversationId,
+      instantAnswerDelayMs,
+      prototypeAnalytics,
+    ],
   );
 
   const showInitialCompletedTurn = useCallback(
@@ -788,11 +825,11 @@ export function MedscapeAiCurrentScreen({
           id: nextTurnId,
           question: trimmedQuestion,
           status: "complete",
-          supportingContent: buildMockAnswerSupportingContent(trimmedQuestion),
+          supportingContent: buildSupportingContent(trimmedQuestion),
         },
       ]);
     },
-    [clearResponseTimers],
+    [buildSupportingContent, clearResponseTimers],
   );
 
   const submitQuestion = useCallback(

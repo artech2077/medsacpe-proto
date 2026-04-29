@@ -5,6 +5,22 @@ const paidAdsInitialQuestion =
   "How would you adjust vancomycin dosing (loading and interval) in a 70 kg patient on intermittent hemodialysis?";
 const paidAdsSummary =
   "**1 g IV for a 70-kg patient**\nUse **functionally anephric dosing**: give a **loading dose of ~15 mg/kg**, then start a **low maintenance regimen**. Adjust the **dosing interval** and **post-dialysis supplementation** based on **trough levels** (target **~15-20 mg/L for serious infections**) and **clinical response**.";
+const paidAdsFollowUpQuestions = [
+  "Check vancomycin drug interactions",
+  "Monitor for nephrotoxicity symptoms",
+  "Find vancomycin HD dosing studies",
+  "Measure pre-dialysis vancomycin trough",
+];
+const paidAdsFollowUpQuestionRedirectUrls = {
+  "Check vancomycin drug interactions":
+    "https://www.medscape.com/ai-search?query=Check%20vancomycin%20drug%20interactions",
+  "Monitor for nephrotoxicity symptoms":
+    "https://www.medscape.com/ai-search?query=Monitor%20for%20nephrotoxicity%20symptoms",
+  "Find vancomycin HD dosing studies":
+    "https://www.medscape.com/ai-search?query=Find%20vancomycin%20HD%20dosing%20studies",
+  "Measure pre-dialysis vancomycin trough":
+    "https://www.medscape.com/ai-search?query=Measure%20pre-dialysis%20vancomycin%20trough",
+};
 
 type AdAfterKeypointsCollapsedWithReadMoreChatPageProps = {
   searchParams: Promise<{
@@ -39,6 +55,8 @@ export default async function AdAfterKeypointsCollapsedWithReadMoreChatPage({
       autoScrollToInitialAd
       followUpQuestionsPlacement="before-actions"
       followUpQuestionsVariant="chips"
+      followUpQuestionsOverride={paidAdsFollowUpQuestions}
+      followUpQuestionRedirectUrls={paidAdsFollowUpQuestionRedirectUrls}
       hideAnswerFooterAdForFirstTurn
       hideAdImage
       initialConversationMode={initialConversationMode}

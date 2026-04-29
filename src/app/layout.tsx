@@ -4,7 +4,7 @@ import { prototypeMono, prototypeSans } from "@/styles/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Medscape AI Prototype Workspace",
+  title: "Medscape AI",
   description: "Figma-driven prototyping workspace for product features",
 };
 
