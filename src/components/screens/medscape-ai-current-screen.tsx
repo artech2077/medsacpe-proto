@@ -57,7 +57,7 @@ const STREAM_CHUNK_SIZE = 4;
 const CHAT_BOTTOM_CONTENT_PADDING_PX = 112;
 const SCROLL_DOWN_VISIBILITY_THRESHOLD_PX = 8;
 const MEDSCAPE_AI_SEARCH_URL = "https://www.medscape.com/ai-search";
-const PAID_ADS_ROUTE = "/paid-ads-exp";
+const PAID_ADS_ROUTES = new Set(["/paid-ads-exp", "/paid-ads-exp-2"]);
 const PAID_ADS_ENGAGEMENT_MILESTONES_SECONDS = [5, 15, 30, 60, 120] as const;
 const PAID_ADS_SCROLL_DEPTH_MILESTONES = [25, 50, 75, 90, 100] as const;
 const PAID_ADS_USER_SCROLL_INPUT_WINDOW_MS = 2000;
@@ -314,7 +314,7 @@ export function MedscapeAiCurrentScreen({
     (turn) => turn.status === "preparing" || turn.status === "streaming",
   );
   const prototypeSlug = prototypeRoute.replace(/^\//, "");
-  const isPaidAdsPrototype = prototypeRoute === PAID_ADS_ROUTE;
+  const isPaidAdsPrototype = PAID_ADS_ROUTES.has(prototypeRoute);
   const prototypeFamily = isPaidAdsPrototype ? "paid-ads" : "medscape-ai-current";
   const prototypeAnalytics = useMemo(
     () =>
@@ -1302,7 +1302,10 @@ export function MedscapeAiCurrentScreen({
             rightClassName="relative z-10 ml-auto flex items-center gap-4"
           />
 
-          <div ref={responseScrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div
+            ref={responseScrollRef}
+            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
+          >
             <div className="mx-auto w-full max-w-[980px] px-5 pb-[124px] pt-4 md:px-7 md:pb-[136px] md:pt-4">
               <div className="mb-5 hidden items-center justify-center gap-2 text-[15px] font-semibold text-[#2c353a] md:flex">
                 <CurrentSparkIcon className="h-4 w-4" />

@@ -333,6 +333,7 @@ Prototype flows additionally use these common fields when relevant:
   - `/ad-after-keypoints/chat?q=test`
   - `/ad-after-keypoints-collapsed/chat?q=test`
   - `/paid-ads-exp/chat?q=test`
+  - `/paid-ads-exp-2/chat?q=test`
 - Expect `ad_slot_viewed` for the relevant slot:
   - `preparing`
   - `above_question`
@@ -346,6 +347,7 @@ Prototype flows additionally use these common fields when relevant:
   - Validate `key_points_default_expanded=false`
   - Validate `key_points_variant=default`
 - `/paid-ads-exp/chat?q=test`
+- `/paid-ads-exp-2/chat?q=test`
   - Click `Read More`
   - Expect: `key_points_toggled` with `trigger=read_more`
   - Validate `key_points_variant=collapsed-read-more`

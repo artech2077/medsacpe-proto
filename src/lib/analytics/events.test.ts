@@ -80,6 +80,20 @@ describe("buildAnalyticsPayload", () => {
     expect(properties.utm_campaign).toBe("test_campaign");
   });
 
+  it("fills campaign properties from the duplicated paid ads route", () => {
+    const properties = sanitizePostHogProperties(
+      {
+        route:
+          "/paid-ads-exp-2/chat?source=workspace_card&utm_source=test_source&utm_medium=test_medium&utm_campaign=test_campaign",
+      },
+      true,
+    );
+
+    expect(properties.utm_source).toBe("test_source");
+    expect(properties.utm_medium).toBe("test_medium");
+    expect(properties.utm_campaign).toBe("test_campaign");
+  });
+
   it("keeps explicit campaign properties when route also has UTM properties", () => {
     const payload = buildAnalyticsPayload(
       "paid_ads_landing_viewed",

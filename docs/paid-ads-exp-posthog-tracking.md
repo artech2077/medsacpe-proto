@@ -1,6 +1,6 @@
 # Paid Ads Experiment PostHog Tracking
 
-This document explains the PostHog tracking plan for the `paid-ads-exp` prototype. It is intended for stakeholders who need to understand what user behavior is measured, which events to use in PostHog, and how to answer common campaign and engagement questions.
+This document explains the PostHog tracking plan for the `paid-ads-exp` and `paid-ads-exp-2` prototypes. It is intended for stakeholders who need to understand what user behavior is measured, which events to use in PostHog, and how to answer common campaign and engagement questions.
 
 ## Prototype Context
 
@@ -8,6 +8,8 @@ The prototype route is:
 
 - `/paid-ads-exp`
 - `/paid-ads-exp/chat`
+- `/paid-ads-exp-2`
+- `/paid-ads-exp-2/chat`
 
 Users from a paid campaign land on the chat experience with a prefilled Medscape AI answer. The primary measurement goal is to understand whether users engage with the Medscape AI experience after landing:
 
@@ -40,8 +42,8 @@ Most events include the standard analytics context automatically:
 Prototype-specific events also include:
 
 - `prototype_family`: `paid-ads`
-- `prototype_route`: `/paid-ads-exp`
-- `prototype_slug`: `paid-ads-exp`
+- `prototype_route`: `/paid-ads-exp` or `/paid-ads-exp-2`
+- `prototype_slug`: `paid-ads-exp` or `paid-ads-exp-2`
 - `screen_type`: `prototype_chat`
 - `conversation_id`
 - `turn_id`, when the action belongs to a specific answer turn
@@ -54,13 +56,13 @@ These fields are what stakeholders should use to filter PostHog data to this spe
 Recommended base filter for most PostHog charts:
 
 ```text
-prototype_slug = paid-ads-exp
+prototype_slug = paid-ads-exp or paid-ads-exp-2
 ```
 
 For pageview-level reports, use:
 
 ```text
-$pathname = /paid-ads-exp/chat
+$pathname = /paid-ads-exp/chat or /paid-ads-exp-2/chat
 ```
 
 ## Important Privacy Note
@@ -93,7 +95,7 @@ If raw prompt capture is disabled in the environment or feature flag, the analyt
 
 **PostHog check:**
 
-Create an Insights trend for `$pageview`, filtered by `$pathname = /paid-ads-exp/chat`.
+Create an Insights trend for `$pageview`, filtered by `$pathname = /paid-ads-exp/chat` or `$pathname = /paid-ads-exp-2/chat`.
 
 ### `prototype_viewed`
 
@@ -115,17 +117,17 @@ For this prototype, `initial_mode` is usually `complete` because the first answe
 
 - How many users reached the actual prototype experience?
 - Did users land in the expected initial mode?
-- How does paid-ads-exp traffic compare with other prototypes?
+- How does paid-ads traffic compare with other prototypes?
 
 **PostHog check:**
 
-Create an Insights trend for `prototype_viewed`, filtered by `prototype_slug = paid-ads-exp`.
+Create an Insights trend for `prototype_viewed`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 ### `paid_ads_landing_viewed`
 
 **What it tracks:** A paid-ads-specific landing event for this exact campaign experience.
 
-**Implemented in:** `MedscapeAiCurrentScreen`, only when `prototypeRoute` is `/paid-ads-exp`.
+**Implemented in:** `MedscapeAiCurrentScreen`, only when `prototypeRoute` is a paid-ads route (`/paid-ads-exp` or `/paid-ads-exp-2`).
 
 **Key properties:**
 
@@ -155,7 +157,7 @@ paid_ads_landing_viewed
 
 **What it tracks:** The user remained on the page long enough to hit a dwell-time milestone.
 
-**Implemented in:** `MedscapeAiCurrentScreen`, only for `/paid-ads-exp`.
+**Implemented in:** `MedscapeAiCurrentScreen`, only for paid-ads routes (`/paid-ads-exp` and `/paid-ads-exp-2`).
 
 **Milestones:**
 
@@ -196,7 +198,7 @@ Break down by:
 
 **What it tracks:** A session-level engagement summary when the user leaves, hides the tab, or the screen unmounts.
 
-**Implemented in:** `MedscapeAiCurrentScreen`, only for `/paid-ads-exp`.
+**Implemented in:** `MedscapeAiCurrentScreen`, only for paid-ads routes (`/paid-ads-exp` and `/paid-ads-exp-2`).
 
 **Key properties:**
 
@@ -218,7 +220,7 @@ Break down by:
 
 **PostHog check:**
 
-Create an Insights trend or table for `page_engagement_ended`, filtered by `prototype_slug = paid-ads-exp`.
+Create an Insights trend or table for `page_engagement_ended`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 Useful breakdowns:
 
@@ -232,7 +234,7 @@ Useful breakdowns:
 
 **What it tracks:** The user scrolled the chat response container to a content-depth milestone.
 
-**Implemented in:** `MedscapeAiCurrentScreen`, only for `/paid-ads-exp`.
+**Implemented in:** `MedscapeAiCurrentScreen`, only for paid-ads routes (`/paid-ads-exp` and `/paid-ads-exp-2`).
 
 The implementation only counts user-initiated scroll input. Programmed prototype movement, including the automatic ad reveal scroll, is excluded from the dashboard by requiring `scroll_source = user`.
 
@@ -263,7 +265,7 @@ The implementation only counts user-initiated scroll input. Programmed prototype
 Create an Insights trend for `scroll_depth_reached`, filtered by:
 
 ```text
-prototype_slug = paid-ads-exp
+prototype_slug = paid-ads-exp or paid-ads-exp-2
 scroll_source = user
 ```
 
@@ -305,7 +307,7 @@ composer_submit_clicked
 
 **What it tracks:** The first time a user enters non-empty text into the input.
 
-**Implemented in:** `MedscapeAiCurrentScreen`, only for `/paid-ads-exp`.
+**Implemented in:** `MedscapeAiCurrentScreen`, only for paid-ads routes (`/paid-ads-exp` and `/paid-ads-exp-2`).
 
 **Key properties:**
 
@@ -361,7 +363,7 @@ Length buckets:
 
 **PostHog check:**
 
-Create an Insights breakdown of `composer_changed` by `char_bucket`, filtered by `prototype_slug = paid-ads-exp`.
+Create an Insights breakdown of `composer_changed` by `char_bucket`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 ### `composer_submit_clicked`
 
@@ -462,7 +464,7 @@ Break down by:
 
 **PostHog check:**
 
-Create a trend for `question_submitted`, filtered by `prototype_slug = paid-ads-exp`.
+Create a trend for `question_submitted`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 Break down by:
 
@@ -535,7 +537,7 @@ For this prototype, the main slot is:
 
 **PostHog check:**
 
-Create an Insights trend for `ad_slot_viewed`, filtered by `prototype_slug = paid-ads-exp`.
+Create an Insights trend for `ad_slot_viewed`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 Break down by:
 
@@ -587,7 +589,7 @@ Current button IDs include:
 
 **PostHog check:**
 
-Create an Insights trend for `button_clicked`, filtered by `prototype_slug = paid-ads-exp`.
+Create an Insights trend for `button_clicked`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 Break down by:
 
@@ -626,7 +628,7 @@ Create an Insights trend for `key_points_toggled`.
 Filter:
 
 ```text
-prototype_slug = paid-ads-exp
+prototype_slug = paid-ads-exp or paid-ads-exp-2
 ```
 
 Break down by:
@@ -654,7 +656,7 @@ Break down by:
 
 **PostHog check:**
 
-For `paid-ads-exp`, the primary answer expansion event is usually `key_points_toggled`, because this route uses the collapsed read-more key-points variant. Keep `summary_answer_toggled` available for comparison with other Medscape AI variants.
+For paid-ads routes, the primary answer expansion event is usually `key_points_toggled`, because these routes use the collapsed read-more key-points variant. Keep `summary_answer_toggled` available for comparison with other Medscape AI variants.
 
 ### `references_toggled`
 
@@ -677,7 +679,7 @@ For `paid-ads-exp`, the primary answer expansion event is usually `key_points_to
 
 **PostHog check:**
 
-Create a trend for `references_toggled`, filtered by `prototype_slug = paid-ads-exp`.
+Create a trend for `references_toggled`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 Break down by:
 
@@ -715,7 +717,7 @@ follow_up_question_clicked
 Filter:
 
 ```text
-prototype_slug = paid-ads-exp
+prototype_slug = paid-ads-exp or paid-ads-exp-2
 ```
 
 Break down by:
@@ -752,7 +754,7 @@ external_ai_search_opened where question_source = follow_up_question
 
 **PostHog check:**
 
-Create a trend for `answer_feedback_submitted`, filtered by `prototype_slug = paid-ads-exp`.
+Create a trend for `answer_feedback_submitted`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 Break down by:
 
@@ -782,7 +784,7 @@ Break down by:
 
 **PostHog check:**
 
-Create a trend for `answer_copied`, filtered by `prototype_slug = paid-ads-exp`.
+Create a trend for `answer_copied`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 Break down by:
 
@@ -826,7 +828,7 @@ Use primarily as UI behavior telemetry rather than a primary stakeholder metric.
 
 **PostHog check:**
 
-Create an Insights trend for `scroll_to_latest_clicked`, filtered by `prototype_slug = paid-ads-exp`.
+Create an Insights trend for `scroll_to_latest_clicked`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.
 
 ### `history_conversation_clicked`
 
@@ -925,16 +927,29 @@ route contains /paid-ads-exp
 
 ## Recommended PostHog Dashboards
 
+Dashboard reporting should use unique visitors as the primary count. In HogQL,
+that means `uniq(distinct_id)` or `uniqIf(distinct_id, condition)` rather than
+plain `count()` / `countIf()`. Keep raw event counts only as secondary QA
+context, because a single visitor can reload the page or trigger the same event
+more than once.
+
+For percentage metrics, use unique visitors who fired `paid_ads_landing_viewed`
+as the denominator:
+
+```text
+visitors_landed = uniqIf(distinct_id, event = 'paid_ads_landing_viewed')
+```
+
 ### 1. Paid Campaign Landing Overview
 
 Charts:
 
-- `$pageview` filtered by `$pathname = /paid-ads-exp/chat`
-- `paid_ads_landing_viewed`
-- `prototype_viewed`
-- `page_engagement_ended` average `engaged_time_ms`
-- `page_engagement_ended` breakdown by `clicked_any_button`
-- `page_engagement_ended` breakdown by `composer_started`
+- Unique visitors with `$pageview` filtered by `$pathname = /paid-ads-exp/chat` or `$pathname = /paid-ads-exp-2/chat`
+- Unique visitors with `paid_ads_landing_viewed`
+- Unique visitors with `prototype_viewed`
+- Average `page_engagement_ended.engaged_time_ms`
+- Unique visitors by `clicked_any_button`
+- Unique visitors by `composer_started`
 
 Breakdowns:
 
@@ -957,6 +972,9 @@ external_ai_search_opened
 ```
 
 Use this to communicate campaign quality and depth of engagement.
+
+For stakeholder reporting, show the funnel as unique visitor counts and percent
+of visitors landed.
 
 ### 3. Composer Funnel
 
@@ -1006,6 +1024,9 @@ Break down by:
 
 This is the simplest way to answer: “For each button specifically, how many clicks did it get?”
 
+For visitor-based reporting, label this as “visitors who clicked” and use raw
+clicks only as a secondary column.
+
 ### 6. Ad Exposure
 
 Primary event:
@@ -1016,7 +1037,7 @@ ad_slot_viewed
 
 Key chart:
 
-- Count of `ad_slot_viewed`, filtered by `prototype_slug = paid-ads-exp`
+- Unique visitors with `ad_slot_viewed`, filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`
 - Breakdown by `ad_slot`, `device_type`, and `utm_campaign`
 
 Use this to understand whether campaign users actually saw the paid placement inside the prototype.
@@ -1059,11 +1080,13 @@ Route configuration:
 
 - `src/app/(prototypes)/paid-ads-exp/page.tsx`
 - `src/app/(prototypes)/paid-ads-exp/chat/page.tsx`
+- `src/app/(prototypes)/paid-ads-exp-2/page.tsx`
+- `src/app/(prototypes)/paid-ads-exp-2/chat/page.tsx`
 
 ## QA Checklist Before Sharing Campaign Results
 
 1. Confirm PostHog is enabled in the deployment environment.
-2. Open `/paid-ads-exp/chat` with campaign UTM parameters.
+2. Open `/paid-ads-exp/chat` or `/paid-ads-exp-2/chat` with campaign UTM parameters.
 3. Confirm `$pageview`, `prototype_viewed`, and `paid_ads_landing_viewed` appear in PostHog Live Events.
 4. Wait at least 15 seconds and confirm `engagement_timer_reached`.
 5. Scroll through the answer and confirm `scroll_depth_reached`.
@@ -1073,4 +1096,4 @@ Route configuration:
 9. Type in the composer and confirm `composer_typing_started` and `composer_changed`.
 10. Submit the composer and confirm `composer_submit_clicked` and `external_ai_search_opened`.
 11. Confirm `page_engagement_ended` appears after leaving or hiding the tab.
-12. Check that all relevant charts are filtered by `prototype_slug = paid-ads-exp`.
+12. Check that all relevant charts are filtered by `prototype_slug = paid-ads-exp` or `prototype_slug = paid-ads-exp-2`.

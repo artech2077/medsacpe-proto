@@ -1,6 +1,6 @@
 import { AnalyticsLink } from "@/components/analytics/analytics-link";
 import { AnalyticsMountEvent } from "@/components/analytics/analytics-mount-event";
-import { prototypeRegistry } from "@/registry/prototypes";
+import { getPrototypeFamily, prototypeRegistry } from "@/registry/prototypes";
 
 export default function Home() {
   const activePrototypeCount = prototypeRegistry.filter(
@@ -98,9 +98,7 @@ export default function Home() {
                   eventProperties={{
                     card_position: index + 1,
                     destination_route: entryRoute,
-                    prototype_family: prototype.tags?.includes("current-ui")
-                      ? "medscape-ai-current"
-                      : "ai-response",
+                    prototype_family: getPrototypeFamily(prototype),
                     prototype_route: prototype.route,
                     prototype_slug: prototype.slug,
                     screen_type: "workspace_home",

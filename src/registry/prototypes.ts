@@ -8,6 +8,12 @@ export type PrototypeDefinition = {
   title: string;
 };
 
+export function getPrototypeFamily(prototype: Pick<PrototypeDefinition, "tags">) {
+  if (prototype.tags?.includes("paid-ads")) return "paid-ads";
+  if (prototype.tags?.includes("current-ui")) return "medscape-ai-current";
+  return "ai-response";
+}
+
 export const prototypeRegistry: PrototypeDefinition[] = [
   {
     description:
@@ -80,8 +86,19 @@ export const prototypeRegistry: PrototypeDefinition[] = [
     route: "/paid-ads-exp",
     slug: "paid-ads-exp",
     status: "active",
-    tags: ["medscape-ai", "current-ui", "ad-placement"],
+    tags: ["medscape-ai", "current-ui", "ad-placement", "paid-ads"],
     title: "Paid ads experience",
+  },
+  {
+    description:
+      "Medscape AI paid-ads experience duplicated with a 2025 hypertension guideline question and source-expanded answer.",
+    entryRoute:
+      "/paid-ads-exp-2/chat?q=For%20a%20patient%20with%20BP%20134%2F84%2C%20when%20should%20I%20start%20hypertension%20medication%20under%20the%202025%20guideline%3F&mode=complete&source=workspace_card",
+    route: "/paid-ads-exp-2",
+    slug: "paid-ads-exp-2",
+    status: "active",
+    tags: ["medscape-ai", "current-ui", "ad-placement", "paid-ads"],
+    title: "Paid ads experience 2",
   },
   {
     description:

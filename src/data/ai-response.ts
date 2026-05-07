@@ -355,6 +355,40 @@ function buildGlp1Answer() {
   ].join("\n");
 }
 
+function buildHypertensionGuidelineAnswer() {
+  return [
+    "Key Points",
+    "- BP **134/84 mmHg** is **stage 1 hypertension** under the 2025 ACC/AHA guideline.",
+    "- Start medication **now** if cardiovascular risk is high or if CVD, diabetes, CKD, or organ damage is present.",
+    "- If risk is lower, use intensive lifestyle therapy and home BP monitoring for **3-6 months**.",
+    "- If BP remains **>=130/80 mmHg** after lifestyle therapy, start or consider antihypertensive medication.",
+    "",
+    "For a patient with BP 134/84 mmHg, 2025 guidelines start drugs immediately if cardiovascular risk is high; otherwise after 3-6 months of unsuccessful lifestyle therapy while BP remains >=130/80.",
+    "",
+    "Classification and overall targets",
+    "A BP of 134/84 mmHg is stage 1 Hypertension in the 2025 ACC/AHA guideline (130-139/80-89 mmHg).[1]",
+    "The universal treatment goal for most adults is <130/80 mmHg, with encouragement toward <120/80 mmHg when tolerated.[2][3]",
+    "",
+    "When to start medication at 134/84 mmHg",
+    "Immediate pharmacologic therapy (in addition to lifestyle) is recommended if any of the following are present, with BP >=130/80 mmHg:[2][1][3][4]",
+    "- Established clinical CVD (e.g., prior MI, stroke, heart failure)",
+    "- Diabetes mellitus",
+    "- Chronic kidney disease or hypertension-mediated organ damage (e.g., albuminuria)",
+    "- 10-year ASCVD risk >=7.5-10%, now estimated with the PREVENT calculator[2][1][3]",
+    "",
+    "In such patients, your 134/84 mmHg patient should start antihypertensive medication now.",
+    "",
+    "Lower-risk patients",
+    "For lower-risk stage 1 patients with no CVD, diabetes, CKD, and 10-year risk <7.5-10%:",
+    "- Implement intensive lifestyle measures (DASH diet, sodium restriction, weight loss, physical activity, no alcohol) and home BP monitoring for 3-6 months.[2][1][3]",
+    "- If BP remains >=130/80 mmHg after 3-6 months, initiation of pharmacologic therapy is recommended or considered reasonable even in these lower-risk individuals.[2][1][4]",
+    "",
+    "So at 134/84 mmHg, drug therapy timing hinges on the patient's ASCVD risk profile and presence of CVD/DM/CKD.",
+    "",
+    "Would you like a succinct first-line drug selection and titration plan for a stage-1 patient at 134/84 mmHg?",
+  ].join("\n");
+}
+
 function buildResearchAnswer(question: string) {
   return [
     `Here is a prototype research summary for: ${question}`,
@@ -478,6 +512,12 @@ export function buildMockAnswer(question: string) {
   ) {
     answer = buildGlp1Answer();
   } else if (
+    normalized.includes("hypertension") ||
+    normalized.includes("bp 134/84") ||
+    normalized.includes("134/84")
+  ) {
+    answer = buildHypertensionGuidelineAnswer();
+  } else if (
     normalized.includes("research") ||
     normalized.includes("evidence") ||
     normalized.includes("trial") ||
@@ -565,6 +605,65 @@ export function buildMockAnswerSupportingContent(
           sourceLabel: "AACE",
           tags: ["Guideline"],
           title: "AACE clinical practice guidance for pharmacologic management of type 2 diabetes.",
+        },
+      ]),
+    };
+  }
+
+  if (
+    normalized.includes("hypertension") ||
+    normalized.includes("bp 134/84") ||
+    normalized.includes("134/84")
+  ) {
+    return {
+      followUpQuestions: [
+        "Treat stage 1 HTN with diabetes?",
+        "Choose first-line stage 1 HTN drug",
+        "Order labs for new hypertension",
+        "Confirm hypertension with home BP",
+      ],
+      references: buildReferenceList([
+        {
+          detail: "Commentary overview for primary care clinicians on the 2025 blood pressure guideline.",
+          publishedAt: "January 07, 2026",
+          source: "Commentary",
+          sourceLabel: "Medscape",
+          tags: ["Guideline", "Commentary"],
+          title: "What PCPs Need to Know About the New Blood Pressure Guidelines.",
+          url: "https://www.medscape.com/viewarticle/what-pcps-need-know-about-new-blood-pressure-guidelines-2025a1000t8x",
+        },
+        {
+          detail: "News coverage of medication-initiation recommendations in the new ACC/AHA guideline.",
+          publishedAt: "August 19, 2025",
+          source: "News & Perspectives",
+          sourceLabel: "Medscape",
+          tags: ["Guideline", "News"],
+          title: "BP Meds Should Begin Promptly, New ACC/AHA Guidelines Say.",
+          url: "https://www.medscape.com/viewarticle/bp-meds-should-begin-promptly-new-acc-aha-guidelines-say-2025a1000lms",
+        },
+        {
+          detail:
+            "Guideline comparison from American, European, UK, and global hypertension guidance.",
+          publishedAt: "June 05, 2025",
+          source:
+            "Guidelines - Guidelines Summary - American Heart Association,American College of Cardiology,European Society of Cardiology,European Society of Hypertension,International Society of Hypertension,National Institute for Health and Care Excellence,World Health Organization,Dr Shouvik Haldar",
+          sourceLabel: "Medscape",
+          tags: ["Guideline"],
+          title: "Hypertension: Comparison of Global Guidance for Cardiologists.",
+          url: "https://reference.medscape.com/cc2/p10/guideline-essentials-hypertension-comparison-uk-european-us-2024a1000k63",
+        },
+        {
+          detail: "Kanbay Mehmet, Copur Sidar, Sarafidis Pantelis, Ferro Charles J et al.",
+          doi: "10.1093/ndt/gfag055",
+          publishedAt: "2026/03/10",
+          source:
+            "doi: 10.1093/ndt/gfag055. Kanbay Mehmet, Copur Sidar, Sarafidis Pantelis, Ferro Charles J et al.",
+          sourceLabel:
+            "Nephrology, dialysis, transplantation : official publication of the European Dialysis and Transplant Association - European Renal Association.",
+          tags: ["Guideline", "Commentary"],
+          title:
+            "2025\u00a0AHA/ACC/AANP/AAPA/ABC/ACCP/ACPM/AGS/AMA/ASPC/NMA/PCNA/SGIM Guideline...",
+          url: "https://pubmed.ncbi.nlm.nih.gov/41805831/",
         },
       ]),
     };
