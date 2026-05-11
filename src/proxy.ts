@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const DEFAULT_SHARED_PROTOTYPE_PATHS = ["/paid-ads-exp", "/paid-ads-exp-3"];
+const DEFAULT_SHARED_PROTOTYPE_PATHS = [
+  "/paid-ads-exp",
+  "/paid-ads-exp-3",
+  "/paid-ads-exp-4",
+  "/paid-ads-exp-5",
+];
 
 function normalizePath(path: string) {
   if (!path.startsWith("/")) {
