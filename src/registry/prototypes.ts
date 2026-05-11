@@ -135,6 +135,17 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   },
   {
     description:
+      "Medscape AI paid-ads experience 5 duplicated with the full shortened answer shown without the answer Read more action.",
+    entryRoute:
+      "/paid-ads-exp-6/chat?q=How%20to%20manage%20possible%20hantavirus%20exposure%3F&mode=complete&source=workspace_card",
+    route: "/paid-ads-exp-6",
+    slug: "paid-ads-exp-6",
+    status: "active",
+    tags: ["medscape-ai", "current-ui", "ad-placement", "paid-ads"],
+    title: "Paid ads experience 6",
+  },
+  {
+    description:
       "Configuration surface for the Medscape AI feature-update popup shown from the landing experience, including multi-slide carousel content.",
     route: "/medscape-ai-feature-updates-config",
     slug: "medscape-ai-feature-updates-config",

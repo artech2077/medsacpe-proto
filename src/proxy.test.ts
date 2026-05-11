@@ -9,6 +9,8 @@ describe("production proxy allowlist", () => {
     expect(isAllowedProductionPath("/paid-ads-exp-4/chat")).toBe(true);
     expect(isAllowedProductionPath("/paid-ads-exp-5")).toBe(true);
     expect(isAllowedProductionPath("/paid-ads-exp-5/chat")).toBe(true);
+    expect(isAllowedProductionPath("/paid-ads-exp-6")).toBe(true);
+    expect(isAllowedProductionPath("/paid-ads-exp-6/chat")).toBe(true);
   });
 
   it("keeps the existing shared paid ads route available", () => {

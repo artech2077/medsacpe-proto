@@ -66,6 +66,7 @@ const PAID_ADS_ROUTES = new Set([
   "/paid-ads-exp-3",
   "/paid-ads-exp-4",
   "/paid-ads-exp-5",
+  "/paid-ads-exp-6",
 ]);
 const PAID_ADS_ENGAGEMENT_MILESTONES_SECONDS = [5, 15, 30, 60, 120] as const;
 const PAID_ADS_SCROLL_DEPTH_MILESTONES = [25, 50, 75, 90, 100] as const;
@@ -99,12 +100,14 @@ type MedscapeAiCurrentScreenProps = {
   autoScrollToInitialAd?: boolean;
   composerPlaceholder?: string;
   followUpQuestionAnswerPreviews?: Record<string, string>;
+  followUpQuestionsShowReadMore?: boolean;
   followUpQuestionsPlacement?: MedscapeAiCurrentFollowUpPlacement;
   followUpQuestionsOverride?: string[];
   followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
   followUpQuestionRedirectUrls?: Record<string, string>;
   hideAnswerFooterAdForFirstTurn?: boolean;
   hideAdImage?: boolean;
+  initialAnswerOverride?: string;
   initialConversationMode?: "complete" | "stream";
   initialQuestion?: string;
   initialQuestionSource?: string;
@@ -278,12 +281,14 @@ export function MedscapeAiCurrentScreen({
   autoScrollToInitialAd = false,
   composerPlaceholder = "Ask anything",
   followUpQuestionAnswerPreviews,
+  followUpQuestionsShowReadMore = true,
   followUpQuestionsPlacement = "supporting-content",
   followUpQuestionsOverride,
   followUpQuestionsVariant = "default",
   followUpQuestionRedirectUrls,
   hideAnswerFooterAdForFirstTurn = false,
   hideAdImage = false,
+  initialAnswerOverride,
   initialConversationMode = "stream",
   initialQuestion = defaultInitialQuestion,
   initialQuestionSource = "direct_url",
@@ -563,6 +568,13 @@ export function MedscapeAiCurrentScreen({
     },
     [followUpQuestionsOverride],
   );
+  const buildAnswerText = useCallback(
+    (question: string) =>
+      initialAnswerOverride && question === initialQuestion
+        ? initialAnswerOverride
+        : buildMockAnswer(question),
+    [initialAnswerOverride, initialQuestion],
+  );
 
   const startStreamingTurn = useCallback(
     (
@@ -576,7 +588,7 @@ export function MedscapeAiCurrentScreen({
       setBottomSpacerHeight(0);
 
       const newTurnId = nextTurnIdRef.current;
-      const answerText = buildMockAnswer(trimmedQuestion);
+      const answerText = buildAnswerText(trimmedQuestion);
       const supportingContent = buildSupportingContent(trimmedQuestion);
       const startedAt = performance.now();
       nextTurnIdRef.current += 1;
@@ -721,6 +733,7 @@ export function MedscapeAiCurrentScreen({
     },
     [
       buildSupportingContent,
+      buildAnswerText,
       clearResponseTimers,
       conversationId,
       prototypeAnalytics,
@@ -746,8 +759,8 @@ export function MedscapeAiCurrentScreen({
       nextTurnIdRef.current += 1;
 
       const nextTurn: ChatTurn = {
-        answer: buildMockAnswer(trimmedQuestion),
-        fullAnswer: buildMockAnswer(trimmedQuestion),
+        answer: buildAnswerText(trimmedQuestion),
+        fullAnswer: buildAnswerText(trimmedQuestion),
         id: nextTurnId,
         question: trimmedQuestion,
         status: "complete",
@@ -825,6 +838,7 @@ export function MedscapeAiCurrentScreen({
     },
     [
       buildSupportingContent,
+      buildAnswerText,
       clearResponseTimers,
       conversationId,
       instantAnswerDelayMs,
@@ -847,8 +861,8 @@ export function MedscapeAiCurrentScreen({
 
       setChatTurns([
         {
-          answer: buildMockAnswer(trimmedQuestion),
-          fullAnswer: buildMockAnswer(trimmedQuestion),
+          answer: buildAnswerText(trimmedQuestion),
+          fullAnswer: buildAnswerText(trimmedQuestion),
           id: nextTurnId,
           question: trimmedQuestion,
           status: "complete",
@@ -856,7 +870,7 @@ export function MedscapeAiCurrentScreen({
         },
       ]);
     },
-    [buildSupportingContent, clearResponseTimers],
+    [buildSupportingContent, buildAnswerText, clearResponseTimers],
   );
 
   const submitQuestion = useCallback(
@@ -1628,6 +1642,7 @@ export function MedscapeAiCurrentScreen({
                               }}
                               questions={turn.supportingContent.followUpQuestions}
                               readMoreUrls={followUpQuestionRedirectUrls}
+                              showReadMoreLink={followUpQuestionsShowReadMore}
                               variant={followUpQuestionsVariant}
                             />
                           ) : null}

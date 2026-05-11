@@ -16,6 +16,7 @@ type AiResponseFollowUpQuestionsProps = {
   questions: string[];
   readMoreLabel?: string;
   readMoreUrls?: Record<string, string>;
+  showReadMoreLink?: boolean;
   variant?: AiResponseFollowUpQuestionsVariant;
 };
 
@@ -39,6 +40,7 @@ export function AiResponseFollowUpQuestions({
   questions,
   readMoreLabel = "Read more",
   readMoreUrls,
+  showReadMoreLink = true,
   variant = "default",
 }: AiResponseFollowUpQuestionsProps) {
   const [openQuestionIndex, setOpenQuestionIndex] = useState(defaultOpenQuestionIndex);
@@ -93,22 +95,27 @@ export function AiResponseFollowUpQuestions({
                           WebkitLineClamp: 3,
                         }}
                       >
-                        {preview}{" "}
-                        <a
-                          href={readMoreUrl}
-                          onClick={(event) => {
-                            if (!onReadMoreSelect) {
-                              return;
-                            }
+                        {preview}
+                        {showReadMoreLink ? (
+                          <>
+                            {" "}
+                            <a
+                              href={readMoreUrl}
+                              onClick={(event) => {
+                                if (!onReadMoreSelect) {
+                                  return;
+                                }
 
-                            event.preventDefault();
-                            onReadMoreSelect(question);
-                          }}
-                          className="font-semibold !text-[#064aa7] underline decoration-[#064aa7] decoration-1 underline-offset-2 transition visited:!text-[#064aa7] hover:!text-[#064aa7] hover:decoration-[#064aa7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ecf1f9]"
-                          style={{ color: "#064aa7" }}
-                        >
-                          {readMoreLabel}
-                        </a>
+                                event.preventDefault();
+                                onReadMoreSelect(question);
+                              }}
+                              className="font-semibold !text-[#064aa7] underline decoration-[#064aa7] decoration-1 underline-offset-2 transition visited:!text-[#064aa7] hover:!text-[#064aa7] hover:decoration-[#064aa7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ecf1f9]"
+                              style={{ color: "#064aa7" }}
+                            >
+                              {readMoreLabel}
+                            </a>
+                          </>
+                        ) : null}
                       </p>
                     </div>
                   ) : null}

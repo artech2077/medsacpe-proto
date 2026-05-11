@@ -13,8 +13,10 @@ describe("prototypeRegistry", () => {
       "paid-ads-exp-3",
       "paid-ads-exp-4",
       "paid-ads-exp-5",
+      "paid-ads-exp-6",
     ]);
     expect(paidAdPrototypes.map(getPrototypeFamily)).toEqual([
+      "paid-ads",
       "paid-ads",
       "paid-ads",
       "paid-ads",

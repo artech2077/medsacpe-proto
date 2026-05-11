@@ -5,6 +5,7 @@ const DEFAULT_SHARED_PROTOTYPE_PATHS = [
   "/paid-ads-exp-3",
   "/paid-ads-exp-4",
   "/paid-ads-exp-5",
+  "/paid-ads-exp-6",
 ];
 
 function normalizePath(path: string) {
