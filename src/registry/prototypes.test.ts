@@ -10,7 +10,16 @@ describe("prototypeRegistry", () => {
     expect(paidAdPrototypes.map((prototype) => prototype.slug)).toEqual([
       "paid-ads-exp",
       "paid-ads-exp-2",
+      "paid-ads-exp-3",
+      "paid-ads-exp-4",
+      "paid-ads-exp-5",
     ]);
-    expect(paidAdPrototypes.map(getPrototypeFamily)).toEqual(["paid-ads", "paid-ads"]);
+    expect(paidAdPrototypes.map(getPrototypeFamily)).toEqual([
+      "paid-ads",
+      "paid-ads",
+      "paid-ads",
+      "paid-ads",
+      "paid-ads",
+    ]);
   });
 });

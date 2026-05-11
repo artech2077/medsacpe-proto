@@ -23,12 +23,15 @@ import {
 import { AiResponseAnswerSupportingContent } from "@/components/medscape/ai-response/answer-supporting-content";
 import { AiChevronIcon } from "@/components/medscape/ai-response/answer-section-icons";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
+import { AiResponseFadedAnswerPreview } from "@/components/medscape/ai-response/faded-answer-preview";
 import {
   AiResponseFollowUpQuestions,
   type AiResponseFollowUpQuestionsVariant,
 } from "@/components/medscape/ai-response/follow-up-questions";
 import {
   AiResponseKeyPoints,
+  type AiResponseKeyPointsCollapsedContent,
+  type AiResponseKeyPointsLabels,
   type AiResponseKeyPointsVariant,
 } from "@/components/medscape/ai-response/key-points";
 import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
@@ -57,7 +60,13 @@ const STREAM_CHUNK_SIZE = 4;
 const CHAT_BOTTOM_CONTENT_PADDING_PX = 112;
 const SCROLL_DOWN_VISIBILITY_THRESHOLD_PX = 8;
 const MEDSCAPE_AI_SEARCH_URL = "https://www.medscape.com/ai-search";
-const PAID_ADS_ROUTES = new Set(["/paid-ads-exp", "/paid-ads-exp-2"]);
+const PAID_ADS_ROUTES = new Set([
+  "/paid-ads-exp",
+  "/paid-ads-exp-2",
+  "/paid-ads-exp-3",
+  "/paid-ads-exp-4",
+  "/paid-ads-exp-5",
+]);
 const PAID_ADS_ENGAGEMENT_MILESTONES_SECONDS = [5, 15, 30, 60, 120] as const;
 const PAID_ADS_SCROLL_DEPTH_MILESTONES = [25, 50, 75, 90, 100] as const;
 const PAID_ADS_USER_SCROLL_INPUT_WINDOW_MS = 2000;
@@ -79,14 +88,17 @@ type MedscapeAiCurrentScreenAdPlacement =
   | "after-keypoints";
 
 type MedscapeAiCurrentAnswerVariant = "default" | "summary-read-more";
+type MedscapeAiCurrentAnswerDisclosureVariant = "key-points-summary" | "full-answer-fade";
 type MedscapeAiCurrentFollowUpPlacement = "supporting-content" | "before-actions";
 
 type MedscapeAiCurrentScreenProps = {
   adContentDelayMs?: number;
   adPlacement?: MedscapeAiCurrentScreenAdPlacement;
+  answerDisclosureVariant?: MedscapeAiCurrentAnswerDisclosureVariant;
   answerVariant?: MedscapeAiCurrentAnswerVariant;
   autoScrollToInitialAd?: boolean;
   composerPlaceholder?: string;
+  followUpQuestionAnswerPreviews?: Record<string, string>;
   followUpQuestionsPlacement?: MedscapeAiCurrentFollowUpPlacement;
   followUpQuestionsOverride?: string[];
   followUpQuestionsVariant?: AiResponseFollowUpQuestionsVariant;
@@ -98,8 +110,12 @@ type MedscapeAiCurrentScreenProps = {
   initialQuestionSource?: string;
   instantAnswerDelayMs?: number;
   instantAnswers?: boolean;
+  keyPointsCollapsedContent?: AiResponseKeyPointsCollapsedContent;
   keyPointsDefaultExpanded?: boolean;
+  keyPointsLabels?: AiResponseKeyPointsLabels;
+  keyPointsOverride?: string[];
   keyPointsVariant?: AiResponseKeyPointsVariant;
+  learnMoreLabel?: string;
   prototypeRoute?: string;
   queryRedirectUrl?: string;
   referencesDefaultExpanded?: boolean;
@@ -257,9 +273,11 @@ function MedscapeAiCurrentAnswerSummary({
 export function MedscapeAiCurrentScreen({
   adContentDelayMs = 0,
   adPlacement = "after-progress",
+  answerDisclosureVariant = "key-points-summary",
   answerVariant = "default",
   autoScrollToInitialAd = false,
   composerPlaceholder = "Ask anything",
+  followUpQuestionAnswerPreviews,
   followUpQuestionsPlacement = "supporting-content",
   followUpQuestionsOverride,
   followUpQuestionsVariant = "default",
@@ -271,8 +289,12 @@ export function MedscapeAiCurrentScreen({
   initialQuestionSource = "direct_url",
   instantAnswerDelayMs = 0,
   instantAnswers = false,
+  keyPointsCollapsedContent = "summary",
   keyPointsDefaultExpanded = true,
+  keyPointsLabels,
+  keyPointsOverride,
   keyPointsVariant = "default",
+  learnMoreLabel = "Read more",
   prototypeRoute = "/medscape-ai-current",
   queryRedirectUrl,
   referencesDefaultExpanded = false,
@@ -308,6 +330,9 @@ export function MedscapeAiCurrentScreen({
   const [expandedKeyPointTurnIds, setExpandedKeyPointTurnIds] = useState<Set<number>>(
     () => new Set(),
   );
+  const [expandedFullAnswerTurnIds, setExpandedFullAnswerTurnIds] = useState<Set<number>>(
+    () => new Set(),
+  );
   const [bottomSpacerHeight, setBottomSpacerHeight] = useState(0);
   const [showScrollToBottomButton, setShowScrollToBottomButton] = useState(false);
   const isGenerationInProgress = chatTurns.some(
@@ -320,8 +345,9 @@ export function MedscapeAiCurrentScreen({
     () =>
       ({
         ad_placement: adPlacement,
-      answer_variant: answerVariant,
-      auto_scroll_to_initial_ad: autoScrollToInitialAd,
+        answer_disclosure_variant: answerDisclosureVariant,
+        answer_variant: answerVariant,
+        auto_scroll_to_initial_ad: autoScrollToInitialAd,
         key_points_default_expanded: keyPointsDefaultExpanded,
         key_points_variant: keyPointsVariant,
         prototype_family: prototypeFamily,
@@ -331,6 +357,7 @@ export function MedscapeAiCurrentScreen({
       }) as const,
     [
       adPlacement,
+      answerDisclosureVariant,
       answerVariant,
       autoScrollToInitialAd,
       keyPointsDefaultExpanded,
@@ -1314,19 +1341,32 @@ export function MedscapeAiCurrentScreen({
 
               {chatTurns.map((turn) => (
                 (() => {
-                  const keyPoints = turn.answer ? splitLeadingKeyPoints(turn.answer).keyPoints : [];
+                  const keyPoints =
+                    keyPointsOverride && turn.question === initialQuestion
+                      ? keyPointsOverride
+                      : turn.answer
+                        ? splitLeadingKeyPoints(turn.answer).keyPoints
+                        : [];
                   const showAfterKeypointsAd =
                     adPlacement === "after-keypoints" &&
                     answerVariant === "default" &&
                     keyPoints.length > 0;
                   const summaryReadMoreKeyPoints = splitLeadingKeyPoints(turn.fullAnswer).keyPoints;
                   const isCollapsedReadMoreKeyPoints =
-                    answerVariant === "default" && keyPointsVariant === "collapsed-read-more";
+                    answerVariant === "default" &&
+                    keyPointsVariant === "collapsed-read-more" &&
+                    answerDisclosureVariant === "key-points-summary";
+                  const isFullAnswerFadeDisclosure =
+                    answerVariant === "default" &&
+                    answerDisclosureVariant === "full-answer-fade";
                   const isKeyPointsExpanded = expandedKeyPointTurnIds.has(turn.id);
+                  const isFullAnswerExpanded = expandedFullAnswerTurnIds.has(turn.id);
                   const showFullAnswer =
                     turn.answer && (!isCollapsedReadMoreKeyPoints || isKeyPointsExpanded);
                   const showInlineAnswer =
-                    showFullAnswer && !isCollapsedReadMoreKeyPoints;
+                    showFullAnswer &&
+                    !isCollapsedReadMoreKeyPoints &&
+                    !isFullAnswerFadeDisclosure;
                   const showBottomAnswer =
                     showFullAnswer && isCollapsedReadMoreKeyPoints;
                   const showCompletedTurnExtras =
@@ -1396,7 +1436,9 @@ export function MedscapeAiCurrentScreen({
                         </>
                       ) : null}
 
-                      {turn.answer && answerVariant === "default" ? (
+                      {turn.answer &&
+                      answerVariant === "default" &&
+                      !isFullAnswerFadeDisclosure ? (
                         <AiResponseKeyPoints
                           analyticsContext={{
                             conversationId,
@@ -1408,11 +1450,13 @@ export function MedscapeAiCurrentScreen({
                             turnId: turn.id,
                           }}
                           className="mb-6"
+                          collapsedContent={keyPointsCollapsedContent}
                           defaultExpanded={keyPointsDefaultExpanded}
                           expanded={
                             isCollapsedReadMoreKeyPoints ? isKeyPointsExpanded : undefined
                           }
                           keyPoints={keyPoints}
+                          labels={keyPointsLabels}
                           onExpandedChange={
                             isCollapsedReadMoreKeyPoints
                               ? (expanded) => {
@@ -1480,6 +1524,41 @@ export function MedscapeAiCurrentScreen({
                           fullAnswer={turn.fullAnswer}
                           references={turn.supportingContent.references}
                         />
+                      ) : turn.answer && isFullAnswerFadeDisclosure ? (
+                        <AiResponseFadedAnswerPreview
+                          answer={turn.answer}
+                          expanded={isFullAnswerExpanded}
+                          fullAnswer={turn.fullAnswer}
+                          learnMoreLabel={learnMoreLabel}
+                          onExpandedChange={(expanded) => {
+                            setExpandedFullAnswerTurnIds((current) => {
+                              const next = new Set(current);
+
+                              if (expanded) {
+                                next.add(turn.id);
+                              } else {
+                                next.delete(turn.id);
+                              }
+
+                              return next;
+                            });
+                            captureButtonClicked({
+                              button_id: expanded
+                                ? "full_answer_learn_more"
+                                : "full_answer_show_less",
+                              button_label: expanded ? learnMoreLabel : "Show less",
+                              button_role: "toggle",
+                              button_surface: "full_answer_preview",
+                              conversation_id: conversationId,
+                              prototype_family: prototypeFamily,
+                              prototype_route: prototypeRoute,
+                              prototype_slug: prototypeSlug,
+                              screen_type: "prototype_chat",
+                              turn_id: turn.id,
+                            });
+                          }}
+                          references={turn.supportingContent.references}
+                        />
                       ) : null}
 
                       {showCompletedTurnExtras ? (
@@ -1495,6 +1574,8 @@ export function MedscapeAiCurrentScreen({
                           {followUpQuestionsPlacement === "before-actions" ? (
                             <AiResponseFollowUpQuestions
                               className="mt-5 md:mt-6"
+                              answerPreviews={followUpQuestionAnswerPreviews}
+                              defaultOpenQuestionIndex={0}
                               onQuestionSelect={(question) => {
                                 trackPaidAdsButton({
                                   button_id: "follow_up_question",
@@ -1514,6 +1595,29 @@ export function MedscapeAiCurrentScreen({
                                   follow_up_text: question,
                                   parent_turn_id: turn.id,
                                 });
+                                if (followUpQuestionsVariant === "accordion-preview") {
+                                  return;
+                                }
+
+                                if (openQueryRedirect(question, "follow_up_question")) {
+                                  return;
+                                }
+
+                                submitQuestion(question, {
+                                  questionSource: "follow_up_question",
+                                });
+                              }}
+                              onReadMoreSelect={(question) => {
+                                trackPaidAdsButton({
+                                  button_id: "follow_up_read_more",
+                                  button_label: "Read more",
+                                  button_role: "external_navigation",
+                                  button_surface: "follow_up_questions",
+                                  conversation_id: conversationId,
+                                  follow_up_index:
+                                    turn.supportingContent.followUpQuestions.indexOf(question),
+                                  parent_turn_id: turn.id,
+                                });
                                 if (openQueryRedirect(question, "follow_up_question")) {
                                   return;
                                 }
@@ -1523,6 +1627,7 @@ export function MedscapeAiCurrentScreen({
                                 });
                               }}
                               questions={turn.supportingContent.followUpQuestions}
+                              readMoreUrls={followUpQuestionRedirectUrls}
                               variant={followUpQuestionsVariant}
                             />
                           ) : null}

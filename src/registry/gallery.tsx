@@ -4,6 +4,7 @@ import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-bloc
 import { MedscapeFeatureUpdatesModal } from "@/components/medscape/ai-current/feature-updates-modal";
 import { MedscapeCurrentHeader } from "@/components/medscape/ai-current/global-header";
 import { MedscapePaidTrafficQuickStart } from "@/components/medscape/ai-current/paid-traffic-quick-start";
+import { DrugAiTablesArticle } from "@/components/medscape/drug-ai-tables/drug-monograph";
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
 import {
   AiResponseAnswerContent,
@@ -11,6 +12,7 @@ import {
 } from "@/components/medscape/ai-response/answer-content";
 import { AiResponseAnswerSupportingContent } from "@/components/medscape/ai-response/answer-supporting-content";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
+import { AiResponseFadedAnswerPreview } from "@/components/medscape/ai-response/faded-answer-preview";
 import { AiResponseKeyPoints } from "@/components/medscape/ai-response/key-points";
 import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiPreparingAnswerNotice } from "@/components/medscape/ai-response/preparing-answer-notice";
@@ -151,6 +153,23 @@ function AnswerContentPreview() {
   );
 }
 
+function FadedAnswerPreview() {
+  const answer = buildMockAnswer(defaultInitialQuestion);
+  const supportingContent = buildMockAnswerSupportingContent(defaultInitialQuestion);
+
+  return (
+    <div className="rounded-[20px] bg-white p-5">
+      <AiResponseFadedAnswerPreview
+        answer={answer}
+        expanded={false}
+        fullAnswer={answer}
+        onExpandedChange={() => undefined}
+        references={supportingContent.references}
+      />
+    </div>
+  );
+}
+
 function KeyPointsPreview() {
   return (
     <div className="max-w-[760px] rounded-[20px] bg-white p-5">
@@ -225,6 +244,14 @@ function PaidTrafficQuickStartPreview() {
         onAskOwnQuestion={() => undefined}
         referencesCount={supportingContent.references.length}
       />
+    </div>
+  );
+}
+
+function DrugAiTablesArticlePreview() {
+  return (
+    <div className="max-h-[720px] max-w-[900px] overflow-hidden rounded-[8px] border border-[#d5dfec] bg-white p-6">
+      <DrugAiTablesArticle />
     </div>
   );
 }
@@ -327,6 +354,14 @@ export const galleryRegistry: GalleryEntry[] = [
   },
   {
     category: "content",
+    description: "Three-line answer preview with a white fade and learn-more disclosure.",
+    id: "ai-response-faded-answer-preview",
+    preview: FadedAnswerPreview,
+    sourcePath: "src/components/medscape/ai-response/faded-answer-preview.tsx",
+    title: "AiResponseFadedAnswerPreview",
+  },
+  {
+    category: "content",
     description: "Collapsible key-points panel for answer intros that need a shared highlighted summary treatment.",
     id: "ai-response-key-points",
     preview: KeyPointsPreview,
@@ -395,6 +430,18 @@ export const galleryRegistry: GalleryEntry[] = [
     usageNotes: [
       "Pass typed references and follow-up question strings from the answer data layer.",
       "Use the onFollowUpQuestionSelect callback to trigger the next shared chat turn.",
+    ],
+  },
+  {
+    category: "content",
+    description: "Drug monograph content stack with embedded Medscape AI prescribing prompts and interaction groups.",
+    id: "drug-ai-tables-article",
+    preview: DrugAiTablesArticlePreview,
+    sourcePath: "src/components/medscape/drug-ai-tables/drug-monograph.tsx",
+    title: "DrugAiTablesArticle",
+    usageNotes: [
+      "Use for drug reference prototypes that embed Medscape AI prompts inside monograph content.",
+      "Pair with the current Medscape header and ad block rather than duplicating shell-level chrome.",
     ],
   },
 ];

@@ -4,10 +4,9 @@ import {
   paidAdsHantavirusFollowUpQuestionRedirectUrls,
   paidAdsHantavirusFollowUpQuestions,
   paidAdsHantavirusInitialQuestion,
-  paidAdsHantavirusSummary,
 } from "@/data/paid-ads-hantavirus";
 
-type PaidAdsExperience2ChatPageProps = {
+type PaidAdsExperience4ChatPageProps = {
   searchParams: Promise<{
     mode?: string | string[];
     q?: string | string[];
@@ -15,9 +14,9 @@ type PaidAdsExperience2ChatPageProps = {
   }>;
 };
 
-export default async function PaidAdsExperience2ChatPage({
+export default async function PaidAdsExperience4ChatPage({
   searchParams,
-}: PaidAdsExperience2ChatPageProps) {
+}: PaidAdsExperience4ChatPageProps) {
   const params = await searchParams;
   const modeValue = Array.isArray(params.mode) ? params.mode[0] : params.mode;
   const sourceValue = Array.isArray(params.source) ? params.source[0] : params.source;
@@ -26,7 +25,7 @@ export default async function PaidAdsExperience2ChatPage({
 
   if (!params.q) {
     redirect(
-      `/paid-ads-exp-2/chat?q=${encodeURIComponent(
+      `/paid-ads-exp-4/chat?q=${encodeURIComponent(
         paidAdsHantavirusInitialQuestion,
       )}&mode=complete&source=${encodeURIComponent("direct_url")}`,
     );
@@ -36,6 +35,7 @@ export default async function PaidAdsExperience2ChatPage({
     <MedscapeAiCurrentScreen
       adContentDelayMs={3000}
       adPlacement="above-question"
+      answerDisclosureVariant="full-answer-fade"
       autoScrollToInitialAd
       followUpQuestionsPlacement="before-actions"
       followUpQuestionsVariant="chips"
@@ -51,9 +51,8 @@ export default async function PaidAdsExperience2ChatPage({
       keyPointsDefaultExpanded={false}
       keyPointsVariant="collapsed-read-more"
       queryRedirectUrl="https://www.medscape.com/ai-search"
-      prototypeRoute="/paid-ads-exp-2"
+      prototypeRoute="/paid-ads-exp-4"
       referencesDefaultExpanded
-      summaryOverride={paidAdsHantavirusSummary}
     />
   );
 }

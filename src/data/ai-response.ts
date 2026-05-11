@@ -389,6 +389,55 @@ function buildHypertensionGuidelineAnswer() {
   ].join("\n");
 }
 
+function buildHantavirusExposureAnswer() {
+  return [
+    "Key Points",
+    "- Zoonosis via rodent urine/droppings; Andes virus rare human–human",
+    "- Incubation typically ~2–6 weeks",
+    "- No vaccine or specific antiviral; supportive ICU care only",
+    "- Monitor for early flu-like → rapidly progressive respiratory/cardiovascular compromise",
+    "- Seek urgent care with febrile respiratory illness after high‑risk exposure/travel",
+    "",
+    "For a possible hantavirus exposure, management is mainly risk stratification, symptom vigilance over several weeks, and early evaluation for any febrile respiratory illness after exposure.",
+    "",
+    "Exposure risk and incubation",
+    "",
+    "Transmission source",
+    "- Most hantaviruses are transmitted via inhalation of aerosolized rodent urine and droppings; human infection is overall rare.[1]",
+    "- The Andes virus is the key exception with documented limited human-to-human spread during close, prolonged contact; main reservoir is long-tailed pygmy rice rats in Argentina/Chile.[1][2]",
+    "- A systematic review concluded that, overall, comparative data do not robustly support human-to-human transmission, even for Andes virus, though rare events are possible.[3]",
+    "",
+    "Incubation window",
+    "- For hantavirus cardiopulmonary syndrome (HCPS), incubation is long: 6-39 days (median ~18).[4]",
+    "- For Andes virus, incubation may rarely extend up to ~42 days.[2]",
+    "",
+    "Post-exposure management steps",
+    "",
+    "1. Immediate actions",
+    "- There is no approved vaccine or targeted antiviral; management is expectant with education on symptom surveillance.[1][4]",
+    "- Reassure that, even after credible exposure, absolute risk of disease is low in most settings, especially outside endemic rodent habitats.[1]",
+    "",
+    "2. Symptom monitoring (up to 6 weeks; consider 7 weeks for Andes-virus-linked exposures)",
+    "",
+    "Advise patients to self-monitor daily for:",
+    "- Early prodrome: fever, headache, myalgias, malaise, +/- GI symptoms.[1][2][4]",
+    "- Progressive features of Hantavirus Cardiopulmonary Syndrome (HCPS): dyspnea, noncardiogenic pulmonary edema/ARDS, shock.[4][5]",
+    "",
+    "3. When to seek care",
+    "- Same-day urgent evaluation for any febrile illness with respiratory symptoms (cough, dyspnea, chest tightness) in the monitoring window after high-risk rodent exposure or close contact with a confirmed Andes-virus HCPS case.[1][2][5]",
+    "- Emergency care/ED transfer if rapidly progressive dyspnea, hypotension, or signs of shock develop, given the potential for abrupt progression to respiratory failure and hemodynamic collapse.[4][5]",
+    "",
+    "Evaluation and follow-up once symptomatic",
+    "- Diagnosis is based on epidemiologic risk plus compatible syndrome; progression to severe respiratory compromise with noncardiogenic pulmonary edema and shock is characteristic of HCPS.[4][5]",
+    "- Management is high-quality supportive care (ICU, advanced respiratory support as needed); no specific antiviral has proven benefit.[1][4]",
+    "",
+    "Public health and contact considerations",
+    "- For Andes-virus clusters (e.g., cruise ship outbreak), authorities recommend rapid case identification, isolation, contact tracing, and active symptom monitoring of close contacts for several weeks, but not blanket quarantine of all low-risk contacts.[1][2]",
+    "",
+    "Would you like a concise checklist you can use to counsel patients and plan monitoring after suspected hantavirus exposure?",
+  ].join("\n");
+}
+
 function buildResearchAnswer(question: string) {
   return [
     `Here is a prototype research summary for: ${question}`,
@@ -517,6 +566,12 @@ export function buildMockAnswer(question: string) {
     normalized.includes("134/84")
   ) {
     answer = buildHypertensionGuidelineAnswer();
+  } else if (
+    normalized.includes("hantavirus") ||
+    normalized.includes("hcps") ||
+    normalized.includes("andes virus")
+  ) {
+    answer = buildHantavirusExposureAnswer();
   } else if (
     normalized.includes("research") ||
     normalized.includes("evidence") ||
@@ -664,6 +719,70 @@ export function buildMockAnswerSupportingContent(
           title:
             "2025\u00a0AHA/ACC/AANP/AAPA/ABC/ACCP/ACPM/AGS/AMA/ASPC/NMA/PCNA/SGIM Guideline...",
           url: "https://pubmed.ncbi.nlm.nih.gov/41805831/",
+        },
+      ]),
+    };
+  }
+
+  if (
+    normalized.includes("hantavirus") ||
+    normalized.includes("hcps") ||
+    normalized.includes("andes virus")
+  ) {
+    return {
+      followUpQuestions: [
+        "When should hantavirus be suspected?",
+        "How long should hantavirus symptoms be monitored?",
+        "When is Andes virus contagious?",
+        "When should suspected HCPS be hospitalized?",
+      ],
+      references: buildReferenceList([
+        {
+          detail: "News & Perspectives.",
+          publishedAt: "May 08, 2026",
+          source: "News & Perspectives",
+          sourceLabel: "Medscape",
+          tags: ["News"],
+          title: "Hung Up on Hantavirus? How to Answer If Patients Are Asking.",
+          url: "https://www.medscape.com/viewarticle/hung-hantavirus-how-answer-if-patients-are-asking-2026a1000eut",
+        },
+        {
+          detail: "News & Perspectives.",
+          publishedAt: "May 11, 2026",
+          source: "News & Perspectives",
+          sourceLabel: "Medscape",
+          tags: ["News"],
+          title: "Cruise Ship Outbreak Raises Andes Virus Spread Concerns.",
+          url: "https://www.medscape.com/viewarticle/cruise-ship-outbreak-raises-andes-virus-spread-concerns-2026a1000f0e",
+        },
+        {
+          detail: "Systematic review.",
+          publishedAt: "2021/09/14",
+          source: "PubMed",
+          sourceLabel: "PubMed",
+          tags: ["Systematic Review"],
+          title: "Evidence for Human-to-Human Transmission of Hantavirus: A Systematic Review.",
+          url: "https://pubmed.ncbi.nlm.nih.gov/34515290/",
+        },
+        {
+          detail: "Riquelme Raul.",
+          doi: "10.1055/s-0041-1733803",
+          publishedAt: "2021/12/01",
+          source: "Seminars in respiratory and critical care medicine",
+          sourceLabel: "Seminars in respiratory and critical care medicine",
+          tags: ["Review"],
+          title: "Hantavirus.",
+          url: "https://pubmed.ncbi.nlm.nih.gov/34918323/",
+        },
+        {
+          detail: "Hall Ashton D, Fayad Danielle, Staat Mary A.",
+          doi: "10.1097/INF.0000000000004284",
+          publishedAt: "2024/06/01",
+          source: "The Pediatric infectious disease journal",
+          sourceLabel: "The Pediatric infectious disease journal",
+          tags: ["Case Report"],
+          title: "Hantavirus Pulmonary Syndrome in an Adolescent from North Dakota.",
+          url: "https://pubmed.ncbi.nlm.nih.gov/38451883/",
         },
       ]),
     };

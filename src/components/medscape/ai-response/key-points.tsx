@@ -14,6 +14,13 @@ type InlineTextSegment = {
 
 export type AiResponseKeyPointsVariant = "default" | "collapsed-read-more";
 export type AiResponseKeyPointsReadMorePlacement = "outside-summary" | "inside-summary";
+export type AiResponseKeyPointsCollapsedContent = "summary" | "key-points";
+
+export type AiResponseKeyPointsLabels = {
+  collapsedHeading?: string;
+  collapseButton?: string;
+  expandButton?: string;
+};
 
 type AiResponseKeyPointsProps = {
   analyticsContext?: {
@@ -26,9 +33,11 @@ type AiResponseKeyPointsProps = {
     turnId?: number;
   };
   className?: string;
+  collapsedContent?: AiResponseKeyPointsCollapsedContent;
   defaultExpanded?: boolean;
   expanded?: boolean;
   keyPoints: string[];
+  labels?: AiResponseKeyPointsLabels;
   onExpandedChange?: (expanded: boolean, trigger: "header" | "read_more") => void;
   readMorePlacement?: AiResponseKeyPointsReadMorePlacement;
   summaryText?: string;
@@ -116,9 +125,11 @@ function renderInlineSegments(segments: InlineTextSegment[]) {
 export function AiResponseKeyPoints({
   analyticsContext,
   className,
+  collapsedContent = "summary",
   defaultExpanded = true,
   expanded,
   keyPoints,
+  labels,
   onExpandedChange,
   readMorePlacement = "outside-summary",
   summaryText,
@@ -131,12 +142,17 @@ export function AiResponseKeyPoints({
   }
 
   const isCollapsedReadMoreVariant = variant === "collapsed-read-more";
+  const showCollapsedKeyPoints =
+    isCollapsedReadMoreVariant && collapsedContent === "key-points";
   const isExpanded = expanded ?? uncontrolledIsExpanded;
   const summaryContent = summaryText ?? keyPoints[0];
   const collapsedPreview = buildCollapsedPreview(summaryContent);
   const summarySegments = isCollapsedReadMoreVariant
     ? buildInlineTextSegments(summaryContent)
     : collapsedPreview.segments;
+  const collapsedHeadingLabel = labels?.collapsedHeading ?? "Summary";
+  const expandButtonLabel = labels?.expandButton ?? "Read full answer";
+  const collapseButtonLabel = labels?.collapseButton ?? "Hide full answer";
   const placeReadMoreInsideSummary =
     isCollapsedReadMoreVariant && readMorePlacement === "inside-summary";
   const updateExpanded = (nextExpanded: boolean, trigger: "header" | "read_more") => {
@@ -158,10 +174,10 @@ export function AiResponseKeyPoints({
       button_label:
         trigger === "read_more"
           ? nextExpanded
-            ? "Read full answer"
-            : "Hide full answer"
+            ? expandButtonLabel
+            : collapseButtonLabel
           : variant === "collapsed-read-more"
-            ? "Summary"
+            ? collapsedHeadingLabel
             : "Key Points",
       button_role: "toggle",
       button_surface: "key_points",
@@ -194,7 +210,7 @@ export function AiResponseKeyPoints({
       }}
       className="font-semibold text-[#064aa7] transition hover:text-[#043b84] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
     >
-      {isExpanded ? "Hide full answer" : "Read full answer"}
+      {isExpanded ? collapseButtonLabel : expandButtonLabel}
     </button>
   ) : null;
 
@@ -215,7 +231,7 @@ export function AiResponseKeyPoints({
         >
           <AiLightbulbIcon className="h-5 w-5 shrink-0 text-[#2c353a] md:h-6 md:w-6" />
           <span className="flex-1 text-[20px] leading-[1.3] font-bold md:text-[24px]">
-            {isCollapsedReadMoreVariant ? "Summary" : "Key Points"}
+            {isCollapsedReadMoreVariant ? collapsedHeadingLabel : "Key Points"}
           </span>
           {isCollapsedReadMoreVariant ? null : (
             <AiChevronIcon
@@ -227,12 +243,22 @@ export function AiResponseKeyPoints({
 
         {isCollapsedReadMoreVariant ? (
           <div className="mt-4 text-[16px] leading-[1.3] text-[#2c353a]">
-            <p>
-              {renderInlineSegments(summarySegments)}
-              {!isCollapsedReadMoreVariant && collapsedPreview.wasTruncated ? (
-                <span>...</span>
-              ) : null}
-            </p>
+            {showCollapsedKeyPoints ? (
+              <ul className="list-disc space-y-3 pl-5 marker:text-[#2c353a]">
+                {keyPoints.map((item, index) => (
+                  <li key={`${item}-${index}`}>
+                    {renderInlineText(item)}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>
+                {renderInlineSegments(summarySegments)}
+                {!isCollapsedReadMoreVariant && collapsedPreview.wasTruncated ? (
+                  <span>...</span>
+                ) : null}
+              </p>
+            )}
             {placeReadMoreInsideSummary ? (
               <div className="mt-2 text-center">{readMoreButton}</div>
             ) : null}
