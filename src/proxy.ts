@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const DEFAULT_SHARED_PROTOTYPE_PATH = "/paid-ads-exp";
-const SHARED_PROTOTYPE_PATH =
-  process.env.SHARED_PROTOTYPE_PATH ?? DEFAULT_SHARED_PROTOTYPE_PATH;
+const DEFAULT_SHARED_PROTOTYPE_PATHS = ["/paid-ads-exp", "/paid-ads-exp-3"];
 
 function normalizePath(path: string) {
   if (!path.startsWith("/")) {
@@ -12,7 +10,24 @@ function normalizePath(path: string) {
   return path === "/" ? path : path.replace(/\/+$/, "");
 }
 
-const allowedPrototypePath = normalizePath(SHARED_PROTOTYPE_PATH);
+function parsePrototypePaths(value: string | undefined) {
+  return (
+    value
+      ?.split(",")
+      .map((path) => path.trim())
+      .filter(Boolean) ?? []
+  );
+}
+
+const allowedPrototypePaths = Array.from(
+  new Set(
+    [
+      ...DEFAULT_SHARED_PROTOTYPE_PATHS,
+      ...parsePrototypePaths(process.env.SHARED_PROTOTYPE_PATH),
+      ...parsePrototypePaths(process.env.SHARED_PROTOTYPE_PATHS),
+    ].map(normalizePath),
+  ),
+);
 
 function isProductionRequest() {
   if (process.env.VERCEL_ENV) {
@@ -22,10 +37,12 @@ function isProductionRequest() {
   return process.env.NODE_ENV === "production";
 }
 
-function isAllowedProductionPath(pathname: string) {
+export function isAllowedProductionPath(pathname: string) {
   return (
-    pathname === allowedPrototypePath ||
-    pathname.startsWith(`${allowedPrototypePath}/`) ||
+    allowedPrototypePaths.some(
+      (allowedPath) =>
+        pathname === allowedPath || pathname.startsWith(`${allowedPath}/`),
+    ) ||
     pathname.startsWith("/ingest/")
   );
 }
