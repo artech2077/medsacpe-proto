@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { MedscapeAiCurrentScreen } from "@/components/screens/medscape-ai-current-screen";
 import {
-  paidAdsHantavirusFluComparisonAnswer,
+  paidAdsHantavirusFluComparisonCompactAnswer,
   paidAdsHantavirusFluComparisonFollowUpAnswerPreviews,
   paidAdsHantavirusFluComparisonFollowUpQuestionRedirectUrls,
   paidAdsHantavirusFluComparisonFollowUpQuestions,
@@ -47,7 +47,7 @@ export default async function PaidAdsExperience6ChatPage({
       followUpQuestionRedirectUrls={paidAdsHantavirusFluComparisonFollowUpQuestionRedirectUrls}
       hideAnswerFooterAdForFirstTurn
       hideAdImage
-      initialAnswerOverride={paidAdsHantavirusFluComparisonAnswer}
+      initialAnswerOverride={paidAdsHantavirusFluComparisonCompactAnswer}
       initialConversationMode={initialConversationMode}
       initialQuestion={initialQuestion}
       initialQuestionSource={sourceValue ?? "direct_url"}

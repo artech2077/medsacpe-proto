@@ -99,8 +99,28 @@ export const paidAdsHantavirusFluComparisonAnswer = [
   "",
   "- Tempo: influenza has abrupt onset of FLI; hantavirus has a several-day prodrome before sudden decompensation.[1][4]",
   "- Trajectory: hantavirus more characteristically shows precipitous transition from nonspecific febrile illness to shock and noncardiogenic pulmonary edema; severe flu more often evolves from prominent respiratory illness and/or known community flu activity.[1][4][2]",
+].join("\n");
+
+export const paidAdsHantavirusFluComparisonCompactAnswer = [
+  "Key Points",
+  "- Hantavirus prodrome: 3-7 d nonspecific F, GI, myalgia before shock/ARDS",
+  "- Flu: abrupt FLI (fever, cough, myalgia, URT) during community activity",
+  "- Early overlap: fever, headache, myalgia, cough, malaise, N/V/D",
+  "- Hantavirus: rapid progression to hypotension, noncardiogenic pulmonary edema, HCPS; high mortality",
+  "- Severe flu: pneumonia, ARDS, multiorgan complications; lower mortality but major ICU burden",
   "",
-  "Would you like a concise diagnostic approach comparing when to prioritize hantavirus testing versus influenza NAAT in a febrile respiratory patient?",
+  "Both early HCPS and severe influenza can present as febrile, flu-like illness. The useful distinction is less the first symptom and more the onset pattern, exposure context, and trajectory.",
+  "",
+  "Early clinical picture",
+  "- Hantavirus usually has a several-day prodrome with fever, chills, fatigue, headache, myalgias, and gastrointestinal symptoms before cardiopulmonary decompensation.[1][2]",
+  "- Influenza more often begins abruptly with fever, cough, myalgias, malaise, sore throat, congestion, and rhinorrhea during community flu activity.[4]",
+  "- Early overlap includes fever, headache, myalgia, cough, malaise, nausea, vomiting, and diarrhea.",
+  "",
+  "Progression",
+  "- Hantavirus can rapidly transition to hypotension, noncardiogenic pulmonary edema, ARDS, and HCPS after the prodrome.[1][2][5]",
+  "- Severe influenza can cause pneumonia, ARDS, shock, myocarditis, encephalitis, rhabdomyolysis, and multiorgan complications, usually with respiratory symptoms present early.[4]",
+  "",
+  "Practical distinction: influenza is typically abrupt and respiratory-predominant from the start; hantavirus is more concerning when a nonspecific prodrome after a plausible exposure suddenly progresses to dyspnea, hypotension, or pulmonary edema.[1][4]",
 ].join("\n");
 
 export const paidAdsHantavirusFluComparisonKeyPoints = [
