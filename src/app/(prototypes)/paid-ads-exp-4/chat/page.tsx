@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { MedscapeAiCurrentScreen } from "@/components/screens/medscape-ai-current-screen";
 import {
-  paidAdsHantavirusFollowUpQuestionRedirectUrls,
-  paidAdsHantavirusFollowUpQuestions,
-  paidAdsHantavirusInitialQuestion,
+  paidAdsHantavirusFluComparisonAnswer,
+  paidAdsHantavirusFluComparisonFollowUpQuestionRedirectUrls,
+  paidAdsHantavirusFluComparisonFollowUpQuestions,
+  paidAdsHantavirusFluComparisonInitialQuestion,
+  paidAdsHantavirusFluComparisonReferences,
 } from "@/data/paid-ads-hantavirus";
 
 type PaidAdsExperience4ChatPageProps = {
@@ -20,13 +22,13 @@ export default async function PaidAdsExperience4ChatPage({
   const params = await searchParams;
   const modeValue = Array.isArray(params.mode) ? params.mode[0] : params.mode;
   const sourceValue = Array.isArray(params.source) ? params.source[0] : params.source;
-  const initialQuestion = paidAdsHantavirusInitialQuestion;
+  const initialQuestion = paidAdsHantavirusFluComparisonInitialQuestion;
   const initialConversationMode = modeValue === "complete" ? "complete" : "stream";
 
   if (!params.q) {
     redirect(
       `/paid-ads-exp-4/chat?q=${encodeURIComponent(
-        paidAdsHantavirusInitialQuestion,
+        paidAdsHantavirusFluComparisonInitialQuestion,
       )}&mode=complete&source=${encodeURIComponent("direct_url")}`,
     );
   }
@@ -37,12 +39,14 @@ export default async function PaidAdsExperience4ChatPage({
       adPlacement="above-question"
       answerDisclosureVariant="full-answer-fade"
       autoScrollToInitialAd
+      fadedAnswerCollapsedContent="first-paragraph"
       followUpQuestionsPlacement="before-actions"
       followUpQuestionsVariant="chips"
-      followUpQuestionsOverride={paidAdsHantavirusFollowUpQuestions}
-      followUpQuestionRedirectUrls={paidAdsHantavirusFollowUpQuestionRedirectUrls}
+      followUpQuestionsOverride={paidAdsHantavirusFluComparisonFollowUpQuestions}
+      followUpQuestionRedirectUrls={paidAdsHantavirusFluComparisonFollowUpQuestionRedirectUrls}
       hideAnswerFooterAdForFirstTurn
       hideAdImage
+      initialAnswerOverride={paidAdsHantavirusFluComparisonAnswer}
       initialConversationMode={initialConversationMode}
       initialQuestion={initialQuestion}
       initialQuestionSource={sourceValue ?? "direct_url"}
@@ -51,6 +55,7 @@ export default async function PaidAdsExperience4ChatPage({
       keyPointsDefaultExpanded={false}
       keyPointsVariant="collapsed-read-more"
       queryRedirectUrl="https://www.medscape.com/ai-search"
+      referencesOverride={paidAdsHantavirusFluComparisonReferences}
       prototypeRoute="/paid-ads-exp-4"
       referencesDefaultExpanded
     />

@@ -1,10 +1,15 @@
 "use client";
 
-import { AiResponseAnswerContent } from "@/components/medscape/ai-response/answer-content";
+import {
+  AiResponseAnswerContent,
+  buildAnswerBlocks,
+  splitLeadingKeyPoints,
+} from "@/components/medscape/ai-response/answer-content";
 import type { AiAnswerReference } from "@/data/ai-response";
 
 type AiResponseFadedAnswerPreviewProps = {
   answer: string;
+  collapsedContent?: "default" | "first-paragraph";
   expanded: boolean;
   fullAnswer: string;
   learnMoreLabel?: string;
@@ -12,23 +17,40 @@ type AiResponseFadedAnswerPreviewProps = {
   references: AiAnswerReference[];
 };
 
+function getFirstBodyParagraph(answer: string) {
+  const { body } = splitLeadingKeyPoints(answer);
+  const firstParagraph = buildAnswerBlocks(body).find((block) => block.type === "paragraph");
+
+  return firstParagraph?.text ?? body.trim();
+}
+
 export function AiResponseFadedAnswerPreview({
   answer,
+  collapsedContent = "default",
   expanded,
   fullAnswer,
   learnMoreLabel = "Read more",
   onExpandedChange,
   references,
 }: AiResponseFadedAnswerPreviewProps) {
+  const showFirstParagraphPreview = !expanded && collapsedContent === "first-paragraph";
+  const previewAnswer = showFirstParagraphPreview ? getFirstBodyParagraph(answer) : answer;
+
   return (
     <div>
-      <div className={expanded ? undefined : "relative max-h-[4.35em] overflow-hidden"}>
+      <div
+        className={
+          expanded || showFirstParagraphPreview
+            ? undefined
+            : "relative max-h-[4.35em] overflow-hidden"
+        }
+      >
         <AiResponseAnswerContent
-          answer={answer}
+          answer={previewAnswer}
           fullAnswer={fullAnswer}
           references={references}
         />
-        {!expanded ? (
+        {!expanded && !showFirstParagraphPreview ? (
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 bottom-0 h-[1.7em] bg-gradient-to-t from-white via-white/80 to-white/0"

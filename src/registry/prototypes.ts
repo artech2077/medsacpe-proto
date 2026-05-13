@@ -102,9 +102,9 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   },
   {
     description:
-      "Medscape AI paid-ads experience 2 duplicated with Key Points labeling and a Read more expansion action.",
+      "Medscape AI paid-ads experience with a hantavirus versus severe influenza question, Key Points labeling, and a Read more expansion action.",
     entryRoute:
-      "/paid-ads-exp-3/chat?q=For%20a%20patient%20with%20BP%20134%2F84%2C%20when%20should%20I%20start%20hypertension%20medication%20under%20the%202025%20guideline%3F&mode=complete&source=workspace_card",
+      "/paid-ads-exp-3/chat?q=How%20do%20early%20hantavirus%20symptoms%20compare%20with%20severe%20influenza%3F&mode=complete&source=workspace_card",
     route: "/paid-ads-exp-3",
     slug: "paid-ads-exp-3",
     status: "active",
@@ -113,9 +113,9 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   },
   {
     description:
-      "Medscape AI paid-ads experience 2 duplicated without the summary block, showing a faded three-line answer preview with a learn more expansion action.",
+      "Medscape AI paid-ads experience with a hantavirus versus severe influenza question and a faded three-line answer preview with a learn more expansion action.",
     entryRoute:
-      "/paid-ads-exp-4/chat?q=For%20a%20patient%20with%20BP%20134%2F84%2C%20when%20should%20I%20start%20hypertension%20medication%20under%20the%202025%20guideline%3F&mode=complete&source=workspace_card",
+      "/paid-ads-exp-4/chat?q=How%20do%20early%20hantavirus%20symptoms%20compare%20with%20severe%20influenza%3F&mode=complete&source=workspace_card",
     route: "/paid-ads-exp-4",
     slug: "paid-ads-exp-4",
     status: "active",
@@ -124,9 +124,9 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   },
   {
     description:
-      "Medscape AI paid-ads experience 2 duplicated with a faded three-line answer preview and accordion follow-up previews.",
+      "Medscape AI paid-ads experience with a hantavirus versus severe influenza question, a faded three-line answer preview, and accordion follow-up previews.",
     entryRoute:
-      "/paid-ads-exp-5/chat?q=For%20a%20patient%20with%20BP%20134%2F84%2C%20when%20should%20I%20start%20hypertension%20medication%20under%20the%202025%20guideline%3F&mode=complete&source=workspace_card",
+      "/paid-ads-exp-5/chat?q=How%20do%20early%20hantavirus%20symptoms%20compare%20with%20severe%20influenza%3F&mode=complete&source=workspace_card",
     route: "/paid-ads-exp-5",
     slug: "paid-ads-exp-5",
     status: "active",
@@ -135,9 +135,9 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   },
   {
     description:
-      "Medscape AI paid-ads experience 5 duplicated with the full shortened answer shown without the answer Read more action.",
+      "Medscape AI paid-ads experience with the full hantavirus versus severe influenza answer shown without the answer Read more action.",
     entryRoute:
-      "/paid-ads-exp-6/chat?q=How%20to%20manage%20possible%20hantavirus%20exposure%3F&mode=complete&source=workspace_card",
+      "/paid-ads-exp-6/chat?q=How%20do%20early%20hantavirus%20symptoms%20compare%20with%20severe%20influenza%3F&mode=complete&source=workspace_card",
     route: "/paid-ads-exp-6",
     slug: "paid-ads-exp-6",
     status: "active",

@@ -71,6 +71,9 @@ const PAID_ADS_ROUTES = new Set([
 const PAID_ADS_ENGAGEMENT_MILESTONES_SECONDS = [5, 15, 30, 60, 120] as const;
 const PAID_ADS_SCROLL_DEPTH_MILESTONES = [25, 50, 75, 90, 100] as const;
 const PAID_ADS_USER_SCROLL_INPUT_WINDOW_MS = 2000;
+const PAID_ADS_VIEWPORT_SCROLL_THRESHOLD = 1.5;
+
+type PaidAdsScrollDirection = "down" | "up";
 
 type ChatTurnStatus = "preparing" | "streaming" | "complete";
 
@@ -90,6 +93,7 @@ type MedscapeAiCurrentScreenAdPlacement =
 
 type MedscapeAiCurrentAnswerVariant = "default" | "summary-read-more";
 type MedscapeAiCurrentAnswerDisclosureVariant = "key-points-summary" | "full-answer-fade";
+type MedscapeAiCurrentFadedAnswerCollapsedContent = "default" | "first-paragraph";
 type MedscapeAiCurrentFollowUpPlacement = "supporting-content" | "before-actions";
 
 type MedscapeAiCurrentScreenProps = {
@@ -99,6 +103,7 @@ type MedscapeAiCurrentScreenProps = {
   answerVariant?: MedscapeAiCurrentAnswerVariant;
   autoScrollToInitialAd?: boolean;
   composerPlaceholder?: string;
+  fadedAnswerCollapsedContent?: MedscapeAiCurrentFadedAnswerCollapsedContent;
   followUpQuestionAnswerPreviews?: Record<string, string>;
   followUpQuestionsShowReadMore?: boolean;
   followUpQuestionsPlacement?: MedscapeAiCurrentFollowUpPlacement;
@@ -121,6 +126,7 @@ type MedscapeAiCurrentScreenProps = {
   learnMoreLabel?: string;
   prototypeRoute?: string;
   queryRedirectUrl?: string;
+  referencesOverride?: AiAnswerReference[];
   referencesDefaultExpanded?: boolean;
   showHistoryAction?: boolean;
   summaryOverride?: string;
@@ -280,6 +286,7 @@ export function MedscapeAiCurrentScreen({
   answerVariant = "default",
   autoScrollToInitialAd = false,
   composerPlaceholder = "Ask anything",
+  fadedAnswerCollapsedContent = "default",
   followUpQuestionAnswerPreviews,
   followUpQuestionsShowReadMore = true,
   followUpQuestionsPlacement = "supporting-content",
@@ -302,6 +309,7 @@ export function MedscapeAiCurrentScreen({
   learnMoreLabel = "Read more",
   prototypeRoute = "/medscape-ai-current",
   queryRedirectUrl,
+  referencesOverride,
   referencesDefaultExpanded = false,
   showHistoryAction = true,
   summaryOverride,
@@ -322,7 +330,15 @@ export function MedscapeAiCurrentScreen({
   const paidAdsStartedAtRef = useRef<number | null>(null);
   const paidAdsEngagementTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const paidAdsTrackedScrollDepthsRef = useRef(new Set<number>());
+  const paidAdsTrackedViewportScrollMilestonesRef = useRef(
+    new Set<`${PaidAdsScrollDirection}:${number}`>(),
+  );
   const paidAdsMaxScrollDepthRef = useRef(0);
+  const paidAdsLastScrollTopRef = useRef<number | null>(null);
+  const paidAdsViewportScrollDistancesRef = useRef<Record<PaidAdsScrollDirection, number>>({
+    down: 0,
+    up: 0,
+  });
   const paidAdsLastUserScrollInputAtRef = useRef<number | null>(null);
   const paidAdsComposerStartedRef = useRef(false);
   const paidAdsQuestionSubmittedRef = useRef(false);
@@ -556,17 +572,22 @@ export function MedscapeAiCurrentScreen({
   const buildSupportingContent = useCallback(
     (question: string): AiAnswerSupportingContent => {
       const supportingContent = buildMockAnswerSupportingContent(question);
+      const shouldUseInitialQuestionOverrides = question === initialQuestion;
 
-      if (!followUpQuestionsOverride) {
+      if (!followUpQuestionsOverride && !referencesOverride) {
         return supportingContent;
       }
 
       return {
         ...supportingContent,
-        followUpQuestions: followUpQuestionsOverride,
+        followUpQuestions: followUpQuestionsOverride ?? supportingContent.followUpQuestions,
+        references:
+          referencesOverride && shouldUseInitialQuestionOverrides
+            ? referencesOverride
+            : supportingContent.references,
       };
     },
-    [followUpQuestionsOverride],
+    [followUpQuestionsOverride, initialQuestion, referencesOverride],
   );
   const buildAnswerText = useCallback(
     (question: string) =>
@@ -1014,13 +1035,62 @@ export function MedscapeAiCurrentScreen({
     const responseScroll = responseScrollRef.current;
     if (!responseScroll) return;
 
+    paidAdsLastScrollTopRef.current = responseScroll.scrollTop;
+
     const trackScrollDepth = () => {
+      const currentScrollTop = responseScroll.scrollTop;
+      const previousScrollTop = paidAdsLastScrollTopRef.current ?? currentScrollTop;
+      const scrollDelta = currentScrollTop - previousScrollTop;
+      paidAdsLastScrollTopRef.current = currentScrollTop;
+
       const lastUserInputAt = paidAdsLastUserScrollInputAtRef.current;
       const isUserInitiated =
         lastUserInputAt !== null &&
         performance.now() - lastUserInputAt <= PAID_ADS_USER_SCROLL_INPUT_WINDOW_MS;
 
       if (!isUserInitiated) return;
+
+      if (scrollDelta !== 0) {
+        const scrollDirection: PaidAdsScrollDirection = scrollDelta > 0 ? "down" : "up";
+        paidAdsViewportScrollDistancesRef.current[scrollDirection] += Math.abs(scrollDelta);
+
+        const viewportThresholdPx =
+          responseScroll.clientHeight * PAID_ADS_VIEWPORT_SCROLL_THRESHOLD;
+        const reachedMilestoneCount =
+          viewportThresholdPx > 0
+            ? Math.floor(
+                paidAdsViewportScrollDistancesRef.current[scrollDirection] /
+                  viewportThresholdPx,
+              )
+            : 0;
+
+        for (
+          let milestoneIndex = 1;
+          milestoneIndex <= reachedMilestoneCount;
+          milestoneIndex += 1
+        ) {
+          const milestoneKey = `${scrollDirection}:${milestoneIndex}` as const;
+
+          if (paidAdsTrackedViewportScrollMilestonesRef.current.has(milestoneKey)) {
+            continue;
+          }
+
+          paidAdsTrackedViewportScrollMilestonesRef.current.add(milestoneKey);
+          captureAnalyticsEvent(`viewport_scroll_${milestoneIndex}`, {
+            ...paidAdsAnalytics,
+            scroll_container: "chat_response",
+            scroll_direction: scrollDirection,
+            scroll_distance_px: Math.round(
+              paidAdsViewportScrollDistancesRef.current[scrollDirection],
+            ),
+            scroll_milestone_index: milestoneIndex,
+            scroll_source: "user",
+            viewport_height_px: responseScroll.clientHeight,
+            viewport_multiple: PAID_ADS_VIEWPORT_SCROLL_THRESHOLD * milestoneIndex,
+            viewport_step_multiple: PAID_ADS_VIEWPORT_SCROLL_THRESHOLD,
+          });
+        }
+      }
 
       const contentHeight = Math.max(
         responseScroll.scrollHeight - CHAT_BOTTOM_CONTENT_PADDING_PX - bottomSpacerHeight,
@@ -1541,6 +1611,7 @@ export function MedscapeAiCurrentScreen({
                       ) : turn.answer && isFullAnswerFadeDisclosure ? (
                         <AiResponseFadedAnswerPreview
                           answer={turn.answer}
+                          collapsedContent={fadedAnswerCollapsedContent}
                           expanded={isFullAnswerExpanded}
                           fullAnswer={turn.fullAnswer}
                           learnMoreLabel={learnMoreLabel}
