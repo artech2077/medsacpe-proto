@@ -41,7 +41,6 @@ export default async function PaidAdsExperience6ChatPage({
       autoScrollToInitialAd
       followUpQuestionAnswerPreviews={paidAdsHantavirusFluComparisonFollowUpAnswerPreviews}
       followUpQuestionsPlacement="before-actions"
-      followUpQuestionsShowReadMore={false}
       followUpQuestionsVariant="accordion-preview"
       followUpQuestionsOverride={paidAdsHantavirusFluComparisonFollowUpQuestions}
       followUpQuestionRedirectUrls={paidAdsHantavirusFluComparisonFollowUpQuestionRedirectUrls}
