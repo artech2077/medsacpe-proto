@@ -1,6 +1,7 @@
 import { AnalyticsLink } from "@/components/analytics/analytics-link";
 import { AnalyticsMountEvent } from "@/components/analytics/analytics-mount-event";
 import { getPrototypeFamily, prototypeRegistry } from "@/registry/prototypes";
+import { DRUG_CONCEPTS } from "@/data/drug-concepts";
 
 export default function Home() {
   const activePrototypeCount = prototypeRegistry.filter(
@@ -44,6 +45,57 @@ export default function Home() {
                 >
                   Open gallery
                 </AnalyticsLink>
+            </div>
+          </article>
+
+          {/* AI Drug Search family card */}
+          <article className="flex min-h-[320px] flex-col justify-between rounded-[32px] border border-white/80 bg-[linear-gradient(135deg,#e8f0fd_0%,#f0f6ff_100%)] p-7 shadow-[0_24px_60px_rgba(6,74,167,0.10)] backdrop-blur-xl">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--mscp-color-brand-primary)]">
+                Drug Monograph Concepts
+              </p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-[var(--text-primary)]">
+                AI Drug Search
+              </h2>
+              <p className="mt-4 max-w-sm text-base leading-7 text-[var(--text-secondary)]">
+                Eight UX concepts for integrating the canonical drug monograph into Medscape AI chat.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                {DRUG_CONCEPTS.map((concept) => (
+                  <AnalyticsLink
+                    key={concept.letter}
+                    href={concept.route}
+                    eventName="drug_concept_chip_clicked"
+                    eventProperties={{
+                      concept_letter: concept.letter,
+                      destination_route: concept.route,
+                      screen_type: "workspace_home",
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(6,74,167,0.18)] bg-white/70 px-3 py-1.5 text-[12px] font-semibold text-[var(--mscp-color-brand-primary)] transition hover:bg-white"
+                  >
+                    <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[var(--mscp-color-brand-primary)] text-[9px] font-bold text-white">
+                      {concept.letter}
+                    </span>
+                    {concept.label}
+                  </AnalyticsLink>
+                ))}
+              </div>
+            </div>
+            <div className="mt-8 flex items-center justify-between gap-4 border-t border-[rgba(6,74,167,0.10)] pt-6">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+                /drug-concept-a → /drug-concept-h
+              </span>
+              <AnalyticsLink
+                href="/drug-concept-a"
+                eventName="drug_concepts_opened"
+                eventProperties={{
+                  destination_route: "/drug-concept-a",
+                  screen_type: "workspace_home",
+                }}
+                className="inline-flex items-center rounded-full bg-[var(--mscp-color-brand-primary)] px-5 py-3 text-sm font-semibold !text-white shadow-[0_16px_30px_rgba(6,74,167,0.18)] transition hover:bg-[#0b5cc9] hover:!text-white visited:!text-white"
+              >
+                Explore concepts
+              </AnalyticsLink>
             </div>
           </article>
 

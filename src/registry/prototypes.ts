@@ -11,6 +11,7 @@ export type PrototypeDefinition = {
 export function getPrototypeFamily(prototype: Pick<PrototypeDefinition, "tags">) {
   if (prototype.tags?.includes("paid-ads")) return "paid-ads";
   if (prototype.tags?.includes("current-ui")) return "medscape-ai-current";
+  if (prototype.tags?.includes("drug-concept")) return "drug-concept";
   return "ai-response";
 }
 
@@ -161,5 +162,77 @@ export const prototypeRegistry: PrototypeDefinition[] = [
     status: "active",
     tags: ["medscape-ai", "current-ui", "drug-reference"],
     title: "Drug AI tables",
+  },
+  {
+    description:
+      "Chat reply renders as a rich dashboard card — a compact grid of clinical zone tiles (Dosing, Safety, Interactions, Renal/Hepatic, Adverse). Tap a tile to expand in place. Deterministic; no synthesized prose.",
+    route: "/drug-concept-a",
+    slug: "drug-concept-a",
+    status: "active",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept A — Inline Clinical Dashboard Card",
+  },
+  {
+    description:
+      "Chat reply gives a one-line pointer and an Open monograph button that launches a side canvas scrolled to the exact subfield anchor. The conversation stays live alongside.",
+    route: "/drug-concept-b",
+    slug: "drug-concept-b",
+    status: "draft",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept B — Expandable Monograph Canvas",
+  },
+  {
+    description:
+      "Single chat message with a nested accordion: sections collapsed to one-line summaries, expanding to subfields, expanding to verbatim canonical body. Sticky jump bar at the top.",
+    route: "/drug-concept-c",
+    slug: "drug-concept-c",
+    status: "draft",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept C — Progressive Accordion Answer",
+  },
+  {
+    description:
+      "Bare drug query returns a useful default card plus a row of clinical task chips (AFib dosing, DVT/PE, Renal, Interactions, Perioperative). Tapping a chip re-sequences the answer for that task.",
+    route: "/drug-concept-d",
+    slug: "drug-concept-d",
+    status: "draft",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept D — Workflow Mode (Intent Chips)",
+  },
+  {
+    description:
+      "Each reply carries top-of-message tabs: Answer (AI-synthesized, cited) · Drug Information (monograph card with sub-tabs) · References. Citation chips jump to the exact subfield.",
+    route: "/drug-concept-e",
+    slug: "drug-concept-e",
+    status: "draft",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept E — Answer + Drug Card Tabs",
+  },
+  {
+    description:
+      "Instant deterministic card — drug name, Black Box Warning, and verbatim key fields — with no AI prose in the first state. Ask AI is opt-in as a clearly-labeled next turn.",
+    route: "/drug-concept-f",
+    slug: "drug-concept-f",
+    status: "draft",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept F — Instant Deterministic Answer Card",
+  },
+  {
+    description:
+      "Natural back-and-forth conversation with a canonical drug card pinned alongside as a persistent rail. Every claim links into the matching subfield in the rail.",
+    route: "/drug-concept-g",
+    slug: "drug-concept-g",
+    status: "draft",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept G — Conversational Thread + Pinned Drug Rail",
+  },
+  {
+    description:
+      "Mobile-first drug chat reply: field-switcher chip strip (Dosing / Warnings / Interactions / Renal) with each field opening a bottom sheet over the thread. Swipe to dismiss.",
+    route: "/drug-concept-h",
+    slug: "drug-concept-h",
+    status: "draft",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept H — Mobile-First Chat Answer",
   },
 ];

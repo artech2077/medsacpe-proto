@@ -3,6 +3,7 @@
 
 type AiTopRailActionProps = {
   className?: string;
+  compact?: boolean;
   iconClassName?: string;
   iconSrc: string;
   label: string;
@@ -13,6 +14,7 @@ type AiTopRailActionProps = {
 
 export function AiTopRailAction({
   className,
+  compact,
   iconClassName,
   iconSrc,
   label,
@@ -40,7 +42,7 @@ export function AiTopRailAction({
         aria-hidden="true"
         className={iconClassName ?? (isTextVariant ? "h-4 w-4 object-contain" : "h-[18px] w-[18px] object-contain")}
       />
-      <span className={showLabel ? "inline" : "hidden md:inline"}>{label}</span>
+      <span className={compact ? "hidden" : showLabel ? "inline" : "hidden md:inline"}>{label}</span>
     </button>
   );
 }
