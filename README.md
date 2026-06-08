@@ -45,15 +45,7 @@ Use the prompt templates in `docs/codex-figma-prompts.md`. The required order is
 - Push the repo to GitHub/GitLab (private is fine)
 - Import to Vercel and use preview deployments for stakeholder sharing
 
-## Production sharing guard
+## Production access
 
-Production requests are restricted to one prototype route by `src/proxy.ts`.
-Set `SHARED_PROTOTYPE_PATH` in Vercel production environment variables to the
-prototype route you want to share, for example:
-
-```bash
-SHARED_PROTOTYPE_PATH=/paid-ads-exp
-```
-
-In production, `/`, `/gallery`, and other prototype routes return `404`.
-Local development and Vercel preview deployments stay open for workspace use.
+Production, local development, and Vercel preview deployments all allow access
+to every prototype route and gallery page.

@@ -50,11 +50,9 @@ CSS custom properties (tokens) live in `src/styles/tokens.css` — these are map
 
 Fonts are configured in `src/styles/fonts.ts` using `next/font/google` (Nunito Sans + Geist Mono) and exposed as CSS variables `--font-prototype-sans` and `--font-prototype-mono`.
 
-### Production access guard
+### Production access
 
-`src/proxy.ts` (used in `middleware.ts`) restricts production deployments to a specific set of prototype routes. All other routes return 404 in production. To share a prototype:
-- Set `SHARED_PROTOTYPE_PATH` (single) or `SHARED_PROTOTYPE_PATHS` (comma-separated) in Vercel production environment variables.
-- Local dev and Vercel preview deployments are always fully open.
+`src/proxy.ts` allows production, local development, and Vercel preview deployments to access every prototype route and gallery page.
 
 ### Analytics
 
