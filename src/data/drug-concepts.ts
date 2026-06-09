@@ -1,6 +1,6 @@
 // Concept family definition — no client directive so it can be imported in both server and client components.
 
-export type DrugConceptLetter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H";
+export type DrugConceptLetter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I";
 
 export type DrugConceptDefinition = {
   description: string;
@@ -74,5 +74,13 @@ export const DRUG_CONCEPTS: DrugConceptDefinition[] = [
     letter: "H",
     route: "/drug-concept-h",
     title: "Concept H — Mobile-First Chat Answer",
+  },
+  {
+    description:
+      "Combines E and C: each reply carries Answer · Drug Information · References tabs, but the Drug Information tab shows the full progressive accordion (from Concept C) instead of bounded sub-tabs.",
+    label: "Tabs + Accordion",
+    letter: "I",
+    route: "/drug-concept-i",
+    title: "Concept I — Answer Tabs + Accordion Drug Info",
   },
 ];

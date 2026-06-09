@@ -98,7 +98,8 @@ function SubfieldRow({
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="group/sf flex w-full items-start gap-2.5 rounded-[9px] px-2 py-2 text-left transition-colors hover:bg-[#f5f8fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
+        style={{ touchAction: "manipulation" }}
+        className="group/sf flex w-full items-start gap-2.5 rounded-[9px] px-2 py-2.5 text-left transition-colors hover:bg-[#f5f8fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
       >
         <span
           className="mt-[5px] h-2 w-2 shrink-0 rounded-full transition-colors"
@@ -136,9 +137,9 @@ function SubfieldRow({
         <ClinicalChevron className="mt-1 h-3.5 w-3.5" open={open} />
       </button>
 
-      <div className="dc-collapse ml-[18px]" data-open={open}>
+      <div className="dc-collapse ml-2" data-open={open}>
         <div className="dc-collapse-inner">
-          <div className="mb-1 mt-1 rounded-[9px] border border-[#e3ebf4] bg-white px-3.5 py-3">
+          <div className="mb-1 mt-1 rounded-[9px] border border-[#e3ebf4] bg-white px-3 py-2.5">
             <AiResponseAnswerContent
               answer={answer}
               className="text-[13.5px] leading-[1.6] text-[#2e3d4a] [font-variant-numeric:tabular-nums]"
@@ -159,6 +160,7 @@ function SectionRow({
   index,
   isMatched,
   matchedSubfieldId,
+  onOpenMonograph,
   onToggleSection,
   onToggleSubfield,
   open,
@@ -169,6 +171,7 @@ function SectionRow({
   index: number;
   isMatched: boolean;
   matchedSubfieldId?: string;
+  onOpenMonograph?: (subfieldId: string) => void;
   onToggleSection: () => void;
   onToggleSubfield: (subfieldId: string) => void;
   open: boolean;
@@ -194,7 +197,8 @@ function SectionRow({
         type="button"
         onClick={onToggleSection}
         aria-expanded={open}
-        className="flex w-full items-start gap-3 px-3.5 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
+        style={{ touchAction: "manipulation" }}
+        className="flex w-full items-start gap-3 px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
       >
         <span
           className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px]"
@@ -203,7 +207,7 @@ function SectionRow({
           <ClinicalZoneIcon className="h-[18px] w-[18px]" sectionId={section.id} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-2">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="text-[13.5px] font-bold leading-snug text-[#1c2227]">
               {section.title}
             </span>
@@ -220,7 +224,7 @@ function SectionRow({
             )}
           </span>
           {!open && topSubfield && (
-            <span className="mt-0.5 line-clamp-1 block text-[12px] leading-[1.45] text-[#5a6e7e] [font-variant-numeric:tabular-nums]">
+            <span className="mt-0.5 line-clamp-2 block text-[12px] leading-[1.45] text-[#5a6e7e] [font-variant-numeric:tabular-nums]">
               {topSubfield.summary}
             </span>
           )}
@@ -245,29 +249,32 @@ function SectionRow({
               ))}
             </ul>
 
-            {/* Full monograph link — routes to Concept B canvas anchored at
-                this section's first subfield so the user lands in the right place. */}
             {topSubfield && (
               <div className="mt-2 border-t border-[#eef3f8] pt-2">
-                <a
-                  href={`/drug-concept-b?anchor=${topSubfield.id}`}
-                  style={{ color: accent.fg }}
-                  className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11.5px] font-semibold transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
-                >
-                  <svg
-                    viewBox="0 0 16 16"
-                    aria-hidden="true"
-                    className="h-3.5 w-3.5 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.6"
+                {onOpenMonograph ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpenMonograph(topSubfield.id)}
+                    style={{ color: accent.fg, touchAction: "manipulation" }}
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[11.5px] font-semibold transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
                   >
-                    <path d="M3 8h10M9 4l4 4-4 4" />
-                  </svg>
-                  Full {section.title} in monograph
-                </a>
+                    <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6">
+                      <path d="M3 8h10M9 4l4 4-4 4" />
+                    </svg>
+                    Full {section.title} in monograph
+                  </button>
+                ) : (
+                  <a
+                    href={`/drug-concept-b?anchor=${topSubfield.id}`}
+                    style={{ color: accent.fg, touchAction: "manipulation" }}
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[11.5px] font-semibold transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
+                  >
+                    <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6">
+                      <path d="M3 8h10M9 4l4 4-4 4" />
+                    </svg>
+                    Full {section.title} in monograph
+                  </a>
+                )}
               </div>
             )}
           </div>
@@ -281,11 +288,14 @@ function SectionRow({
 type DrugMonographAccordionProps = {
   matchedSubfieldId?: string;
   monograph: DrugMonograph;
+  /** When provided, "Full X in monograph" section links call this instead of navigating to Concept B. */
+  onOpenMonograph?: (subfieldId: string) => void;
 };
 
 export function DrugMonographAccordion({
   matchedSubfieldId,
   monograph,
+  onOpenMonograph,
 }: DrugMonographAccordionProps) {
   const matchedSection = matchedSubfieldId
     ? getSectionBySubfieldId(monograph, matchedSubfieldId)
@@ -352,33 +362,10 @@ export function DrugMonographAccordion({
   }, []);
 
   return (
-    <div className="dc-rise rounded-[18px] border border-[#dde6f0] bg-[linear-gradient(180deg,#fbfdff_0%,#f4f8fc_100%)] shadow-[0_2px_8px_rgba(16,24,40,0.05)]">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#7d8ea0]">
-            Drug Reference
-          </p>
-          <div className="mt-0.5 flex flex-wrap items-center gap-2">
-            <h3
-              className="text-[19px] font-extrabold leading-tight tracking-[-0.01em] text-[#161b1d]"
-              translate="no"
-            >
-              {monograph.drug.name}
-            </h3>
-            <span className="rounded-full border border-[rgba(6,74,167,0.2)] bg-[rgba(6,74,167,0.05)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--mscp-color-brand-primary)]">
-              {monograph.drug.drugClass}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Sticky jump bar — chips scroll to a section and expand it. */}
-      <div className="sticky top-0 z-10 mt-3 border-y border-[#e4ebf3] bg-white/85 px-3 py-2 backdrop-blur-sm">
+    <div className="dc-rise">
+      {/* Sticky jump bar — floats as a pill row, no borders */}
+      <div className="sticky top-0 z-10 bg-white/90 pb-3 backdrop-blur-sm">
         <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <span className="shrink-0 pr-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#9aa9b8]">
-            Jump
-          </span>
           {monograph.sections.map((section) => {
             const accent = getZoneAccent(section.id);
             const isMatched = matchedSection?.id === section.id;
@@ -388,11 +375,12 @@ export function DrugMonographAccordion({
                 type="button"
                 onClick={() => jumpToSection(section.id)}
                 style={{
+                  touchAction: "manipulation",
                   backgroundColor: isMatched ? accent.tint : "transparent",
                   borderColor: isMatched ? accent.fg : "#dbe4ee",
                   color: isMatched ? accent.fg : "#3a4f6b",
                 }}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] font-semibold leading-none transition-colors hover:bg-[#f1f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11.5px] font-semibold leading-none transition-colors hover:bg-[#f1f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
               >
                 <span
                   className="h-1.5 w-1.5 rounded-full"
@@ -408,13 +396,13 @@ export function DrugMonographAccordion({
 
       {/* Boxed warning — always eager and pinned, never collapsed. */}
       {monograph.blackBoxWarnings.length > 0 && (
-        <div className="px-4 pt-3">
+        <div className="pt-3">
           <ClinicalBoxedWarning warnings={monograph.blackBoxWarnings} />
         </div>
       )}
 
       {/* Section accordion rows */}
-      <div className="space-y-2 px-3 pb-3 pt-3 sm:px-4">
+      <div className="space-y-2 pb-2 pt-4">
         {monograph.sections.map((section, index) => (
           <SectionRow
             key={section.id}
@@ -422,6 +410,7 @@ export function DrugMonographAccordion({
             index={index}
             isMatched={matchedSection?.id === section.id}
             matchedSubfieldId={matchedSubfieldId}
+            onOpenMonograph={onOpenMonograph}
             onToggleSection={() => toggleSection(section.id)}
             onToggleSubfield={toggleSubfield}
             open={expandedSections.has(section.id)}
@@ -431,13 +420,11 @@ export function DrugMonographAccordion({
         ))}
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center gap-3 rounded-b-[18px] border-t border-[#e4ebf3] bg-white/60 px-4 py-3">
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#7d8ea0]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a]" aria-hidden="true" />
-          Verbatim from Drug Reference — no AI synthesis
-        </span>
-      </div>
+      {/* Inline source label */}
+      <p className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-medium text-[#9aa9b8]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a]" aria-hidden="true" />
+        Verbatim from Drug Reference — no AI synthesis
+      </p>
     </div>
   );
 }

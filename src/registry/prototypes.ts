@@ -235,4 +235,13 @@ export const prototypeRegistry: PrototypeDefinition[] = [
     tags: ["medscape-ai", "drug-reference", "drug-concept"],
     title: "Concept H — Mobile-First Chat Answer",
   },
+  {
+    description:
+      "Combines E and C: each reply carries Answer · Drug Information · References tabs, but the Drug Information tab shows the full progressive accordion instead of bounded sub-tabs. Citation chips expand the matching section.",
+    route: "/drug-concept-i",
+    slug: "drug-concept-i",
+    status: "draft",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept I — Answer Tabs + Accordion Drug Info",
+  },
 ];

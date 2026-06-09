@@ -10,6 +10,7 @@ import {
   ClinicalZoneIcon,
   getZoneAccent,
 } from "@/components/medscape/drug-concepts/clinical-system";
+import { DrugMonographAccordion } from "@/components/medscape/drug-concepts/monograph-accordion";
 import type { AiAnswerReference } from "@/data/ai-response";
 import type { DrugMonograph, DrugSynthesizedAnswer } from "@/data/drug-monograph";
 
@@ -197,7 +198,15 @@ export type DrugAnswerTabsProps = {
     screenType?: string;
     turnId?: number;
   };
+  /** Controls how drug info is shown in the Drug Information tab.
+   * "tabs" (default) = bounded sub-tabs panel (Concept E).
+   * "accordion" = full progressive accordion (Concept C style). */
+  drugInfoMode?: "tabs" | "accordion";
+  /** Accordion mode only: pre-expands the accordion to this subfield on mount (matched from the query). */
+  initialAccordionAnchor?: string;
   monograph: DrugMonograph;
+  /** Accordion mode only: called when the user clicks a "Full X in monograph" section link. Opens the side canvas. */
+  onOpenMonograph?: (subfieldId: string) => void;
   question: string;
   references: AiAnswerReference[];
   synthesizedAnswer: DrugSynthesizedAnswer;
@@ -210,7 +219,10 @@ export type DrugAnswerTabsProps = {
 // the exact subfield in the Drug Information tab (no tooltip popup).
 export function DrugAnswerTabs({
   analyticsContext,
+  drugInfoMode = "tabs",
+  initialAccordionAnchor,
   monograph,
+  onOpenMonograph,
   question,
   references,
   synthesizedAnswer,
@@ -222,6 +234,10 @@ export function DrugAnswerTabs({
     null,
   );
   const [pendingAnchor, setPendingAnchor] = useState<string | null>(null);
+  // Accordion mode: starts at the query-matched subfield; updated on citation clicks.
+  const [accordionAnchor, setAccordionAnchor] = useState<string | null>(
+    initialAccordionAnchor ?? null,
+  );
 
   const drugInfoScrollRef = useRef<HTMLDivElement>(null);
   const subfieldRefs = useRef(new Map<string, HTMLElement>());
@@ -269,6 +285,12 @@ export function DrugAnswerTabs({
 
   const navigateToCitation = useCallback(
     (anchor: string) => {
+      if (drugInfoMode === "accordion") {
+        setActiveTab("drug-info");
+        setAccordionAnchor(anchor);
+        return;
+      }
+
       const section = monograph.sections.find((s) =>
         s.subfields.some((sf) => sf.id === anchor),
       );
@@ -284,7 +306,7 @@ export function DrugAnswerTabs({
       setActiveDrugInfoSubTab(subTab);
       setPendingAnchor(anchor);
     },
-    [monograph],
+    [drugInfoMode, monograph],
   );
 
   const scrollToSubfield = useCallback((id: string) => {
@@ -357,7 +379,7 @@ export function DrugAnswerTabs({
             : `View full ${monograph.drug.name} references`;
 
   return (
-    <div className="overflow-hidden rounded-[18px] border border-[rgba(109,153,206,0.28)] bg-white shadow-[0_2px_18px_rgba(6,74,167,0.08)]">
+    <div className="dc-rise overflow-hidden">
       {/* ── Message-level tab bar ─────────────────────────── */}
       <TabBar
         tabs={MESSAGE_TABS}
@@ -405,8 +427,25 @@ export function DrugAnswerTabs({
         </div>
       ) : null}
 
-      {/* ── Drug Information tab ──────────────────────────── */}
-      {activeTab === "drug-info" ? (
+      {/* ── Drug Information tab — accordion mode (Concept I) ── */}
+      {activeTab === "drug-info" && drugInfoMode === "accordion" ? (
+        <div
+          id="panel-drug-info"
+          role="tabpanel"
+          aria-labelledby="tab-drug-info"
+          className="p-4 md:p-5"
+        >
+          <DrugMonographAccordion
+            key={accordionAnchor ?? "default"}
+            matchedSubfieldId={accordionAnchor ?? undefined}
+            monograph={monograph}
+            onOpenMonograph={onOpenMonograph}
+          />
+        </div>
+      ) : null}
+
+      {/* ── Drug Information tab — sub-tabs mode (Concept E default) ── */}
+      {activeTab === "drug-info" && drugInfoMode !== "accordion" ? (
         <div
           id="panel-drug-info"
           role="tabpanel"
