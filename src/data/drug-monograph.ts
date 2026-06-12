@@ -1,5 +1,5 @@
-// Drug Response Contract — typed mock for apixaban.
-// All eight Drug Concept prototypes (A–H) read from this module.
+// Drug Response Contract — typed mock data for drug concept prototypes.
+// Exports apixaban monograph plus a DRUG_MONOGRAPH_REGISTRY for multi-drug support.
 // Do NOT inline drug strings in screen or component files.
 
 export type DrugMonographSource = {
@@ -457,6 +457,11 @@ export const apixabanMonograph: DrugMonograph = {
     },
   ],
 };
+
+// ─── Multi-drug registry ──────────────────────────────────────────────────────
+// Populated lazily via re-exports in drug-monograph-registry.ts to avoid
+// circular imports. Concept I and other multi-drug prototypes import from there.
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function getSubfieldById(
   monograph: DrugMonograph,

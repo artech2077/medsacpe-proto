@@ -147,103 +147,33 @@ function DrugReplyCard({
     "Tap a field below to explore canonical dosing, warnings, interactions, and renal content.";
 
   return (
-    <div className="overflow-hidden rounded-[16px] border border-[rgba(109,153,206,0.28)] bg-white shadow-[0_2px_12px_rgba(6,74,167,0.07)]">
-      {/* Drug header */}
-      <div className="flex items-center gap-3 border-b border-[#eef2f7] px-4 py-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e6eefb]">
-          <svg
-            viewBox="0 0 24 24"
-            className="h-[18px] w-[18px] text-[#064aa7]"
-            fill="none"
-            aria-hidden="true"
-          >
-            <g
-              style={{
-                transformBox: "fill-box",
-                transformOrigin: "center",
-                transform: "rotate(45deg)",
-              }}
-            >
-              <rect
-                x="2.5"
-                y="8.5"
-                width="19"
-                height="7"
-                rx="3.5"
-                stroke="currentColor"
-                strokeWidth="1.7"
-              />
-              <path
-                d="M12 8.5v7"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-              />
-            </g>
-          </svg>
-        </div>
-        <div className="min-w-0">
-          <p className="text-[17px] font-extrabold leading-tight text-[#161b1d]">
-            {drug.name}
-          </p>
-          <p className="text-[11.5px] font-medium text-[#7a90a4]">{drug.drugClass}</p>
-        </div>
-        {/* Verified badge */}
-        <span className="ml-auto flex shrink-0 items-center gap-1 rounded-full bg-[#f0f4f8] px-2.5 py-1 text-[10.5px] font-semibold text-[#5a6e7e]">
-          <svg
-            viewBox="0 0 12 12"
-            className="h-2.5 w-2.5 text-[#0e7090]"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M6 1 10.5 2.6v3.8c0 2.8-2 4.8-4.5 5.6C3.5 11.2 1.5 9.2 1.5 6.4V2.6L6 1Z"
-              stroke="currentColor"
-              strokeWidth="1.1"
-              strokeLinejoin="round"
-            />
-            <path
-              d="m4 6 1.4 1.4 2.6-2.8"
-              stroke="currentColor"
-              strokeWidth="1.1"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Drug Reference
-        </span>
-      </div>
-
+    <div>
       {/* Boxed Warning — always shown eagerly, never hidden */}
-      <div className="px-4 pt-3.5">
+      <div className="pb-3">
         <ClinicalBoxedWarning warnings={blackBoxWarnings} compact />
       </div>
 
       {/* Context text */}
-      <div className="px-4 pt-3.5">
-        <p className="text-[13.5px] leading-[1.6] text-[#4b5a67]">{contextText}</p>
-      </div>
+      <p className="pb-3 text-[13.5px] leading-[1.6] text-[#4b5a67]">{contextText}</p>
 
       {/* Field-switcher chip strip */}
-      <div className="px-4 pb-3 pt-3">
-        <div className="flex flex-wrap gap-2">
-          {CONCEPT_H_FIELD_CHIPS.map((chip) => {
-            const intent = getMatchedChipIntent(matchedSubfieldId);
-            const initialSubfieldId =
-              chip.id === intent?.chip.id
-                ? intent.initialSubfieldId
-                : chip.subfieldIds[0] ?? "";
-            return (
-              <FieldChipPill
-                key={chip.id}
-                chip={chip}
-                isMatched={chip.id === matchedChipId}
-                onClick={() => onChipOpen(chip, initialSubfieldId)}
-              />
-            );
-          })}
-          <InteractionCheckerChip onClick={onInteractionCheckerOpen} />
-        </div>
+      <div className="flex flex-wrap gap-2">
+        {CONCEPT_H_FIELD_CHIPS.map((chip) => {
+          const intent = getMatchedChipIntent(matchedSubfieldId);
+          const initialSubfieldId =
+            chip.id === intent?.chip.id
+              ? intent.initialSubfieldId
+              : chip.subfieldIds[0] ?? "";
+          return (
+            <FieldChipPill
+              key={chip.id}
+              chip={chip}
+              isMatched={chip.id === matchedChipId}
+              onClick={() => onChipOpen(chip, initialSubfieldId)}
+            />
+          );
+        })}
+        <InteractionCheckerChip onClick={onInteractionCheckerOpen} />
       </div>
     </div>
   );
@@ -447,8 +377,10 @@ export function DrugConceptMobileSheetsScreen({ shellClassName, compact }: { she
         </div>
 
         {/* Scroll-down FAB — visible when content overflows the viewport */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-[72px] z-20 flex justify-center">
-          <ScrollDownFAB scrollRef={scrollRef} />
+        <div className="pointer-events-none absolute inset-x-0 bottom-[76px] z-10">
+          <div className="mx-auto flex w-full max-w-[900px] justify-center px-5">
+            <ScrollDownFAB scrollRef={scrollRef} />
+          </div>
         </div>
 
         {/* Fixed composer */}

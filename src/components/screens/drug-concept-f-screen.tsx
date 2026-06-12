@@ -310,8 +310,10 @@ export function DrugConceptInstantCardScreen() {
         </div>
 
         {/* Scroll-down FAB — visible when content overflows the viewport */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-[72px] z-20 flex justify-center">
-          <ScrollDownFAB scrollRef={scrollRef} />
+        <div className="pointer-events-none absolute inset-x-0 bottom-[76px] z-10">
+          <div className="mx-auto flex w-full max-w-[900px] justify-center px-5">
+            <ScrollDownFAB scrollRef={scrollRef} />
+          </div>
         </div>
 
         {/* Fixed composer */}

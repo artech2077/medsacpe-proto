@@ -189,33 +189,8 @@ export function DrugInstantCard({
   })();
 
   return (
-    <div className="overflow-hidden rounded-[16px] border border-[rgba(109,153,206,0.28)] bg-[#f7fafd] shadow-[0_2px_12px_rgba(6,74,167,0.07)]">
-      {/* Drug identity header */}
-      <div className="flex items-center gap-3 border-b border-[rgba(109,153,206,0.18)] bg-white px-4 py-3.5">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[rgba(6,74,167,0.08)]">
-          <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5 text-[var(--mscp-color-brand-primary)]" fill="none">
-            <g style={{ transformBox: "fill-box", transformOrigin: "center", transform: "rotate(45deg)" }}>
-              <rect x="1.5" y="7" width="17" height="6" rx="3" stroke="currentColor" strokeWidth="1.6" />
-              <path d="M10 7v6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-            </g>
-          </svg>
-        </div>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-baseline gap-2">
-            <h2 className="text-[17px] font-extrabold leading-tight tracking-[-0.01em] text-[#161b1d]">
-              {drug.name}
-            </h2>
-            <span className="rounded-full bg-[rgba(6,74,167,0.08)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--mscp-color-brand-primary)]">
-              {drug.drugClass}
-            </span>
-          </div>
-          <p className="mt-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[#8499af]">
-            Drug Reference · Deterministic
-          </p>
-        </div>
-      </div>
-
-      <div className="space-y-3 p-3">
+    <div className="dc-rise">
+      <div className="space-y-3">
         {/* Boxed warning — always eager, never collapsed */}
         {blackBoxWarnings.length > 0 && (
           <ClinicalBoxedWarning warnings={blackBoxWarnings} />

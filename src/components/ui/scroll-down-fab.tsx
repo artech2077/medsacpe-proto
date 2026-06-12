@@ -1,37 +1,33 @@
 "use client";
 
 /**
- * ScrollDownFAB — floating "Scroll down" button.
+ * ScrollDownFAB — same scroll-to-bottom button used in the AI-response prototype.
  *
  * Shows when the scroll container has content hidden below the fold.
- * Disappears when the user reaches the bottom.
- * Does NOT auto-scroll on its own — it is the user's manual trigger.
+ * Disappears when the user reaches the bottom (or within 80 px of it).
+ * Does NOT auto-scroll — it is the user's manual trigger.
  *
- * Usage:
- *   Place it inside the same `relative` wrapper that contains the scroll
- *   container, positioned above the fixed composer:
+ * Usage (drop inside the same `relative` wrapper as the scroll container):
  *
- *   <div className="pointer-events-none absolute inset-x-0 bottom-[72px] z-20 flex justify-center">
- *     <ScrollDownFAB scrollRef={scrollRef} />
+ *   <div className="pointer-events-none absolute inset-x-0 bottom-[76px] z-10">
+ *     <div className="mx-auto flex w-full max-w-[900px] justify-center px-5">
+ *       <ScrollDownFAB scrollRef={scrollRef} />
+ *     </div>
  *   </div>
  */
 
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useState, type RefObject } from "react";
+import { aiResponseAssets } from "@/data/ai-response";
 
 /** px from the true bottom before we consider the user "at the bottom". */
 const AT_BOTTOM_THRESHOLD = 80;
 
 type ScrollDownFABProps = {
   scrollRef: RefObject<HTMLDivElement | null>;
-  /** Bottom offset from the containing block. Used when you need to nudge the
-   *  button above the composer; defaults to 0 (position handled by parent). */
-  className?: string;
 };
 
-export function ScrollDownFAB({ scrollRef, className = "" }: ScrollDownFABProps) {
+export function ScrollDownFAB({ scrollRef }: ScrollDownFABProps) {
   const [visible, setVisible] = useState(false);
-  // Track whether the button has ever become visible; gates the enter animation.
-  const everVisibleRef = useRef(false);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -39,9 +35,7 @@ export function ScrollDownFAB({ scrollRef, className = "" }: ScrollDownFABProps)
 
     const check = () => {
       const fromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-      const shouldShow = fromBottom > AT_BOTTOM_THRESHOLD;
-      if (shouldShow) everVisibleRef.current = true;
-      setVisible(shouldShow);
+      setVisible(fromBottom > AT_BOTTOM_THRESHOLD);
     };
 
     check();
@@ -68,42 +62,25 @@ export function ScrollDownFAB({ scrollRef, className = "" }: ScrollDownFABProps)
   return (
     <button
       type="button"
-      aria-label="Scroll to bottom"
+      aria-label="Scroll to latest"
+      aria-hidden={!visible}
+      tabIndex={visible ? 0 : -1}
+      disabled={!visible}
       onClick={handleClick}
       style={{ touchAction: "manipulation" }}
-      className={[
-        // Layout
-        "pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-[rgba(6,74,167,0.18)] bg-white/90 px-3.5 py-1.5 backdrop-blur-sm",
-        // Typography
-        "text-[12px] font-semibold text-[var(--mscp-color-brand-primary)]",
-        // Shadow + interactions
-        "shadow-[0_2px_10px_rgba(16,24,40,0.1)] transition-all duration-200",
-        "hover:bg-white hover:shadow-[0_4px_14px_rgba(16,24,40,0.14)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]",
-        // Visibility — fade + slide in/out
+      className={`inline-flex h-8 w-8 items-center justify-center transition-all duration-200 ease-out ${
         visible
-          ? "translate-y-0 opacity-100"
-          : "pointer-events-none translate-y-2 opacity-0",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
+          ? "pointer-events-auto translate-y-0 opacity-100"
+          : "pointer-events-none translate-y-1 opacity-0"
+      }`}
     >
-      Scroll down
-      <svg
-        viewBox="0 0 12 12"
-        className="h-3 w-3"
-        fill="none"
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={aiResponseAssets.composerIcons.scrollDown}
+        alt=""
         aria-hidden="true"
-      >
-        <path
-          d="M2 4l4 4 4-4"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+        className="h-8 w-8 object-contain"
+      />
     </button>
   );
 }

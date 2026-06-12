@@ -77,36 +77,18 @@ export function DrugWorkflowCard({ initialTaskChipId, monograph }: DrugWorkflowC
 
   return (
     <>
-      <div className="overflow-hidden rounded-[18px] border border-[rgba(109,153,206,0.28)] bg-white shadow-[0_2px_16px_rgba(6,74,167,0.08)]">
-
-        {/* ── Drug header ─────────────────────────────────────────────────────── */}
-        <div className="flex items-start gap-3 border-b border-[#eef3f8] px-4 pb-3 pt-4">
-          <div className="min-w-0 flex-1">
-            <h2 className="text-[19px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#161b1d]">
-              {monograph.drug.name}
-            </h2>
-            <p className="mt-0.5 text-[12px] font-medium text-[#687680]">
-              {monograph.drug.drugClass}
-            </p>
-          </div>
-          <span className="shrink-0 rounded-full bg-[#f0f5fb] px-2.5 py-[5px] text-[10px] font-bold uppercase tracking-[0.08em] text-[#064aa7]">
-            Drug Ref
-          </span>
-        </div>
+      <div className="dc-rise">
 
         {/* ── BBW — always pinned, never collapsed ────────────────────────────── */}
-        <div className="px-4 pt-3">
+        <div className="pb-3">
           <ClinicalBoxedWarning compact warnings={monograph.blackBoxWarnings} />
         </div>
 
         {/* ── Task chip row ────────────────────────────────────────────────────── */}
-        <div className="px-4 pt-3.5">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-[#9aaab8]">
-            Clinical Task
-          </p>
+        <div className="pb-3">
           <div
             aria-label="Clinical task chips"
-            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           >
             {monograph.taskChips.map((chip) => {
               const isSelected = chip.id === selectedChipId;
@@ -129,11 +111,8 @@ export function DrugWorkflowCard({ initialTaskChipId, monograph }: DrugWorkflowC
           </div>
         </div>
 
-        {/* ── Divider ──────────────────────────────────────────────────────────── */}
-        <div className="mx-4 border-t border-[#f0f5fb]" />
-
         {/* ── Promoted task content — key triggers fade-in on chip change ──────── */}
-        <div key={selectedChipId} className="dc-fade space-y-4 px-4 py-4">
+        <div key={selectedChipId} className="dc-fade space-y-4 border-t border-[#eef3f8] pt-4">
           {promotedSubfields.map((subfield, index) => (
             <div
               key={subfield.id}
@@ -145,7 +124,7 @@ export function DrugWorkflowCard({ initialTaskChipId, monograph }: DrugWorkflowC
         </div>
 
         {/* ── Full monograph link ──────────────────────────────────────────────── */}
-        <div className="border-t border-[#eef3f8] px-4 py-3">
+        <div className="border-t border-[#eef3f8] pt-3">
           <button
             type="button"
             onClick={() => setCanvasOpen(true)}

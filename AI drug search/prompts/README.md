@@ -25,6 +25,7 @@ agent to build an **interactive prototype** for that concept in this Next.js wor
 | `F - Instant Deterministic Answer Card (Doximity-inspired).md` | Deterministic-first card, opt-in AI | `/drug-concept-f` |
 | `G - Conversational Thread + Pinned Drug Rail.md` | Chat thread + pinned canonical rail | `/drug-concept-g` |
 | `H - Mobile-First Chat Answer (Epocrates-inspired).md` | Field switcher + bottom sheets | `/drug-concept-h` |
+| `I - Unified Canonical Experience (Accordion + Tabs).md` | C + E merged; grouped scenario picker covering all use-case patterns (S1–S9) ⭐ leading candidate | `/drug-concept-i` |
 
 Each concept prompt restates only what differs from the shared architecture; read the matching spec
 file in the parent folder plus `00 - Index & Shared Architecture.md` for full context.

@@ -77,10 +77,10 @@ export const DRUG_CONCEPTS: DrugConceptDefinition[] = [
   },
   {
     description:
-      "Combines E and C: each reply carries Answer · Drug Information · References tabs, but the Drug Information tab shows the full progressive accordion (from Concept C) instead of bounded sub-tabs.",
-    label: "Tabs + Accordion",
+      "Leading candidate merging E and C: every reply carries Answer · Drug Information · References tabs with the canonical monograph as a progressive accordion. A grouped scenario picker demonstrates all nine drug-question solution patterns (S1–S9), scripted and deterministic.",
+    label: "Unified",
     letter: "I",
     route: "/drug-concept-i",
-    title: "Concept I — Answer Tabs + Accordion Drug Info",
+    title: "Concept I — Unified Canonical Experience (Accordion + Tabs)",
   },
 ];

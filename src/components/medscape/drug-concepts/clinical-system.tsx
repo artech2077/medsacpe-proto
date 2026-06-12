@@ -12,9 +12,12 @@ export type ZoneAccent = {
 };
 
 export const ZONE_ACCENTS: Record<string, ZoneAccent> = {
+  administration: { fg: "#027a48", line: "#c8e8d4", soft: "#f3fbf6", tint: "#e2f5ea" },
   adverse: { fg: "#b54708", line: "#fcdcb8", soft: "#fff8f0", tint: "#fef0e3" },
   dosing: { fg: "#064aa7", line: "#cfe0f7", soft: "#f2f7fe", tint: "#e6eefb" },
   interactions: { fg: "#6938ef", line: "#dcd2fb", soft: "#f6f4fe", tint: "#ece7fd" },
+  pharmacology: { fg: "#42526b", line: "#d8e0eb", soft: "#f7f9fc", tint: "#eaeff5" },
+  pregnancy: { fg: "#c11574", line: "#fbd0e8", soft: "#fef6fa", tint: "#fce7f2" },
   renal_hepatic: { fg: "#0e7090", line: "#bce8f1", soft: "#f0fbfd", tint: "#dcf3f8" },
   safety: { fg: "#b42318", line: "#fecdc9", soft: "#fef5f4", tint: "#fde7e5" },
 };
@@ -126,10 +129,61 @@ function DocumentIcon({ className }: IconProps) {
   );
 }
 
+function SyringeIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <path
+        d="m17.5 6.5-9.2 9.2a2 2 0 0 1-1.1.56l-3 .44.44-3a2 2 0 0 1 .56-1.1l9.2-9.2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m13 3 8 8M18 6l2-2M9.5 9.5l2 2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function HeartIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <path
+        d="M12 20s-7.5-4.6-7.5-10A4.4 4.4 0 0 1 9 5.6c1.3 0 2.4.6 3 1.6.6-1 1.7-1.6 3-1.6a4.4 4.4 0 0 1 4.5 4.4c0 5.4-7.5 10-7.5 10Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function FlaskIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="none">
+      <path
+        d="M9.5 3.5h5M10.5 3.5v5.2L5.4 17a2.4 2.4 0 0 0 2.1 3.5h9a2.4 2.4 0 0 0 2.1-3.5l-5.1-8.3V3.5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M7.5 14.5h9" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const ZONE_ICONS: Record<string, (props: IconProps) => ReactNode> = {
+  administration: SyringeIcon,
   adverse: PulseIcon,
   dosing: CapsuleIcon,
   interactions: InteractionsIcon,
+  pharmacology: FlaskIcon,
+  pregnancy: HeartIcon,
   renal_hepatic: DropletIcon,
   safety: ShieldAlertIcon,
 };

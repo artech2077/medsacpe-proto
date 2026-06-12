@@ -237,11 +237,11 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   },
   {
     description:
-      "Combines E and C: each reply carries Answer · Drug Information · References tabs, but the Drug Information tab shows the full progressive accordion instead of bounded sub-tabs. Citation chips expand the matching section.",
+      "Leading candidate merging E and C: Answer · Drug Information · References tabs with the canonical monograph as a progressive accordion. Grouped scenario picker demonstrates all nine drug-question solution patterns (S1–S9), scripted and deterministic.",
     route: "/drug-concept-i",
     slug: "drug-concept-i",
-    status: "draft",
+    status: "active",
     tags: ["medscape-ai", "drug-reference", "drug-concept"],
-    title: "Concept I — Answer Tabs + Accordion Drug Info",
+    title: "Concept I — Unified Canonical Experience (Accordion + Tabs)",
   },
 ];

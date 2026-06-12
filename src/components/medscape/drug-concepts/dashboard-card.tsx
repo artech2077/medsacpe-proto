@@ -269,37 +269,17 @@ export function DrugDashboardCard({
   };
 
   return (
-    <div className="dc-rise overflow-hidden rounded-[18px] border border-[#dde6f0] bg-[linear-gradient(180deg,#fbfdff_0%,#f4f8fc_100%)] shadow-[0_2px_8px_rgba(16,24,40,0.05)]">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#7d8ea0]">
-            Drug Reference
-          </p>
-          <div className="mt-0.5 flex flex-wrap items-center gap-2">
-            <h3
-              className="text-[19px] font-extrabold leading-tight tracking-[-0.01em] text-[#161b1d]"
-              translate="no"
-            >
-              {monograph.drug.name}
-            </h3>
-            <span className="rounded-full border border-[rgba(6,74,167,0.2)] bg-[rgba(6,74,167,0.05)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--mscp-color-brand-primary)]">
-              {monograph.drug.drugClass}
-            </span>
-          </div>
-        </div>
-      </div>
-
+    <div className="dc-rise">
       {/* Boxed warning — always eager, outside any collapse */}
       {monograph.blackBoxWarnings.length > 0 && (
-        <div className="px-4 pt-3">
+        <div className="pb-3">
           <ClinicalBoxedWarning warnings={monograph.blackBoxWarnings} />
         </div>
       )}
 
       {/* Zone tile grid — an open tile spans both columns; dense flow backfills
           the gap with a later collapsed tile so heights stay uniform. */}
-      <div className="grid grid-cols-1 grid-flow-row-dense items-start gap-2.5 px-4 pb-2 pt-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 grid-flow-row-dense items-start gap-2.5 pb-2 sm:grid-cols-2">
         {orderedSections.map((section, index) => {
           const isOpen = expandedSectionId === section.id;
           const isMatched = matchedSection?.id === section.id;
@@ -320,9 +300,9 @@ export function DrugDashboardCard({
         })}
       </div>
 
-      {/* Footer */}
-      <div className="flex items-center justify-between gap-3 border-t border-[#e4ebf3] bg-white/60 px-4 py-3">
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#7d8ea0]">
+      {/* Inline source + monograph link */}
+      <div className="flex items-center justify-between gap-3 border-t border-[#e4ebf3] pt-3">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#9aa9b8]">
           <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a]" aria-hidden="true" />
           Verbatim from Drug Reference — no AI synthesis
         </span>

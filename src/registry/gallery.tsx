@@ -11,6 +11,20 @@ import { DrugWorkflowCard } from "@/components/medscape/drug-concepts/workflow-c
 import { CONCEPT_H_FIELD_CHIPS } from "@/components/medscape/drug-concepts/field-sheet";
 import { DrugPinnedRail } from "@/components/medscape/drug-concepts/pinned-rail";
 import { ClinicalZoneIcon, getZoneAccent } from "@/components/medscape/drug-concepts/clinical-system";
+import { DrugScenarioPicker } from "@/components/medscape/drug-concepts/scenario-picker";
+import { DrugClarifyingQuestionCard } from "@/components/medscape/drug-concepts/clarifying-question-card";
+import { DrugComparisonView } from "@/components/medscape/drug-concepts/comparison-view";
+import { DrugToolResultCard } from "@/components/medscape/drug-concepts/tool-result-card";
+import { ConditionArticleCard } from "@/components/medscape/drug-concepts/condition-article-card";
+import {
+  DRUG_SCENARIO_GROUPS,
+  getScenarioById,
+  t2dmConditionArticle,
+} from "@/data/drug-concept-i-scenarios";
+import {
+  semaglutideMonograph,
+  tirzepatideMonograph,
+} from "@/data/drug-monograph-registry";
 import { apixabanMonograph } from "@/data/drug-monograph";
 import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
 import { MedscapeFeatureUpdatesModal } from "@/components/medscape/ai-current/feature-updates-modal";
@@ -354,6 +368,68 @@ function DrugMonographCanvasPreview() {
         monograph={apixabanMonograph}
         onClose={() => {}}
         targetAnchor="dosing.renal_adjustment"
+      />
+    </div>
+  );
+}
+
+function DrugScenarioPickerPreview() {
+  return (
+    <div className="max-w-[720px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugScenarioPicker
+        groups={DRUG_SCENARIO_GROUPS}
+        activeScenarioId="s1-dosing"
+        onSelect={() => undefined}
+      />
+    </div>
+  );
+}
+
+function DrugClarifyingQuestionCardPreview() {
+  const clarify = getScenarioById("s3-dose")?.turns[0]?.clarify;
+  if (!clarify) return null;
+  return (
+    <div className="max-w-[720px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugClarifyingQuestionCard
+        prompt={clarify.prompt}
+        options={clarify.options}
+        onPick={() => undefined}
+      />
+    </div>
+  );
+}
+
+function DrugComparisonViewPreview() {
+  return (
+    <div className="max-w-[760px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugComparisonView
+        synthesis="Both once-weekly SC with stepwise escalation; schedules differ."
+        items={[
+          { anchor: "dosing.t2dm_sc", monograph: semaglutideMonograph },
+          { anchor: "dosing.t2dm", monograph: tirzepatideMonograph },
+        ]}
+      />
+    </div>
+  );
+}
+
+function DrugToolResultCardPreview() {
+  const tool = getScenarioById("s8-ddi")?.turns[0]?.tool;
+  if (!tool) return null;
+  return (
+    <div className="max-w-[640px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugToolResultCard tool={tool} />
+    </div>
+  );
+}
+
+function ConditionArticleCardPreview() {
+  return (
+    <div className="max-w-[640px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <ConditionArticleCard
+        article={t2dmConditionArticle}
+        openedDrugIds={["semaglutide"]}
+        onPickDrug={() => undefined}
       />
     </div>
   );
@@ -796,6 +872,73 @@ export const galleryRegistry: GalleryEntry[] = [
       "Pass onClose to render a close button for the mobile sheet variant.",
       "BBW is always pinned at the top of the header — never collapses regardless of focusAnchor.",
       "Feed monograph data from src/data/drug-monograph.ts.",
+    ],
+  },
+  {
+    category: "navigation",
+    description:
+      "Scenario browser for Concept I, rendered under the empty-state hero: the six use-case groups from the Drug Question Use Case Taxonomy appear as cards, and selecting a card swaps in that group's preset clinician questions (each tagged with its S1–S9 solution pattern). Picking a question plays its scripted exchange.",
+    id: "drug-scenario-picker",
+    preview: DrugScenarioPickerPreview,
+    sourcePath: "src/components/medscape/drug-concepts/scenario-picker.tsx",
+    title: "DrugScenarioPicker",
+    usageNotes: [
+      "Feed groups from DRUG_SCENARIO_GROUPS in src/data/drug-concept-i-scenarios.ts — grouping mirrors the taxonomy's use-case categories, not solution patterns.",
+      "Persist the active scenario in the URL (?scenario=<id>) in the parent screen so reviewers can deep-link.",
+      "Render it in the empty state; while a scenario plays, give the header a back affordance (Concept I uses a Scenarios pill) that clears the thread.",
+    ],
+  },
+  {
+    category: "content",
+    description:
+      "S3 plan-mode clarifying card: the assistant asks which product the clinician means (e.g. Ozempic · Wegovy · Rybelsus) before answering. Picking an option locks the card and renders the S1 answer for that variant.",
+    id: "drug-clarifying-question-card",
+    preview: DrugClarifyingQuestionCardPreview,
+    sourcePath: "src/components/medscape/drug-concepts/clarifying-question-card.tsx",
+    title: "DrugClarifyingQuestionCard",
+    usageNotes: [
+      "Options come from the scenario script (ScenarioClarifyOption in drug-concept-i-scenarios.ts) — each carries the drugId, answerKey, and anchor for the follow-up card.",
+      "Pass selectedOptionId after a pick to lock the card and dim the unchosen options.",
+    ],
+  },
+  {
+    category: "content",
+    description:
+      "S4 dual/triple canonical view: 2–3 monograph cards as side-by-side columns on desktop and a swipeable snap stack on mobile, each opened to the same section, with an optional one-line AI synthesis above. Also exports DrugMonographCardFrame — the card chrome reused by S5 stacked sources, S6 collapsed cards, and S9 persistent cards.",
+    id: "drug-comparison-view",
+    preview: DrugComparisonViewPreview,
+    sourcePath: "src/components/medscape/drug-concepts/comparison-view.tsx",
+    title: "DrugComparisonView",
+    usageNotes: [
+      "Pass the same anchor per item so all columns open to the comparable section; BBW stays eager inside every column via the accordion.",
+      "Caps rendering at 3 items — more than 3 drugs should fall back to the S6 pattern per spec.",
+      "DrugMonographCardFrame accepts highlight to play the S9 'updated in place' flash.",
+    ],
+  },
+  {
+    category: "content",
+    description:
+      "S8 deterministic tool card: interaction-checker verdict (severity-coded) or dose-calculator result (inputs → highlighted result + caution). Rendered like canonical content — deterministic, not generated. Source monograph slices are anchored beneath it by the screen.",
+    id: "drug-tool-result-card",
+    preview: DrugToolResultCardPreview,
+    sourcePath: "src/components/medscape/drug-concepts/tool-result-card.tsx",
+    title: "DrugToolResultCard",
+    usageNotes: [
+      "Tool payloads are typed DrugToolResult objects in drug-concept-i-scenarios.ts — kind 'interaction' or 'calculator'.",
+      "Always anchor the source monograph slice(s) below the card so the deterministic result stays traceable to canonical content.",
+    ],
+  },
+  {
+    category: "content",
+    description:
+      "S7 condition-first handoff card: condition article summary (Treatment / Medication sections) with drug pills. Tapping a pill opens that drug's canonical monograph card in the thread.",
+    id: "condition-article-card",
+    preview: ConditionArticleCardPreview,
+    sourcePath: "src/components/medscape/drug-concepts/condition-article-card.tsx",
+    title: "ConditionArticleCard",
+    usageNotes: [
+      "Pass openedDrugIds so pills for already-opened monographs render in the active state.",
+      "Article content comes from t2dmConditionArticle in drug-concept-i-scenarios.ts.",
     ],
   },
 ];

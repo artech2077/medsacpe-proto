@@ -84,7 +84,7 @@ export function DrugConceptAccordionScreen() {
 
   return (
     <DrugConceptShell activeConcept="C">
-      <section className="relative flex min-h-0 flex-1 flex-col">
+      <section className="relative flex min-h-0 min-w-0 flex-1 flex-col">
         {/* Top fade */}
         <div
           aria-hidden="true"
@@ -148,7 +148,7 @@ export function DrugConceptAccordionScreen() {
         {/* Scrollable chat area */}
         <div
           ref={scrollRef}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
         >
           <div
             aria-live="polite"
@@ -207,8 +207,10 @@ export function DrugConceptAccordionScreen() {
         </div>
 
         {/* Scroll-down FAB — visible when content overflows the viewport */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-[72px] z-20 flex justify-center">
-          <ScrollDownFAB scrollRef={scrollRef} />
+        <div className="pointer-events-none absolute inset-x-0 bottom-[76px] z-10">
+          <div className="mx-auto flex w-full max-w-[900px] justify-center px-5">
+            <ScrollDownFAB scrollRef={scrollRef} />
+          </div>
         </div>
 
         {/* Fixed composer */}

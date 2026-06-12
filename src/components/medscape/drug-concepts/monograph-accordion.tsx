@@ -18,9 +18,12 @@ import {
 
 // Short jump-bar labels per section id. Falls back to the full section title.
 const SECTION_JUMP_LABEL: Record<string, string> = {
+  administration: "Admin",
   adverse: "Adverse",
   dosing: "Dosing",
   interactions: "Interactions",
+  pharmacology: "Pharmacology",
+  pregnancy: "Pregnancy",
   renal_hepatic: "Renal",
   safety: "Safety",
 };

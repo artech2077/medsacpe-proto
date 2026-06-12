@@ -72,6 +72,26 @@ input:disabled {
   animation: dc-rise 0.5s cubic-bezier(0.22, 0.68, 0.18, 1) both;
 }
 
+/* One-shot "card updated in place" sweep (Concept I, S9) */
+@keyframes dc-card-flash {
+  0% {
+    border-color: var(--mscp-color-brand-primary, #064aa7);
+    box-shadow: 0 0 0 3px rgba(6, 74, 167, 0.16);
+  }
+  70% {
+    border-color: var(--mscp-color-brand-primary, #064aa7);
+    box-shadow: 0 0 0 3px rgba(6, 74, 167, 0.1);
+  }
+  100% {
+    border-color: #e2eaf2;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+  }
+}
+
+.dc-card-flash {
+  animation: dc-card-flash 1.6s ease-out both;
+}
+
 .dc-fade {
   animation: dc-fade 0.4s ease both;
 }
@@ -94,7 +114,8 @@ input:disabled {
 
 @media (prefers-reduced-motion: reduce) {
   .dc-rise,
-  .dc-fade {
+  .dc-fade,
+  .dc-card-flash {
     animation: none;
   }
   .dc-collapse {
