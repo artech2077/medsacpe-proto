@@ -328,40 +328,37 @@ export function DrugConceptAccordionTabsScreen() {
   const renderTurnBody = (played: PlayedTurn) => {
     const { turn, id } = played;
 
-    // S3 — clarifying question; after a pick, render the derived S1 card.
+    // S3 — clarifying question. The option module is docked above the composer
+    // (see pendingClarify below); here we render the derived S1 card once picked,
+    // or a waiting note while the module is still open.
     if (turn.clarify) {
       const picked = played.pickedOption;
-      const pickedMonograph = picked ? requireMonograph(picked.drugId) : null;
-      const pickedAnswer = pickedMonograph
-        ? pickedMonograph.synthesizedAnswers[picked!.answerKey]
-        : undefined;
-      return (
-        <div className="space-y-4">
-          <DrugClarifyingQuestionCard
-            prompt={turn.clarify.prompt}
-            options={turn.clarify.options}
-            selectedOptionId={picked?.id}
-            onPick={(option) =>
-              setPlayedTurns((prev) =>
-                prev.map((t) => (t.id === id ? { ...t, pickedOption: option } : t)),
-              )
-            }
-          />
-          {picked && pickedMonograph && pickedAnswer ? (
-            <DrugAnswerTabs
-              key={picked.id}
-              drugInfoMode="accordion"
-              monograph={pickedMonograph}
-              onOpenMonograph={(subfieldId) => openCanvas(picked.drugId, subfieldId)}
-              question={`${turn.question} — ${picked.label}`}
-              references={buildReferences(pickedAnswer, pickedMonograph)}
-              synthesizedAnswer={pickedAnswer}
-              initialAccordionAnchor={picked.anchor}
-              analyticsContext={analyticsContextFor(id)}
-            />
-          ) : null}
-        </div>
-      );
+      if (!picked) {
+        return (
+          <p className="flex items-center gap-2 rounded-[12px] border border-dashed border-[#d4deea] bg-[#f8fafc] px-4 py-3 text-[13px] text-[#7a8da0]">
+            <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4 shrink-0 text-[var(--mscp-color-brand-primary)]" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 4.5v4M8 11h.01" />
+              <circle cx="8" cy="8" r="6.5" />
+            </svg>
+            Choose a product above the message box to continue.
+          </p>
+        );
+      }
+      const pickedMonograph = requireMonograph(picked.drugId);
+      const pickedAnswer = pickedMonograph.synthesizedAnswers[picked.answerKey];
+      return pickedAnswer ? (
+        <DrugAnswerTabs
+          key={picked.id}
+          drugInfoMode="accordion"
+          monograph={pickedMonograph}
+          onOpenMonograph={(subfieldId) => openCanvas(picked.drugId, subfieldId)}
+          question={`${turn.question} — ${picked.label}`}
+          references={buildReferences(pickedAnswer, pickedMonograph)}
+          synthesizedAnswer={pickedAnswer}
+          initialAccordionAnchor={picked.anchor}
+          analyticsContext={analyticsContextFor(id)}
+        />
+      ) : null;
     }
 
     // S7 — condition article with drug-pill handoff.
@@ -498,6 +495,15 @@ export function DrugConceptAccordionTabsScreen() {
     turnId,
   });
 
+  const pickClarifyOption = useCallback(
+    (turnId: number, option: ScenarioClarifyOption) => {
+      setPlayedTurns((prev) =>
+        prev.map((t) => (t.id === turnId ? { ...t, pickedOption: option } : t)),
+      );
+    },
+    [],
+  );
+
   // S9: scripted Continue chip + Compare chip.
   const nextScriptedTurn =
     activeScenario && !isGenerating ? activeScenario.turns[playedTurns.length] : undefined;
@@ -507,6 +513,12 @@ export function DrugConceptAccordionTabsScreen() {
       ? lastPlayed.turn.compareChip
       : undefined;
   const activeCompare = compareActive ? lastPlayed?.turn.compareChip : undefined;
+
+  // S3: a complete clarify turn with no pick yet → dock the module above the composer.
+  const pendingClarify =
+    lastPlayed && lastPlayed.status === "complete" && lastPlayed.turn.clarify && !lastPlayed.pickedOption
+      ? lastPlayed
+      : undefined;
 
   return (
     <DrugConceptShell activeConcept="I">
@@ -709,8 +721,19 @@ export function DrugConceptAccordionTabsScreen() {
             </div>
           </div>
 
-          {/* Fixed composer */}
+          {/* Fixed composer (+ docked S3 clarify module) */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
+            {pendingClarify?.turn.clarify ? (
+              <div className="mx-auto w-full max-w-[900px] px-4 md:px-6">
+                <div className="pointer-events-auto pb-2">
+                  <DrugClarifyingQuestionCard
+                    prompt={pendingClarify.turn.clarify.prompt}
+                    options={pendingClarify.turn.clarify.options}
+                    onPick={(option) => pickClarifyOption(pendingClarify.id, option)}
+                  />
+                </div>
+              </div>
+            ) : null}
             <div className="mx-auto w-full max-w-[900px] px-4 pb-0 md:px-6">
               <div className="rounded-t-[28px] bg-gradient-to-b from-transparent via-white/82 to-white px-2 pb-[max(env(safe-area-inset-bottom),6px)] pt-3 md:pt-4">
                 <AiResponseChatComposer
