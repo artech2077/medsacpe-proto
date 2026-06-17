@@ -152,6 +152,38 @@ function ScenarioAiAnswerBlock({
   );
 }
 
+// ─── AI answer shimmer (S10) ─────────────────────────────────────────────────
+// Placeholder shown above the (already-visible) monograph card while a delayed
+// AI answer is still generating — the canonical content is shown instantly,
+// the synthesis takes longer.
+
+function ScenarioAiAnswerShimmer() {
+  return (
+    <div className="dc-fade rounded-[14px] border border-[rgba(6,74,167,0.16)] bg-[linear-gradient(180deg,rgba(6,74,167,0.045)_0%,rgba(6,74,167,0.015)_100%)] p-4">
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--mscp-color-brand-primary)] px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.1em] text-white">
+          AI answer
+        </span>
+        <span className="inline-flex items-center gap-1.5 text-[10.5px] font-medium text-[#6b7f92]">
+          <img
+            src={aiResponseAssets.logoAssets.promptAnimation}
+            alt=""
+            aria-hidden="true"
+            className="h-4 w-4 object-contain"
+          />
+          Generating answer from the canonical source below…
+        </span>
+      </div>
+      <div className="space-y-2.5" aria-hidden="true">
+        <span className="dc-shimmer block h-3.5 w-full rounded-full" />
+        <span className="dc-shimmer block h-3.5 w-[96%] rounded-full" />
+        <span className="dc-shimmer block h-3.5 w-[90%] rounded-full" />
+        <span className="dc-shimmer block h-3.5 w-[58%] rounded-full" />
+      </div>
+    </div>
+  );
+}
+
 // ─── Scenarios pill (header, shown while a scenario is playing) ───────────────
 
 function ScenariosPill({ onClick }: { onClick: () => void }) {
@@ -189,6 +221,7 @@ export function DrugConceptAccordionTabsScreen() {
   const composerInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextIdRef = useRef(1);
   const cardRefs = useRef(new Map<string, HTMLDivElement>());
 
@@ -204,13 +237,21 @@ export function DrugConceptAccordionTabsScreen() {
   const [compareActive, setCompareActive] = useState(false);
   // Side canvas (full monograph).
   const [canvas, setCanvas] = useState<{ anchor?: string; drugId: string } | null>(null);
+  // S10: per-turn-id flag — true once the delayed AI answer has finished generating.
+  const [aiAnswerReady, setAiAnswerReady] = useState<Record<number, boolean>>({});
 
-  const isGenerating = playedTurns.some((t) => t.status === "preparing");
+  const aiGenerating = Object.values(aiAnswerReady).some((ready) => ready === false);
+  const isGenerating =
+    playedTurns.some((t) => t.status === "preparing") || aiGenerating;
 
   const clearTimer = useCallback(() => {
     if (delayTimerRef.current) {
       clearTimeout(delayTimerRef.current);
       delayTimerRef.current = null;
+    }
+    if (aiTimerRef.current) {
+      clearTimeout(aiTimerRef.current);
+      aiTimerRef.current = null;
     }
   }, []);
 
@@ -220,10 +261,20 @@ export function DrugConceptAccordionTabsScreen() {
     (turn: DrugScenarioTurn, pickedOption?: ScenarioClarifyOption) => {
       clearTimer();
       const id = nextIdRef.current++;
+      const liveAi = typeof turn.aiAnswerDelayMs === "number";
       setPlayedTurns((prev) => [
         ...prev.map((t): PlayedTurn => ({ ...t, status: "complete" })),
-        { id, pickedOption, status: "preparing", turn },
+        // S10: render the turn body immediately so the monograph card shows
+        // right away; the AI answer above it shimmers until its own timer fires.
+        { id, pickedOption, status: liveAi ? "complete" : "preparing", turn },
       ]);
+      if (liveAi) {
+        setAiAnswerReady((prev) => ({ ...prev, [id]: false }));
+        aiTimerRef.current = setTimeout(() => {
+          setAiAnswerReady((prev) => ({ ...prev, [id]: true }));
+        }, turn.aiAnswerDelayMs);
+        return;
+      }
       delayTimerRef.current = setTimeout(() => {
         setPlayedTurns((prev) =>
           prev.map((t): PlayedTurn => (t.id === id ? { ...t, status: "complete" } : t)),
@@ -245,6 +296,7 @@ export function DrugConceptAccordionTabsScreen() {
       setCompareActive(false);
       setComposerNotice(null);
       setCanvas(null);
+      setAiAnswerReady({});
       if (updateUrl && typeof window !== "undefined") {
         const url = new URL(window.location.href);
         url.searchParams.set("scenario", scenarioId);
@@ -304,6 +356,11 @@ export function DrugConceptAccordionTabsScreen() {
   const handleStopGeneration = useCallback(() => {
     clearTimer();
     setPlayedTurns((prev) => prev.map((t): PlayedTurn => ({ ...t, status: "complete" })));
+    setAiAnswerReady((prev) => {
+      const next: Record<number, boolean> = {};
+      for (const key of Object.keys(prev)) next[Number(key)] = true;
+      return next;
+    });
   }, [clearTimer]);
 
   const registerCard = useCallback((key: string, el: HTMLDivElement | null) => {
@@ -424,12 +481,20 @@ export function DrugConceptAccordionTabsScreen() {
 
     // S5 / S6 — AI answer leads; monograph cards stacked below (max 3 enforced in data).
     if (turn.aiAnswer) {
+      // S10: when the answer generates live, shimmer until its timer fires while
+      // the monograph cards below stay visible from the start.
+      const aiPending =
+        typeof turn.aiAnswerDelayMs === "number" && !aiAnswerReady[id];
       return (
         <div className="space-y-4">
-          <ScenarioAiAnswerBlock
-            aiAnswer={turn.aiAnswer}
-            onCitation={(drugId, anchor) => deepLinkToCard(id, drugId, anchor)}
-          />
+          {aiPending ? (
+            <ScenarioAiAnswerShimmer />
+          ) : (
+            <ScenarioAiAnswerBlock
+              aiAnswer={turn.aiAnswer}
+              onCitation={(drugId, anchor) => deepLinkToCard(id, drugId, anchor)}
+            />
+          )}
           {turn.monographs.map((view) => (
             <div key={view.drugId} ref={(el) => registerCard(`${id}:${view.drugId}`, el)}>
               <DrugMonographCardFrame
@@ -474,6 +539,9 @@ export function DrugConceptAccordionTabsScreen() {
           <DrugAnswerTabs
             key={`${view.drugId}:${anchor ?? ""}`}
             drugInfoMode="accordion"
+            answerTabLabel={
+              activeScenario?.pattern === "S1" ? "Explore with AI" : undefined
+            }
             monograph={monograph}
             onOpenMonograph={(subfieldId) => openCanvas(view.drugId, subfieldId)}
             question={turn.question}

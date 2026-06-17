@@ -18,7 +18,8 @@ export type DrugScenarioPattern =
   | "S6"
   | "S7"
   | "S8"
-  | "S9";
+  | "S9"
+  | "S10";
 
 /** One monograph card rendered in a scenario turn. */
 export type ScenarioMonographView = {
@@ -83,6 +84,13 @@ export type ConditionArticle = {
 export type DrugScenarioTurn = {
   /** S5/S6: scripted cross-drug AI answer (Answer tab leads). */
   aiAnswer?: ScenarioAiAnswer;
+  /**
+   * S10: simulate live generation. The monograph cards render instantly while
+   * the AI answer above them shows a shimmer placeholder for this many ms
+   * before resolving — demonstrates that canonical content is shown
+   * immediately and the AI synthesis takes longer.
+   */
+  aiAnswerDelayMs?: number;
   /** S1/S2/S9: key into the primary drug's monograph.synthesizedAnswers. */
   answerKey?: string;
   /** S3: clarifying options rendered as an inline option card. */
@@ -478,6 +486,28 @@ const S9_THREAD: DrugScenario = {
   ],
 };
 
+const S10_DOSING_AI_LIVE: DrugScenario = {
+  id: "s10-dosing-ai-live",
+  pattern: "S10",
+  patternLabel: "S10 · AI answer above monograph (live generation)",
+  question: "What is the dosing for semaglutide (Ozempic)?",
+  turns: [
+    {
+      question: "What is the dosing for semaglutide (Ozempic)?",
+      // Same question as S1, but the AI answer leads (above the monograph)
+      // like S5 — and it generates live: the canonical card appears instantly
+      // while this synthesis shimmers for 10s before resolving.
+      aiAnswerDelayMs: 10000,
+      aiAnswer: {
+        text: "For type 2 diabetes, initiate Ozempic (semaglutide SC) at 0.25 mg once weekly for 4 weeks — this dose is for tolerability only and does not improve glycemic control [1]. After 4 weeks, increase to 0.5 mg/week (first therapeutic dose). If additional control is needed, increase in 0.5-mg steps every 4 weeks to a maximum of 2 mg/week [1].",
+        note: "AI-synthesized from the canonical dosing section below — the monograph card displays instantly, while the AI answer takes a moment longer to generate.",
+        citations: [{ drugId: "semaglutide", anchor: "dosing.t2dm_sc", marker: 1 }],
+      },
+      monographs: [{ drugId: "semaglutide", anchor: "dosing.t2dm_sc" }],
+    },
+  ],
+};
+
 // ─── Groups — one per solution pattern (S1–S9, taxonomy legend) ───────────────
 
 export const DRUG_SCENARIO_GROUPS: DrugScenarioGroup[] = [
@@ -543,6 +573,13 @@ export const DRUG_SCENARIO_GROUPS: DrugScenarioGroup[] = [
     description:
       "One multi-turn sequence: the card updates in place, then a second drug joins with a Compare chip.",
     scenarios: [S9_THREAD],
+  },
+  {
+    id: "s10-ai-live-generation",
+    title: "AI answer above monograph (live generation)",
+    description:
+      "Same dosing question as S1, but the AI answer leads above the monograph (S5 layout). The canonical card displays instantly while the AI answer shimmers for ~10s, showing it takes longer to generate.",
+    scenarios: [S10_DOSING_AI_LIVE],
   },
 ];
 

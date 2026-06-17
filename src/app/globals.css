@@ -96,6 +96,27 @@ input:disabled {
   animation: dc-fade 0.4s ease both;
 }
 
+/* Shimmer placeholder while a delayed AI answer is still generating (Concept I, S10) */
+@keyframes dc-shimmer {
+  0% {
+    background-position: 180% 0;
+  }
+  100% {
+    background-position: -180% 0;
+  }
+}
+
+.dc-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    rgba(6, 74, 167, 0.06) 25%,
+    rgba(6, 74, 167, 0.16) 50%,
+    rgba(6, 74, 167, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: dc-shimmer 1.4s ease-in-out infinite;
+}
+
 /* Smooth accordion via grid-template-rows 0fr → 1fr */
 .dc-collapse {
   display: grid;
@@ -115,7 +136,8 @@ input:disabled {
 @media (prefers-reduced-motion: reduce) {
   .dc-rise,
   .dc-fade,
-  .dc-card-flash {
+  .dc-card-flash,
+  .dc-shimmer {
     animation: none;
   }
   .dc-collapse {

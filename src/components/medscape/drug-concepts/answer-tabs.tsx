@@ -19,11 +19,15 @@ import type { DrugMonograph, DrugSynthesizedAnswer } from "@/data/drug-monograph
 type MessageTab = "answer" | "drug-info" | "references";
 type DrugInfoSubTab = "overview" | "dosing" | "safety" | "clinical" | "references";
 
-const MESSAGE_TABS: { id: MessageTab; label: string }[] = [
-  { id: "drug-info", label: "Drug Information" },
-  { id: "answer", label: "AI Answer" },
-  { id: "references", label: "References" },
-];
+type TabSpec = { id: string; label: string; ai?: boolean };
+
+function buildMessageTabs(answerLabel: string): TabSpec[] {
+  return [
+    { id: "drug-info", label: "Drug Information" },
+    { id: "answer", label: answerLabel, ai: true },
+    { id: "references", label: "References" },
+  ];
+}
 
 const DRUG_INFO_SUB_TABS: { id: DrugInfoSubTab; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -78,6 +82,20 @@ function MonographLink({ href, label }: { href: string; label: string }) {
   );
 }
 
+// AI spark glyph — marks the AI-generated answer tab (matches instant-card.tsx).
+function AiSparkIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true" className={className} fill="none">
+      <path
+        d="M8 2c0 0-.6 2.4-2 3.8C4.6 7.2 2 7.8 2 8s2.6.8 4 2.2C7.4 11.6 8 14 8 14s.6-2.4 2-3.8C11.4 8.8 14 8.2 14 8s-2.6-.8-4-2.2C8.6 4.4 8 2 8 2Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function ChevronRightMiniIcon() {
   return (
     <svg
@@ -104,7 +122,7 @@ function TabBar({
 }: {
   activeTab: string;
   onSelect: (id: string) => void;
-  tabs: { id: string; label: string }[];
+  tabs: { id: string; label: string; ai?: boolean }[];
 }) {
   return (
     <div
@@ -121,12 +139,13 @@ function TabBar({
           aria-selected={activeTab === tab.id}
           aria-controls={`panel-${tab.id}`}
           onClick={() => onSelect(tab.id)}
-          className={`relative shrink-0 whitespace-nowrap px-4 py-[11px] text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(6,74,167,0.22)] ${
+          className={`relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap px-4 py-[11px] text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(6,74,167,0.22)] ${
             activeTab === tab.id
               ? "text-[var(--mscp-color-brand-primary)]"
               : "text-[#8499af] hover:text-[#2c353a]"
           }`}
         >
+          {tab.ai ? <AiSparkIcon /> : null}
           {tab.label}
           {activeTab === tab.id ? (
             <span
@@ -190,6 +209,9 @@ function SubfieldRow({
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 export type DrugAnswerTabsProps = {
+  /** Label for the AI answer tab. Defaults to "AI Answer"; some scenarios use a
+   * more exploratory label to signal the answer goes beyond the monograph. */
+  answerTabLabel?: string;
   analyticsContext?: {
     conversationId?: string;
     prototypeFamily?: string;
@@ -218,6 +240,7 @@ export type DrugAnswerTabsProps = {
 // References tabs on every reply. Citation chips in the Answer tab navigate to
 // the exact subfield in the Drug Information tab (no tooltip popup).
 export function DrugAnswerTabs({
+  answerTabLabel = "AI Answer",
   analyticsContext,
   drugInfoMode = "tabs",
   initialAccordionAnchor,
@@ -382,7 +405,7 @@ export function DrugAnswerTabs({
     <div className="dc-rise overflow-hidden">
       {/* ── Message-level tab bar ─────────────────────────── */}
       <TabBar
-        tabs={MESSAGE_TABS}
+        tabs={buildMessageTabs(answerTabLabel)}
         activeTab={activeTab}
         onSelect={(id) => setActiveTab(id as MessageTab)}
       />
