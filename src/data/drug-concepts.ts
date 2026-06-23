@@ -1,6 +1,6 @@
 // Concept family definition — no client directive so it can be imported in both server and client components.
 
-export type DrugConceptLetter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I";
+export type DrugConceptLetter = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J";
 
 export type DrugConceptDefinition = {
   description: string;
@@ -82,5 +82,13 @@ export const DRUG_CONCEPTS: DrugConceptDefinition[] = [
     letter: "I",
     route: "/drug-concept-i",
     title: "Concept I — Unified Canonical Experience (Accordion + Tabs)",
+  },
+  {
+    description:
+      "Canonical-first answer: References/Sources chips and the full monograph card render instantly, then the AI-generated answer streams in below it (with references, related articles, and follow-up questions) behind a ~10s shimmer.",
+    label: "Card + AI Answer",
+    letter: "J",
+    route: "/drug-concept-j",
+    title: "Concept J — Canonical Card + AI Answer",
   },
 ];

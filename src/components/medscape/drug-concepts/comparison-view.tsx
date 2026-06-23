@@ -11,12 +11,18 @@ import type { DrugMonograph } from "@/data/drug-monograph";
 
 export function DrugMonographCardFrame({
   anchor,
+  expandSubfields = false,
+  hideSectionSummary = false,
   highlight = false,
   monograph,
   onOpenMonograph,
 }: {
   /** Subfield id to auto-expand two levels deep. Omit for a collapsed card. */
   anchor?: string;
+  /** Show every subfield body in full inside an open section (no sub-accordion). */
+  expandSubfields?: boolean;
+  /** Hide the summary preview on collapsed section rows. */
+  hideSectionSummary?: boolean;
   /** Plays a brief highlight sweep — S9 "card updated in place". */
   highlight?: boolean;
   monograph: DrugMonograph;
@@ -41,6 +47,8 @@ export function DrugMonographCardFrame({
       </header>
       <DrugMonographAccordion
         key={anchor ?? "collapsed"}
+        expandSubfields={expandSubfields}
+        hideSectionSummary={hideSectionSummary}
         matchedSubfieldId={anchor}
         monograph={monograph}
         onOpenMonograph={onOpenMonograph}

@@ -16,6 +16,10 @@ import { DrugClarifyingQuestionCard } from "@/components/medscape/drug-concepts/
 import { DrugComparisonView } from "@/components/medscape/drug-concepts/comparison-view";
 import { DrugToolResultCard } from "@/components/medscape/drug-concepts/tool-result-card";
 import { ConditionArticleCard } from "@/components/medscape/drug-concepts/condition-article-card";
+import { DrugAnswerSourceChips } from "@/components/medscape/drug-concepts/answer-source-chips";
+import { DrugAnswerLoadingSkeleton } from "@/components/medscape/drug-concepts/answer-loading-skeleton";
+import { AiResponseRelatedArticles } from "@/components/medscape/ai-response/related-articles";
+import { DRUG_CONCEPT_J_RELATED_ARTICLES } from "@/data/drug-concept-j-scenarios";
 import {
   DRUG_SCENARIO_GROUPS,
   getScenarioById,
@@ -442,6 +446,44 @@ function DrugWorkflowCardPreview() {
         initialTaskChipId="renal-dosing"
         monograph={apixabanMonograph}
       />
+    </div>
+  );
+}
+
+function DrugAnswerSourceChipsPreview() {
+  const answer = semaglutideMonograph.synthesizedAnswers["t2dm-dose-sc"];
+  const references = answer.citations.map((c, i) => {
+    const sf = semaglutideMonograph.sections
+      .flatMap((s) => s.subfields)
+      .find((s) => s.id === c.anchor);
+    return {
+      detail: sf?.summary ?? "",
+      id: i + 1,
+      source: sf?.source.section ?? "",
+      sourceLabel: sf?.source.label ?? "Drug Reference",
+      title: sf?.title ?? c.anchor,
+      url: sf?.source.url,
+    };
+  });
+  return (
+    <div className="max-w-[560px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugAnswerSourceChips references={references} onJumpToSources={() => undefined} />
+    </div>
+  );
+}
+
+function DrugAnswerLoadingSkeletonPreview() {
+  return (
+    <div className="max-w-[560px] rounded-[16px] bg-white p-4">
+      <DrugAnswerLoadingSkeleton />
+    </div>
+  );
+}
+
+function AiResponseRelatedArticlesPreview() {
+  return (
+    <div className="max-w-[760px] rounded-[16px] bg-white p-4">
+      <AiResponseRelatedArticles articles={DRUG_CONCEPT_J_RELATED_ARTICLES} />
     </div>
   );
 }
@@ -939,6 +981,45 @@ export const galleryRegistry: GalleryEntry[] = [
     usageNotes: [
       "Pass openedDrugIds so pills for already-opened monographs render in the active state.",
       "Article content comes from t2dmConditionArticle in drug-concept-i-scenarios.ts.",
+    ],
+  },
+  {
+    category: "navigation",
+    description:
+      "Concept J source chips: a 'References N' pill that toggles the inline reference list (reusing AiResponseReferenceCard) and a 'Sources' pill that scrolls to the canonical monograph card. Sits directly under the question.",
+    id: "drug-answer-source-chips",
+    preview: DrugAnswerSourceChipsPreview,
+    sourcePath: "src/components/medscape/drug-concepts/answer-source-chips.tsx",
+    title: "DrugAnswerSourceChips",
+    usageNotes: [
+      "Build references from the synthesized answer's citations via the subfield helper (same shape as DrugAnswerTabs).",
+      "Wire onJumpToSources to scroll the canonical monograph card into view.",
+    ],
+  },
+  {
+    category: "feedback",
+    description:
+      "Shimmer placeholder for the AI-generated answer that streams in below the canonical card (Concept J, ~10s). Mirrors the answer layout — AI label, two short sections, and a follow-up chip row — as shimmering bars using the shared .dc-shimmer treatment.",
+    id: "drug-answer-loading-skeleton",
+    preview: DrugAnswerLoadingSkeletonPreview,
+    sourcePath: "src/components/medscape/drug-concepts/answer-loading-skeleton.tsx",
+    title: "DrugAnswerLoadingSkeleton",
+    usageNotes: [
+      "Render below the canonical card while the AI answer status is 'loading'; swap to the real answer when the timer fires.",
+      "Uses .dc-shimmer from globals.css — respects prefers-reduced-motion automatically.",
+    ],
+  },
+  {
+    category: "content",
+    description:
+      "Related Articles carousel for the answer footer — a horizontal row of Medscape article cards (content-type, time-ago, title, gradient thumbnail). Supports a Sponsored variant. Used in Concept J below the AI answer.",
+    id: "ai-response-related-articles",
+    preview: AiResponseRelatedArticlesPreview,
+    sourcePath: "src/components/medscape/ai-response/related-articles.tsx",
+    title: "AiResponseRelatedArticles",
+    usageNotes: [
+      "Pass RelatedArticle[] — set sponsored:true to render the 'Sponsored' label instead of a time-ago.",
+      "Thumbnails are token gradient placeholders (accent classes) — no external image dependency.",
     ],
   },
 ];

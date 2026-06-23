@@ -590,11 +590,11 @@ export function DrugConceptAccordionTabsScreen() {
 
   return (
     <DrugConceptShell activeConcept="I">
-      <div className="relative flex min-h-0 flex-1">
+      <div className="relative flex min-h-0 min-w-0 flex-1">
         {/* Chat / answer column */}
         <section
           className={[
-            "relative flex min-h-0 flex-col",
+            "relative flex min-h-0 min-w-0 flex-col",
             canvas ? "flex-1 md:w-[48%] md:flex-none md:min-w-[360px]" : "flex-1",
           ].join(" ")}
         >

@@ -78,6 +78,7 @@ function smoothScrollTo(scroller: HTMLElement, target: number) {
 // ─── Subfield row (level 2 → verbatim body) ─────────────────────────────────────
 function SubfieldRow({
   accentFg,
+  expandAll = false,
   isCritical,
   isMatched,
   onToggle,
@@ -85,6 +86,8 @@ function SubfieldRow({
   subfield,
 }: {
   accentFg: string;
+  /** When true, the body is always shown (no per-subfield toggle or chevron). */
+  expandAll?: boolean;
   isCritical: boolean;
   isMatched: boolean;
   onToggle: () => void;
@@ -94,6 +97,70 @@ function SubfieldRow({
   // Verbatim canonical body, rendered through the shared answer renderer so the
   // deep text matches existing AI-answer typography exactly.
   const answer = useMemo(() => subfield.body.join("\n"), [subfield.body]);
+  const isOpen = expandAll || open;
+
+  const header = (
+    <>
+      <span
+        className="mt-[5px] h-2 w-2 shrink-0 rounded-full transition-colors"
+        style={{ backgroundColor: isOpen || isMatched ? accentFg : "#cdd8e4" }}
+        aria-hidden="true"
+      />
+      <span className="min-w-0 flex-1">
+        <span className="flex flex-wrap items-center gap-1.5">
+          <span
+            className="text-[12.5px] font-semibold leading-snug"
+            style={{ color: isMatched ? accentFg : "#1c2227" }}
+          >
+            {subfield.title}
+          </span>
+          {isMatched && (
+            <span
+              className="rounded-full px-1.5 py-px text-[8.5px] font-bold uppercase tracking-[0.05em] text-white"
+              style={{ backgroundColor: accentFg }}
+            >
+              Answer
+            </span>
+          )}
+          {isCritical && !isMatched && (
+            <span className="rounded-full bg-[#fde7e5] px-1.5 py-px text-[8.5px] font-bold uppercase tracking-[0.05em] text-[#b42318]">
+              Critical
+            </span>
+          )}
+        </span>
+        {!isOpen && (
+          <span className="mt-0.5 block text-[11.5px] leading-[1.45] text-[#647689] [font-variant-numeric:tabular-nums]">
+            {subfield.summary}
+          </span>
+        )}
+      </span>
+      {!expandAll && <ClinicalChevron className="mt-1 h-3.5 w-3.5" open={open} />}
+    </>
+  );
+
+  const body = (
+    <div className="mb-1 mt-1 rounded-[9px] border border-[#e3ebf4] bg-white px-3 py-2.5">
+      <AiResponseAnswerContent
+        answer={answer}
+        className="text-[13.5px] leading-[1.6] text-[#2e3d4a] [font-variant-numeric:tabular-nums]"
+      />
+      <div className="mt-2.5 border-t border-[#eef3f8] pt-2">
+        <ClinicalSourceLabel source={subfield.source} />
+      </div>
+    </div>
+  );
+
+  // expandAll: static row, body always visible — no toggle, no collapse animation.
+  if (expandAll) {
+    return (
+      <li>
+        <div className="flex w-full items-start gap-2.5 rounded-[9px] px-2 py-2.5 text-left">
+          {header}
+        </div>
+        <div className="ml-2">{body}</div>
+      </li>
+    );
+  }
 
   return (
     <li>
@@ -104,54 +171,11 @@ function SubfieldRow({
         style={{ touchAction: "manipulation" }}
         className="group/sf flex w-full items-start gap-2.5 rounded-[9px] px-2 py-2.5 text-left transition-colors hover:bg-[#f5f8fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
       >
-        <span
-          className="mt-[5px] h-2 w-2 shrink-0 rounded-full transition-colors"
-          style={{ backgroundColor: open || isMatched ? accentFg : "#cdd8e4" }}
-          aria-hidden="true"
-        />
-        <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-center gap-1.5">
-            <span
-              className="text-[12.5px] font-semibold leading-snug"
-              style={{ color: isMatched ? accentFg : "#1c2227" }}
-            >
-              {subfield.title}
-            </span>
-            {isMatched && (
-              <span
-                className="rounded-full px-1.5 py-px text-[8.5px] font-bold uppercase tracking-[0.05em] text-white"
-                style={{ backgroundColor: accentFg }}
-              >
-                Answer
-              </span>
-            )}
-            {isCritical && !isMatched && (
-              <span className="rounded-full bg-[#fde7e5] px-1.5 py-px text-[8.5px] font-bold uppercase tracking-[0.05em] text-[#b42318]">
-                Critical
-              </span>
-            )}
-          </span>
-          {!open && (
-            <span className="mt-0.5 block text-[11.5px] leading-[1.45] text-[#647689] [font-variant-numeric:tabular-nums]">
-              {subfield.summary}
-            </span>
-          )}
-        </span>
-        <ClinicalChevron className="mt-1 h-3.5 w-3.5" open={open} />
+        {header}
       </button>
 
       <div className="dc-collapse ml-2" data-open={open}>
-        <div className="dc-collapse-inner">
-          <div className="mb-1 mt-1 rounded-[9px] border border-[#e3ebf4] bg-white px-3 py-2.5">
-            <AiResponseAnswerContent
-              answer={answer}
-              className="text-[13.5px] leading-[1.6] text-[#2e3d4a] [font-variant-numeric:tabular-nums]"
-            />
-            <div className="mt-2.5 border-t border-[#eef3f8] pt-2">
-              <ClinicalSourceLabel source={subfield.source} />
-            </div>
-          </div>
-        </div>
+        <div className="dc-collapse-inner">{body}</div>
       </div>
     </li>
   );
@@ -160,6 +184,8 @@ function SubfieldRow({
 // ─── Section row (level 1 → subfield rows) ──────────────────────────────────────
 function SectionRow({
   expandedSubfields,
+  expandSubfields = false,
+  hideSummary = false,
   index,
   isMatched,
   matchedSubfieldId,
@@ -171,6 +197,10 @@ function SectionRow({
   section,
 }: {
   expandedSubfields: Set<string>;
+  /** When true, every subfield body is shown in full — no per-subfield toggle. */
+  expandSubfields?: boolean;
+  /** When true, collapsed sections show only the header (no summary preview). */
+  hideSummary?: boolean;
   index: number;
   isMatched: boolean;
   matchedSubfieldId?: string;
@@ -226,7 +256,7 @@ function SectionRow({
               </span>
             )}
           </span>
-          {!open && topSubfield && (
+          {!open && !hideSummary && topSubfield && (
             <span className="mt-0.5 line-clamp-2 block text-[12px] leading-[1.45] text-[#5a6e7e] [font-variant-numeric:tabular-nums]">
               {topSubfield.summary}
             </span>
@@ -243,6 +273,7 @@ function SectionRow({
                 <SubfieldRow
                   key={subfield.id}
                   accentFg={accent.fg}
+                  expandAll={expandSubfields}
                   isCritical={CRITICAL_SUBFIELD_IDS.includes(subfield.id)}
                   isMatched={matchedSubfieldId === subfield.id}
                   onToggle={() => onToggleSubfield(subfield.id)}
@@ -289,6 +320,11 @@ function SectionRow({
 
 // ─── DrugMonographAccordion ─────────────────────────────────────────────────────
 type DrugMonographAccordionProps = {
+  /** When true, every subfield body is shown in full inside an open section —
+   * no per-subfield accordion toggle. Section rows still expand/collapse. */
+  expandSubfields?: boolean;
+  /** When true, collapsed section rows show only the header (no summary preview). */
+  hideSectionSummary?: boolean;
   matchedSubfieldId?: string;
   monograph: DrugMonograph;
   /** When provided, "Full X in monograph" section links call this instead of navigating to Concept B. */
@@ -296,6 +332,8 @@ type DrugMonographAccordionProps = {
 };
 
 export function DrugMonographAccordion({
+  expandSubfields = false,
+  hideSectionSummary = false,
   matchedSubfieldId,
   monograph,
   onOpenMonograph,
@@ -410,6 +448,8 @@ export function DrugMonographAccordion({
           <SectionRow
             key={section.id}
             expandedSubfields={expandedSubfields}
+            expandSubfields={expandSubfields}
+            hideSummary={hideSectionSummary}
             index={index}
             isMatched={matchedSection?.id === section.id}
             matchedSubfieldId={matchedSubfieldId}

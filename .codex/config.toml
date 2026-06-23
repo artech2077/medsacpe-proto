@@ -1,0 +1,10 @@
+[mcp_servers.figma]
+command = "npx"
+args = [
+    "-y",
+    "figma-developer-mcp",
+    "--stdio",
+]
+
+[mcp_servers.figma.env]
+FIGMA_API_KEY = "figd__OV3aK0BVdYigB93TlMP4Gdtj0LQybMXfWwZkXSN"

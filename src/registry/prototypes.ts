@@ -244,4 +244,13 @@ export const prototypeRegistry: PrototypeDefinition[] = [
     tags: ["medscape-ai", "drug-reference", "drug-concept"],
     title: "Concept I — Unified Canonical Experience (Accordion + Tabs)",
   },
+  {
+    description:
+      "Canonical-first answer based on the Figma design: References/Sources chips and the full monograph card render instantly, then the AI-generated answer streams in below it (references, related articles, follow-up questions) behind a ~10s shimmer.",
+    route: "/drug-concept-j",
+    slug: "drug-concept-j",
+    status: "active",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "Concept J — Canonical Card + AI Answer",
+  },
 ];
