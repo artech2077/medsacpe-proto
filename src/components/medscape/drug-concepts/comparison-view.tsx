@@ -12,6 +12,7 @@ import type { DrugMonograph } from "@/data/drug-monograph";
 export function DrugMonographCardFrame({
   anchor,
   expandSubfields = false,
+  hideMatchBadges = false,
   hideSectionSummary = false,
   highlight = false,
   monograph,
@@ -21,6 +22,8 @@ export function DrugMonographCardFrame({
   anchor?: string;
   /** Show every subfield body in full inside an open section (no sub-accordion). */
   expandSubfields?: boolean;
+  /** Hide the "Matched"/"Answer" badges. */
+  hideMatchBadges?: boolean;
   /** Hide the summary preview on collapsed section rows. */
   hideSectionSummary?: boolean;
   /** Plays a brief highlight sweep — S9 "card updated in place". */
@@ -48,6 +51,7 @@ export function DrugMonographCardFrame({
       <DrugMonographAccordion
         key={anchor ?? "collapsed"}
         expandSubfields={expandSubfields}
+        hideMatchBadges={hideMatchBadges}
         hideSectionSummary={hideSectionSummary}
         matchedSubfieldId={anchor}
         monograph={monograph}

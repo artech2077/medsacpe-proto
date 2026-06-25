@@ -79,6 +79,7 @@ function smoothScrollTo(scroller: HTMLElement, target: number) {
 function SubfieldRow({
   accentFg,
   expandAll = false,
+  hideMatchBadge = false,
   isCritical,
   isMatched,
   onToggle,
@@ -88,6 +89,8 @@ function SubfieldRow({
   accentFg: string;
   /** When true, the body is always shown (no per-subfield toggle or chevron). */
   expandAll?: boolean;
+  /** When true, the "Answer" badge on the matched subfield is suppressed. */
+  hideMatchBadge?: boolean;
   isCritical: boolean;
   isMatched: boolean;
   onToggle: () => void;
@@ -114,7 +117,7 @@ function SubfieldRow({
           >
             {subfield.title}
           </span>
-          {isMatched && (
+          {isMatched && !hideMatchBadge && (
             <span
               className="rounded-full px-1.5 py-px text-[8.5px] font-bold uppercase tracking-[0.05em] text-white"
               style={{ backgroundColor: accentFg }}
@@ -185,6 +188,7 @@ function SubfieldRow({
 function SectionRow({
   expandedSubfields,
   expandSubfields = false,
+  hideMatchBadges = false,
   hideSummary = false,
   index,
   isMatched,
@@ -199,6 +203,8 @@ function SectionRow({
   expandedSubfields: Set<string>;
   /** When true, every subfield body is shown in full — no per-subfield toggle. */
   expandSubfields?: boolean;
+  /** When true, the "Matched"/"Answer" badges are suppressed. */
+  hideMatchBadges?: boolean;
   /** When true, collapsed sections show only the header (no summary preview). */
   hideSummary?: boolean;
   index: number;
@@ -247,7 +253,7 @@ function SectionRow({
             <span className="shrink-0 rounded-full bg-[#eef2f7] px-1.5 py-0.5 text-[9.5px] font-bold tabular-nums text-[#7d8ea0]">
               {section.subfields.length}
             </span>
-            {isMatched && (
+            {isMatched && !hideMatchBadges && (
               <span
                 className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.06em]"
                 style={{ backgroundColor: accent.tint, color: accent.fg }}
@@ -274,6 +280,7 @@ function SectionRow({
                   key={subfield.id}
                   accentFg={accent.fg}
                   expandAll={expandSubfields}
+                  hideMatchBadge={hideMatchBadges}
                   isCritical={CRITICAL_SUBFIELD_IDS.includes(subfield.id)}
                   isMatched={matchedSubfieldId === subfield.id}
                   onToggle={() => onToggleSubfield(subfield.id)}
@@ -323,6 +330,8 @@ type DrugMonographAccordionProps = {
   /** When true, every subfield body is shown in full inside an open section —
    * no per-subfield accordion toggle. Section rows still expand/collapse. */
   expandSubfields?: boolean;
+  /** When true, the "Matched"/"Answer" badges are suppressed. */
+  hideMatchBadges?: boolean;
   /** When true, collapsed section rows show only the header (no summary preview). */
   hideSectionSummary?: boolean;
   matchedSubfieldId?: string;
@@ -333,6 +342,7 @@ type DrugMonographAccordionProps = {
 
 export function DrugMonographAccordion({
   expandSubfields = false,
+  hideMatchBadges = false,
   hideSectionSummary = false,
   matchedSubfieldId,
   monograph,
@@ -449,6 +459,7 @@ export function DrugMonographAccordion({
             key={section.id}
             expandedSubfields={expandedSubfields}
             expandSubfields={expandSubfields}
+            hideMatchBadges={hideMatchBadges}
             hideSummary={hideSectionSummary}
             index={index}
             isMatched={matchedSection?.id === section.id}

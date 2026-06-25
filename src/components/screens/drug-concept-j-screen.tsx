@@ -105,15 +105,6 @@ function AiAnswerSection({
 }) {
   return (
     <section className="dc-rise border-t border-[#eef3f8] pt-5">
-      <div className="mb-3 flex flex-wrap items-center gap-1.5">
-        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--mscp-color-brand-primary)] px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.1em] text-white">
-          AI answer
-        </span>
-        <span className="text-[10.5px] font-medium text-[#8497a9]">
-          AI-generated — verify against the canonical source above
-        </span>
-      </div>
-
       <AiResponseAnswerContent
         answer={aiAnswer}
         references={references}
@@ -411,6 +402,7 @@ export function DrugConceptFlatAnswerScreen() {
                       <DrugMonographCardFrame
                         anchor={turn.scenario.anchor}
                         expandSubfields
+                        hideMatchBadges
                         hideSectionSummary
                         monograph={monograph}
                         onOpenMonograph={(subfieldId) =>
