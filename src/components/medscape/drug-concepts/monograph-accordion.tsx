@@ -79,6 +79,7 @@ function smoothScrollTo(scroller: HTMLElement, target: number) {
 function SubfieldRow({
   accentFg,
   expandAll = false,
+  flat = false,
   hideMatchBadge = false,
   isCritical,
   isMatched,
@@ -89,6 +90,9 @@ function SubfieldRow({
   accentFg: string;
   /** When true, the body is always shown (no per-subfield toggle or chevron). */
   expandAll?: boolean;
+  /** When true (Concept J / Figma match): no leading bullet, no card border
+   * around the body, no trailing citation line. */
+  flat?: boolean;
   /** When true, the "Answer" badge on the matched subfield is suppressed. */
   hideMatchBadge?: boolean;
   isCritical: boolean;
@@ -104,16 +108,22 @@ function SubfieldRow({
 
   const header = (
     <>
-      <span
-        className="mt-[5px] h-2 w-2 shrink-0 rounded-full transition-colors"
-        style={{ backgroundColor: isOpen || isMatched ? accentFg : "#cdd8e4" }}
-        aria-hidden="true"
-      />
+      {!flat && (
+        <span
+          className="mt-[5px] h-2 w-2 shrink-0 rounded-full transition-colors"
+          style={{ backgroundColor: isOpen || isMatched ? accentFg : "#cdd8e4" }}
+          aria-hidden="true"
+        />
+      )}
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-1.5">
           <span
-            className="text-[12.5px] font-semibold leading-snug"
-            style={{ color: isMatched ? accentFg : "#1c2227" }}
+            className={
+              flat
+                ? "text-[16px] font-bold leading-snug text-[#161b1d]"
+                : "text-[12.5px] font-semibold leading-snug"
+            }
+            style={flat ? undefined : { color: isMatched ? accentFg : "#1c2227" }}
           >
             {subfield.title}
           </span>
@@ -125,7 +135,7 @@ function SubfieldRow({
               Answer
             </span>
           )}
-          {isCritical && !isMatched && (
+          {isCritical && !isMatched && !flat && (
             <span className="rounded-full bg-[#fde7e5] px-1.5 py-px text-[8.5px] font-bold uppercase tracking-[0.05em] text-[#b42318]">
               Critical
             </span>
@@ -141,7 +151,14 @@ function SubfieldRow({
     </>
   );
 
-  const body = (
+  const body = flat ? (
+    <div className="mb-1 mt-1">
+      <AiResponseAnswerContent
+        answer={answer}
+        className="text-[13.5px] leading-[1.6] text-[#2e3d4a] [font-variant-numeric:tabular-nums]"
+      />
+    </div>
+  ) : (
     <div className="mb-1 mt-1 rounded-[9px] border border-[#e3ebf4] bg-white px-3 py-2.5">
       <AiResponseAnswerContent
         answer={answer}
@@ -188,6 +205,7 @@ function SubfieldRow({
 function SectionRow({
   expandedSubfields,
   expandSubfields = false,
+  flat = false,
   hideMatchBadges = false,
   hideSummary = false,
   index,
@@ -203,6 +221,9 @@ function SectionRow({
   expandedSubfields: Set<string>;
   /** When true, every subfield body is shown in full — no per-subfield toggle. */
   expandSubfields?: boolean;
+  /** When true (Concept J / Figma match): no section icon, no subfield-count
+   * badge, and subfield rows render flat (see SubfieldRow). */
+  flat?: boolean;
   /** When true, the "Matched"/"Answer" badges are suppressed. */
   hideMatchBadges?: boolean;
   /** When true, collapsed sections show only the header (no summary preview). */
@@ -219,6 +240,12 @@ function SectionRow({
 }) {
   const accent = getZoneAccent(section.id);
   const topSubfield = section.subfields[0];
+  // Flat (Concept J / Figma match): the section actually answering the
+  // question gets the same "Dosing" blue highlight — not each section's own
+  // zone color. Manually opening a different section does NOT trigger it.
+  const dosingAccent = getZoneAccent("dosing");
+  const highlightAccent = flat ? dosingAccent : accent;
+  const isHighlighted = isMatched;
 
   return (
     <div
@@ -226,9 +253,9 @@ function SectionRow({
       className="dc-rise scroll-mt-[56px] overflow-hidden rounded-[12px] border bg-white transition-[box-shadow,border-color] duration-200"
       style={{
         animationDelay: `${index * 45}ms`,
-        borderColor: isMatched ? accent.fg : "#e4ebf3",
-        boxShadow: isMatched
-          ? `0 0 0 1px ${accent.fg}, 0 4px 14px ${accent.tint}`
+        borderColor: isHighlighted ? highlightAccent.fg : "#e4ebf3",
+        boxShadow: isHighlighted
+          ? `0 0 0 1px ${highlightAccent.fg}, 0 4px 14px ${highlightAccent.tint}`
           : "0 1px 2px rgba(16,24,40,0.04)",
       }}
     >
@@ -239,20 +266,30 @@ function SectionRow({
         style={{ touchAction: "manipulation" }}
         className="flex w-full items-start gap-3 px-3 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
       >
-        <span
-          className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px]"
-          style={{ backgroundColor: accent.soft, color: accent.fg }}
-        >
-          <ClinicalZoneIcon className="h-[18px] w-[18px]" sectionId={section.id} />
-        </span>
+        {!flat && (
+          <span
+            className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px]"
+            style={{ backgroundColor: accent.soft, color: accent.fg }}
+          >
+            <ClinicalZoneIcon className="h-[18px] w-[18px]" sectionId={section.id} />
+          </span>
+        )}
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="text-[13.5px] font-bold leading-snug text-[#1c2227]">
+            <span
+              className={
+                flat
+                  ? "text-[18px] font-bold leading-snug text-[#1c2227]"
+                  : "text-[13.5px] font-bold leading-snug text-[#1c2227]"
+              }
+            >
               {section.title}
             </span>
-            <span className="shrink-0 rounded-full bg-[#eef2f7] px-1.5 py-0.5 text-[9.5px] font-bold tabular-nums text-[#7d8ea0]">
-              {section.subfields.length}
-            </span>
+            {!flat && (
+              <span className="shrink-0 rounded-full bg-[#eef2f7] px-1.5 py-0.5 text-[9.5px] font-bold tabular-nums text-[#7d8ea0]">
+                {section.subfields.length}
+              </span>
+            )}
             {isMatched && !hideMatchBadges && (
               <span
                 className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.06em]"
@@ -280,6 +317,7 @@ function SectionRow({
                   key={subfield.id}
                   accentFg={accent.fg}
                   expandAll={expandSubfields}
+                  flat={flat}
                   hideMatchBadge={hideMatchBadges}
                   isCritical={CRITICAL_SUBFIELD_IDS.includes(subfield.id)}
                   isMatched={matchedSubfieldId === subfield.id}
@@ -296,7 +334,10 @@ function SectionRow({
                   <button
                     type="button"
                     onClick={() => onOpenMonograph(topSubfield.id)}
-                    style={{ color: accent.fg, touchAction: "manipulation" }}
+                    style={{
+                      color: flat ? "var(--mscp-color-brand-primary)" : accent.fg,
+                      touchAction: "manipulation",
+                    }}
                     className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[11.5px] font-semibold transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
                   >
                     <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6">
@@ -307,7 +348,10 @@ function SectionRow({
                 ) : (
                   <a
                     href={`/drug-concept-b?anchor=${topSubfield.id}`}
-                    style={{ color: accent.fg, touchAction: "manipulation" }}
+                    style={{
+                      color: flat ? "var(--mscp-color-brand-primary)" : accent.fg,
+                      touchAction: "manipulation",
+                    }}
                     className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[11.5px] font-semibold transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
                   >
                     <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6">
@@ -327,9 +371,15 @@ function SectionRow({
 
 // ─── DrugMonographAccordion ─────────────────────────────────────────────────────
 type DrugMonographAccordionProps = {
+  /** Color treatment for the boxed warning — "critical" (default) or "navy". */
+  boxedWarningVariant?: "critical" | "navy";
   /** When true, every subfield body is shown in full inside an open section —
    * no per-subfield accordion toggle. Section rows still expand/collapse. */
   expandSubfields?: boolean;
+  /** When true (Concept J / Figma match): section rows drop their icon and
+   * subfield-count badge, and subfield rows drop their bullet, card border,
+   * and trailing citation line. */
+  flat?: boolean;
   /** When true, the "Matched"/"Answer" badges are suppressed. */
   hideMatchBadges?: boolean;
   /** When true, collapsed section rows show only the header (no summary preview). */
@@ -338,15 +388,22 @@ type DrugMonographAccordionProps = {
   monograph: DrugMonograph;
   /** When provided, "Full X in monograph" section links call this instead of navigating to Concept B. */
   onOpenMonograph?: (subfieldId: string) => void;
+  /** Sticky jump-bar style — "pill" (default, colored dot chips) or
+   * "underline" (Concept J / Figma match: plain text tabs with a blue
+   * underline on the active tab). */
+  tabStyle?: "pill" | "underline";
 };
 
 export function DrugMonographAccordion({
+  boxedWarningVariant = "critical",
   expandSubfields = false,
+  flat = false,
   hideMatchBadges = false,
   hideSectionSummary = false,
   matchedSubfieldId,
   monograph,
   onOpenMonograph,
+  tabStyle = "pill",
 }: DrugMonographAccordionProps) {
   const matchedSection = matchedSubfieldId
     ? getSectionBySubfieldId(monograph, matchedSubfieldId)
@@ -414,41 +471,75 @@ export function DrugMonographAccordion({
 
   return (
     <div className="dc-rise">
-      {/* Sticky jump bar — floats as a pill row, no borders */}
+      {/* Sticky jump bar */}
       <div className="sticky top-0 z-10 bg-white/90 pb-3 backdrop-blur-sm">
-        <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {monograph.sections.map((section) => {
-            const accent = getZoneAccent(section.id);
-            const isMatched = matchedSection?.id === section.id;
-            return (
-              <button
-                key={section.id}
-                type="button"
-                onClick={() => jumpToSection(section.id)}
-                style={{
-                  touchAction: "manipulation",
-                  backgroundColor: isMatched ? accent.tint : "transparent",
-                  borderColor: isMatched ? accent.fg : "#dbe4ee",
-                  color: isMatched ? accent.fg : "#3a4f6b",
-                }}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11.5px] font-semibold leading-none transition-colors hover:bg-[#f1f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
-              >
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: accent.fg }}
-                  aria-hidden="true"
-                />
-                {SECTION_JUMP_LABEL[section.id] ?? section.title}
-              </button>
-            );
-          })}
-        </div>
+        {tabStyle === "underline" ? (
+          // Plain text tabs with a blue underline on the active tab — matches
+          // the Figma "ds-tab" row (node 1287:15410).
+          <div className="flex items-center gap-1 overflow-x-auto border-b border-[#e4ebf3] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {monograph.sections.map((section) => {
+              const isMatched = matchedSection?.id === section.id;
+              return (
+                <button
+                  key={section.id}
+                  type="button"
+                  onClick={() => jumpToSection(section.id)}
+                  style={{ touchAction: "manipulation" }}
+                  className={`relative shrink-0 whitespace-nowrap px-3 py-2.5 text-[14px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] ${
+                    isMatched
+                      ? "text-[var(--mscp-color-brand-primary)]"
+                      : "text-[#161b1d] hover:text-[#1c2227]"
+                  }`}
+                >
+                  {SECTION_JUMP_LABEL[section.id] ?? section.title}
+                  {isMatched && (
+                    <span
+                      className="absolute inset-x-0 -bottom-px h-[2px] bg-[var(--mscp-color-brand-primary)]"
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {monograph.sections.map((section) => {
+              const accent = getZoneAccent(section.id);
+              const isMatched = matchedSection?.id === section.id;
+              return (
+                <button
+                  key={section.id}
+                  type="button"
+                  onClick={() => jumpToSection(section.id)}
+                  style={{
+                    touchAction: "manipulation",
+                    backgroundColor: isMatched ? accent.tint : "transparent",
+                    borderColor: isMatched ? accent.fg : "#dbe4ee",
+                    color: isMatched ? accent.fg : "#3a4f6b",
+                  }}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11.5px] font-semibold leading-none transition-colors hover:bg-[#f1f6fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: accent.fg }}
+                    aria-hidden="true"
+                  />
+                  {SECTION_JUMP_LABEL[section.id] ?? section.title}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Boxed warning — always eager and pinned, never collapsed. */}
       {monograph.blackBoxWarnings.length > 0 && (
         <div className="pt-3">
-          <ClinicalBoxedWarning warnings={monograph.blackBoxWarnings} />
+          <ClinicalBoxedWarning
+            variant={boxedWarningVariant}
+            warnings={monograph.blackBoxWarnings}
+          />
         </div>
       )}
 
@@ -459,6 +550,7 @@ export function DrugMonographAccordion({
             key={section.id}
             expandedSubfields={expandedSubfields}
             expandSubfields={expandSubfields}
+            flat={flat}
             hideMatchBadges={hideMatchBadges}
             hideSummary={hideSectionSummary}
             index={index}

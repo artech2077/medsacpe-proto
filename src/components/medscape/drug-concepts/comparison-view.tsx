@@ -11,17 +11,26 @@ import type { DrugMonograph } from "@/data/drug-monograph";
 
 export function DrugMonographCardFrame({
   anchor,
+  boxedWarningVariant,
   expandSubfields = false,
+  flat = false,
   hideMatchBadges = false,
   hideSectionSummary = false,
   highlight = false,
   monograph,
   onOpenMonograph,
+  tabStyle,
 }: {
   /** Subfield id to auto-expand two levels deep. Omit for a collapsed card. */
   anchor?: string;
+  /** Color treatment for the boxed warning — "critical" (default) or "navy". */
+  boxedWarningVariant?: "critical" | "navy";
   /** Show every subfield body in full inside an open section (no sub-accordion). */
   expandSubfields?: boolean;
+  /** When true (Concept J / Figma match): section rows drop their icon and
+   * subfield-count badge, and subfield rows drop their bullet, card border,
+   * and trailing citation line. */
+  flat?: boolean;
   /** Hide the "Matched"/"Answer" badges. */
   hideMatchBadges?: boolean;
   /** Hide the summary preview on collapsed section rows. */
@@ -30,32 +39,51 @@ export function DrugMonographCardFrame({
   highlight?: boolean;
   monograph: DrugMonograph;
   onOpenMonograph?: (subfieldId: string) => void;
+  /** Sticky jump-bar style — "pill" (default) or "underline" (Concept J / Figma match). */
+  tabStyle?: "pill" | "underline";
 }) {
   return (
     <section
       // Re-runs the one-shot flash whenever the anchor changes (S9 in-place update).
       key={highlight ? (anchor ?? "flash") : undefined}
       aria-label={`${monograph.drug.name} drug information`}
-      className={`min-w-0 rounded-[14px] border border-[#e2eaf2] bg-white p-3.5 shadow-[0_1px_3px_rgba(16,24,40,0.05)] md:p-4 ${
-        highlight ? "dc-card-flash" : ""
-      }`}
+      className={`min-w-0 ${
+        // Flat (Concept J / Figma match): no card chrome at all — content sits
+        // flush with the question above it, not inset in a bordered box.
+        flat
+          ? ""
+          : "rounded-[14px] border border-[#e2eaf2] bg-white p-3.5 shadow-[0_1px_3px_rgba(16,24,40,0.05)] md:p-4"
+      } ${highlight ? "dc-card-flash" : ""}`}
     >
       <header className="mb-2 flex items-baseline gap-2">
-        <h3 className="text-[16px] font-extrabold tracking-[-0.01em] text-[#161b1d]">
+        <h3
+          className={
+            flat
+              ? "text-[24px] font-extrabold tracking-[-0.01em] text-[#161b1d]"
+              : "text-[16px] font-extrabold tracking-[-0.01em] text-[#161b1d]"
+          }
+        >
           {monograph.drug.name}
         </h3>
-        <p className="min-w-0 truncate text-[11.5px] font-medium text-[#7a8da0]">
+        <p
+          className={`min-w-0 truncate font-medium ${
+            flat ? "text-[14px] text-[#006aff]" : "text-[11.5px] text-[#7a8da0]"
+          }`}
+        >
           {monograph.drug.drugClass}
         </p>
       </header>
       <DrugMonographAccordion
         key={anchor ?? "collapsed"}
+        boxedWarningVariant={boxedWarningVariant}
         expandSubfields={expandSubfields}
+        flat={flat}
         hideMatchBadges={hideMatchBadges}
         hideSectionSummary={hideSectionSummary}
         matchedSubfieldId={anchor}
         monograph={monograph}
         onOpenMonograph={onOpenMonograph}
+        tabStyle={tabStyle}
       />
     </section>
   );

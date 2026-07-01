@@ -260,23 +260,43 @@ export function ClinicalSourceLabel({
 // ─── Boxed warning (FDA "black box") ──────────────────────────────────────────────
 // The most critical clinical element — rendered as the serious regulatory artifact
 // it is, never a soft note. Always eager, never collapsed.
+// Two color treatments: "critical" (default, red/maroon FDA convention used by
+// most concepts) and "navy" (Concept J — matches the Figma "ClinicalBoxedWarning"
+// node 1287:15295, bg #0a1729 header/border, white body, #161b1d body text).
+const BOXED_WARNING_TONES = {
+  critical: {
+    container: "border-2 border-[#7a271a] bg-[#fffaf9]",
+    header: "bg-[#7a271a]",
+    text: "text-[#5c1d12]",
+  },
+  navy: {
+    container: "border border-[#0a1729] bg-white",
+    header: "bg-[#0a1729]",
+    text: "text-[#161b1d]",
+  },
+} as const;
+
 export function ClinicalBoxedWarning({
   className = "",
   compact = false,
+  variant = "critical",
   warnings,
 }: {
   className?: string;
   compact?: boolean;
+  /** Color treatment — "critical" (default) or "navy" (Concept J / Figma match). */
+  variant?: keyof typeof BOXED_WARNING_TONES;
   warnings: DrugBlackBoxWarning[];
 }) {
   if (!warnings.length) return null;
+  const tone = BOXED_WARNING_TONES[variant];
 
   return (
     <div
       role="alert"
-      className={`overflow-hidden rounded-[10px] border-2 border-[#7a271a] bg-[#fffaf9] ${className}`}
+      className={`overflow-hidden rounded-[10px] ${tone.container} ${className}`}
     >
-      <div className="flex items-center gap-1.5 bg-[#7a271a] px-3 py-1.5">
+      <div className={`flex items-center gap-1.5 px-3 py-1.5 ${tone.header}`}>
         <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 text-white" fill="none">
           <path
             d="M8 2 14.5 13.5H1.5L8 2Z"
@@ -295,7 +315,7 @@ export function ClinicalBoxedWarning({
         {warnings.map((warning) => (
           <p
             key={warning.id}
-            className={`text-[12.5px] leading-[1.55] text-[#5c1d12] ${compact ? "line-clamp-2" : ""}`}
+            className={`text-[12.5px] leading-[1.55] ${tone.text} ${compact ? "line-clamp-2" : ""}`}
           >
             {warning.text}
           </p>

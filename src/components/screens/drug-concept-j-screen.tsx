@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { DrugConceptShell } from "@/components/medscape/drug-concepts/concept-shell";
 import { DrugMonographCardFrame } from "@/components/medscape/drug-concepts/comparison-view";
 import { DrugMonographCanvas } from "@/components/medscape/drug-concepts/monograph-canvas";
@@ -59,6 +59,26 @@ function buildReferences(
   });
 }
 
+// ─── Scroll to AI answer link (matches Figma "Scroll to view the rest of the
+// response", node 1287:15285 — jumps down to the AI-generated answer below the
+// canonical card rather than a generic scroll-to-bottom) ───────────────────────
+
+function ScrollToAnswerLink({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{ touchAction: "manipulation" }}
+      className="inline-flex items-center gap-2.5 text-[16px] font-bold leading-[20.8px] text-[var(--mscp-color-brand-primary)] transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
+    >
+      Scroll to view the rest of the response
+      <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 3v10M4 9l4 4 4-4" />
+      </svg>
+    </button>
+  );
+}
+
 // ─── Examples pill (header, shown while a question is active) ──────────────────
 
 function ExamplesPill({ onClick }: { onClick: () => void }) {
@@ -89,6 +109,7 @@ function AiAnswerSection({
   followUpQuestions,
   onFollowUpQuestionSelect,
   references,
+  referencesRef,
 }: {
   aiAnswer: string;
   analyticsContext: {
@@ -102,6 +123,7 @@ function AiAnswerSection({
   followUpQuestions: string[];
   onFollowUpQuestionSelect: (question: string) => void;
   references: AiAnswerReference[];
+  referencesRef?: RefObject<HTMLDivElement | null>;
 }) {
   return (
     <section className="dc-rise border-t border-[#eef3f8] pt-5">
@@ -118,11 +140,13 @@ function AiAnswerSection({
       />
 
       {/* References → Ask a follow-up → Related Articles (no ad between them) */}
-      <AiResponseReferences
-        analyticsContext={analyticsContext}
-        className="mt-5"
-        references={references}
-      />
+      <div ref={referencesRef} className="scroll-mt-4">
+        <AiResponseReferences
+          analyticsContext={analyticsContext}
+          className="mt-5"
+          references={references}
+        />
+      </div>
 
       {followUpQuestions.length > 0 ? (
         <section className="mt-5 border-t border-[#c5ced3] pt-3">
@@ -162,6 +186,8 @@ export function DrugConceptFlatAnswerScreen() {
   const composerInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const aiAnswerRef = useRef<HTMLDivElement>(null);
+  const referencesRef = useRef<HTMLDivElement>(null);
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [turn, setTurn] = useState<ActiveTurn | null>(null);
@@ -253,6 +279,22 @@ export function DrugConceptFlatAnswerScreen() {
 
   const scrollToCard = useCallback(() => {
     cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  // "Scroll to view the rest of the response" — jumps to the AI-generated
+  // answer below the canonical card (not a generic scroll-to-bottom).
+  const scrollToAiAnswer = useCallback(() => {
+    aiAnswerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  // "References" chip — jumps to the References section in the footer once
+  // the AI answer has rendered it; falls back to the AI answer block while
+  // the answer is still generating.
+  const scrollToReferences = useCallback(() => {
+    (referencesRef.current ?? aiAnswerRef.current)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }, []);
 
   const openCanvas = useCallback((drugId: string, anchor?: string) => {
@@ -391,45 +433,55 @@ export function DrugConceptFlatAnswerScreen() {
                   </h1>
 
                   <div className="space-y-6">
-                    {/* References / Sources chips */}
-                    <DrugAnswerSourceChips
-                      references={references}
-                      onJumpToSources={scrollToCard}
-                    />
+                    {/* References / Sources chip + scroll-to-answer link */}
+                    <div className="space-y-2.5">
+                      <DrugAnswerSourceChips
+                        references={references}
+                        onJumpToReferences={scrollToReferences}
+                        onJumpToSources={scrollToCard}
+                      />
+                      <ScrollToAnswerLink onClick={scrollToAiAnswer} />
+                    </div>
 
                     {/* Canonical monograph card — shown instantly */}
                     <div ref={cardRef} className="scroll-mt-4">
                       <DrugMonographCardFrame
                         anchor={turn.scenario.anchor}
+                        boxedWarningVariant="navy"
                         expandSubfields
+                        flat
                         hideMatchBadges
                         hideSectionSummary
                         monograph={monograph}
                         onOpenMonograph={(subfieldId) =>
                           openCanvas(turn.scenario.drugId, subfieldId)
                         }
+                        tabStyle="underline"
                       />
                     </div>
 
                     {/* AI answer below the card — shimmer until generated */}
-                    {turn.status === "loading" ? (
-                      <DrugAnswerLoadingSkeleton />
-                    ) : (
-                      <AiAnswerSection
-                        aiAnswer={turn.scenario.aiAnswer}
-                        analyticsContext={{
-                          prototypeFamily: "drug-concept",
-                          prototypeRoute: "/drug-concept-j",
-                          prototypeSlug: "drug-concept-j",
-                          question: turn.scenario.question,
-                          screenType: "drug-concept-j",
-                          turnId: 1,
-                        }}
-                        followUpQuestions={followUpQuestions}
-                        onFollowUpQuestionSelect={submitQuestion}
-                        references={references}
-                      />
-                    )}
+                    <div ref={aiAnswerRef} className="scroll-mt-4">
+                      {turn.status === "loading" ? (
+                        <DrugAnswerLoadingSkeleton />
+                      ) : (
+                        <AiAnswerSection
+                          aiAnswer={turn.scenario.aiAnswer}
+                          analyticsContext={{
+                            prototypeFamily: "drug-concept",
+                            prototypeRoute: "/drug-concept-j",
+                            prototypeSlug: "drug-concept-j",
+                            question: turn.scenario.question,
+                            screenType: "drug-concept-j",
+                            turnId: 1,
+                          }}
+                          followUpQuestions={followUpQuestions}
+                          onFollowUpQuestionSelect={submitQuestion}
+                          references={references}
+                          referencesRef={referencesRef}
+                        />
+                      )}
+                    </div>
                   </div>
                 </article>
               ) : (

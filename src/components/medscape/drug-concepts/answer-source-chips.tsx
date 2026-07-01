@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { AiResponseReferenceCard } from "@/components/medscape/ai-response/reference-card";
 import type { AiAnswerReference } from "@/data/ai-response";
 
 // ─── DrugAnswerSourceChips ──────────────────────────────────────────────────────
-// Pill row shown directly under the question (Concept J): a "References N" chip
-// that toggles the inline reference list, plus a "Sources" chip that scrolls to
-// the canonical monograph card. Reuses AiResponseReferenceCard for the list.
+// Single combined pill shown directly under the question (Concept J), matching
+// the Figma "content available box" (node 1287:15260): a "References N" segment
+// that scrolls to the References section in the footer, a divider, and a
+// "Sources" segment that scrolls to the canonical monograph card.
+//   pill bg   Color/Background/Container/Primary  #ecf1f9
+//   text/icon Color/Brand/Primary (eyebrow)        #064aa7
+//   count bg  white
 
 function ReferencesIcon() {
   return (
@@ -18,67 +20,45 @@ function ReferencesIcon() {
   );
 }
 
-function SourcesIcon() {
-  return (
-    <svg viewBox="0 0 14 14" aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M7 1.5 12.5 4 7 6.5 1.5 4 7 1.5Z" />
-      <path d="m1.5 7 5.5 2.5L12.5 7M1.5 10 7 12.5 12.5 10" />
-    </svg>
-  );
-}
-
 export function DrugAnswerSourceChips({
   className,
+  onJumpToReferences,
   onJumpToSources,
   references,
 }: {
   className?: string;
-  /** Called by the "Sources" chip — scrolls to the canonical monograph card. */
+  /** Called by the "References" segment — scrolls to the References section in the footer. */
+  onJumpToReferences?: () => void;
+  /** Called by the "Sources" segment — scrolls to the canonical monograph card. */
   onJumpToSources?: () => void;
   references: AiAnswerReference[];
 }) {
-  const [open, setOpen] = useState(false);
   const count = references.length;
 
   return (
     <div className={className}>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="inline-flex items-center gap-2.5 rounded-[70px] bg-[#ecf1f9] px-3 py-1.5">
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
+          onClick={onJumpToReferences}
           style={{ touchAction: "manipulation" }}
-          className="inline-flex items-center gap-1.5 rounded-full border border-[#e3eaf2] bg-[#f4f7fb] px-3 py-1 text-[12px] font-semibold text-[#3a4f6b] transition hover:bg-[#eaf1f9] hover:text-[var(--mscp-color-brand-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-1"
+          className="inline-flex items-center gap-1.5 text-[14px] font-semibold leading-none text-[var(--mscp-color-brand-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
         >
           <ReferencesIcon />
           References
-          <span className="rounded-full bg-white px-1.5 py-px text-[10.5px] font-bold tabular-nums text-[#7d8ea0]">
+          <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white px-1 text-[14px] font-semibold leading-none text-[var(--mscp-color-brand-primary)]">
             {count}
           </span>
         </button>
+        <span aria-hidden="true" className="h-[20px] w-px bg-[#c5ced3]" />
         <button
           type="button"
           onClick={onJumpToSources}
           style={{ touchAction: "manipulation" }}
-          className="inline-flex items-center gap-1.5 rounded-full border border-[#e3eaf2] bg-[#f4f7fb] px-3 py-1 text-[12px] font-semibold text-[#3a4f6b] transition hover:bg-[#eaf1f9] hover:text-[var(--mscp-color-brand-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-1"
+          className="text-[14px] font-semibold leading-none text-[var(--mscp-color-brand-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
         >
-          <SourcesIcon />
           Sources
         </button>
-      </div>
-
-      <div className="dc-collapse" data-open={open}>
-        <div className="dc-collapse-inner">
-          <div className="mt-3 space-y-3">
-            {references.length === 0 ? (
-              <p className="text-[13px] text-[#8499af]">No references for this answer.</p>
-            ) : (
-              references.map((ref) => (
-                <AiResponseReferenceCard key={ref.id} reference={ref} variant="compact" />
-              ))
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
