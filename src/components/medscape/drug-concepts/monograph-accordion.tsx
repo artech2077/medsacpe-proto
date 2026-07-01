@@ -247,6 +247,16 @@ function SectionRow({
   const highlightAccent = flat ? dosingAccent : accent;
   const isHighlighted = isMatched;
 
+  // Adult/Pediatric toggle — only shown when the section actually has
+  // pediatric-specific subfields. Subfields without a `population` tag apply
+  // to both (eg, renal/hepatic dosing) and always stay visible.
+  const hasPopulationSplit = section.subfields.some((sf) => sf.population === "pediatric");
+  const [activePopulation, setActivePopulation] = useState<"adult" | "pediatric">("adult");
+  const visibleSubfields = hasPopulationSplit
+    ? section.subfields.filter((sf) => !sf.population || sf.population === activePopulation)
+    : section.subfields;
+  const activeTopSubfield = visibleSubfields[0] ?? topSubfield;
+
   return (
     <div
       ref={(node) => registerRef(section.id, node)}
@@ -311,8 +321,31 @@ function SectionRow({
       <div className="dc-collapse" data-open={open}>
         <div className="dc-collapse-inner">
           <div className="border-t border-[#eef3f8] px-2 pb-2.5 pt-1.5">
+            {hasPopulationSplit && (
+              <div className="flex gap-2 px-2 pb-1 pt-1.5">
+                {(["adult", "pediatric"] as const).map((population) => {
+                  const active = activePopulation === population;
+                  return (
+                    <button
+                      key={population}
+                      type="button"
+                      onClick={() => setActivePopulation(population)}
+                      aria-pressed={active}
+                      style={{ touchAction: "manipulation" }}
+                      className={`inline-flex items-center justify-center rounded-full border px-3 py-1 text-[13px] font-semibold capitalize leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] ${
+                        active
+                          ? "border-[var(--mscp-color-brand-primary)] bg-[#e6eefb] text-[var(--mscp-color-brand-primary)]"
+                          : "border-[#cfe0f7] bg-white text-[var(--mscp-color-brand-primary)] hover:bg-[#f2f7fe]"
+                      }`}
+                    >
+                      {population}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             <ul className="space-y-0.5">
-              {section.subfields.map((subfield) => (
+              {visibleSubfields.map((subfield) => (
                 <SubfieldRow
                   key={subfield.id}
                   accentFg={accent.fg}
@@ -328,12 +361,12 @@ function SectionRow({
               ))}
             </ul>
 
-            {topSubfield && (
+            {activeTopSubfield && (
               <div className="mt-2 border-t border-[#eef3f8] pt-2">
                 {onOpenMonograph ? (
                   <button
                     type="button"
-                    onClick={() => onOpenMonograph(topSubfield.id)}
+                    onClick={() => onOpenMonograph(activeTopSubfield.id)}
                     style={{
                       color: flat ? "var(--mscp-color-brand-primary)" : accent.fg,
                       touchAction: "manipulation",
@@ -347,7 +380,7 @@ function SectionRow({
                   </button>
                 ) : (
                   <a
-                    href={`/drug-concept-b?anchor=${topSubfield.id}`}
+                    href={`/drug-concept-b?anchor=${activeTopSubfield.id}`}
                     style={{
                       color: flat ? "var(--mscp-color-brand-primary)" : accent.fg,
                       touchAction: "manipulation",

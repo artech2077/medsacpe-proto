@@ -59,26 +59,6 @@ function buildReferences(
   });
 }
 
-// ─── Scroll to AI answer link (matches Figma "Scroll to view the rest of the
-// response", node 1287:15285 — jumps down to the AI-generated answer below the
-// canonical card rather than a generic scroll-to-bottom) ───────────────────────
-
-function ScrollToAnswerLink({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{ touchAction: "manipulation" }}
-      className="inline-flex items-center gap-2.5 text-[16px] font-bold leading-[20.8px] text-[var(--mscp-color-brand-primary)] transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
-    >
-      Scroll to view the rest of the response
-      <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M8 3v10M4 9l4 4 4-4" />
-      </svg>
-    </button>
-  );
-}
-
 // ─── Examples pill (header, shown while a question is active) ──────────────────
 
 function ExamplesPill({ onClick }: { onClick: () => void }) {
@@ -281,12 +261,6 @@ export function DrugConceptFlatAnswerScreen() {
     cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
-  // "Scroll to view the rest of the response" — jumps to the AI-generated
-  // answer below the canonical card (not a generic scroll-to-bottom).
-  const scrollToAiAnswer = useCallback(() => {
-    aiAnswerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
   // "References" chip — jumps to the References section in the footer once
   // the AI answer has rendered it; falls back to the AI answer block while
   // the answer is still generating.
@@ -433,15 +407,12 @@ export function DrugConceptFlatAnswerScreen() {
                   </h1>
 
                   <div className="space-y-6">
-                    {/* References / Sources chip + scroll-to-answer link */}
-                    <div className="space-y-2.5">
-                      <DrugAnswerSourceChips
-                        references={references}
-                        onJumpToReferences={scrollToReferences}
-                        onJumpToSources={scrollToCard}
-                      />
-                      <ScrollToAnswerLink onClick={scrollToAiAnswer} />
-                    </div>
+                    {/* References / Sources chip */}
+                    <DrugAnswerSourceChips
+                      references={references}
+                      onJumpToReferences={scrollToReferences}
+                      onJumpToSources={scrollToCard}
+                    />
 
                     {/* Canonical monograph card — shown instantly */}
                     <div ref={cardRef} className="scroll-mt-4">

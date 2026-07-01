@@ -48,6 +48,7 @@ export const semaglutideMonograph: DrugMonograph = {
         {
           id: "dosing.t2dm_sc",
           title: "Type 2 Diabetes — Ozempic SC",
+          population: "adult",
           summary: "Start 0.25 mg SC qWeek × 4 wks (initiation only), then 0.5 mg; increase by 0.5-mg steps q4wk to max 2 mg/week",
           body: [
             "Initiate at 0.25 mg SC once weekly for 4 weeks. This dose is not effective for glycemic control — it serves only to reduce GI adverse effects.",
@@ -60,6 +61,7 @@ export const semaglutideMonograph: DrugMonograph = {
         {
           id: "dosing.t2dm_po",
           title: "Type 2 Diabetes — Rybelsus Oral",
+          population: "adult",
           summary: "3 mg PO qDay × 30 days (initiation only), then 7 mg/day; may increase to 14 mg/day",
           body: [
             "Days 1–30 (initiation): 3 mg PO once daily — not effective for glycemic control; reduces GI adverse effects.",
@@ -73,6 +75,7 @@ export const semaglutideMonograph: DrugMonograph = {
         {
           id: "dosing.weight_sc",
           title: "Weight Management — Wegovy SC",
+          population: "adult",
           summary: "Escalate: 0.25 mg (Wks 1–4) → 0.5 mg → 1 mg → 1.7 mg → 2.4 mg (Wk 17+) SC qWeek; max 7.2 mg/week",
           body: [
             "Indicated (in combination with reduced-calorie diet and increased physical activity) for chronic weight management in adults with BMI ≥30 kg/m² or BMI ≥27 kg/m² with ≥1 weight-related comorbidity. Also indicated to reduce CV events in adults with established CV disease and obesity/overweight.",
@@ -81,6 +84,30 @@ export const semaglutideMonograph: DrugMonograph = {
             "Patients tolerating 2.4 mg for ≥4 weeks who need additional weight reduction may increase to 7.2 mg SC qWeek (Wegovy HD maximum).",
           ],
           source: medscapeRef("Dosing > Weight Management (SC)", SEMA_URL),
+        },
+        {
+          id: "dosing.t2dm_pediatric",
+          title: "Type 2 Diabetes — Pediatric",
+          population: "pediatric",
+          summary: "Safety and efficacy of Ozempic SC and Rybelsus oral not established in patients <18 years with T2DM",
+          body: [
+            "Safety and efficacy of semaglutide (Ozempic SC or Rybelsus oral) for the treatment of type 2 diabetes mellitus have not been established in pediatric patients younger than 18 years.",
+            "Do not use Ozempic or Rybelsus for glycemic control in pediatric patients outside of a clinical trial.",
+          ],
+          source: medscapeRef("Dosing > Type 2 Diabetes Mellitus, Pediatric", SEMA_URL),
+        },
+        {
+          id: "dosing.weight_sc_pediatric",
+          title: "Weight Management — Wegovy SC (Pediatric)",
+          population: "pediatric",
+          summary: "Ages ≥12 y with obesity (BMI ≥95th percentile): same 0.25 → 2.4 mg SC qWeek escalation as adults",
+          body: [
+            "Indicated (in combination with reduced-calorie diet and increased physical activity) for chronic weight management in adolescents ≥12 years of age with obesity (BMI at or above the 95th percentile for age and sex).",
+            "Escalation schedule is identical to adults: Weeks 1–4: 0.25 mg SC qWeek; Weeks 5–8: 0.5 mg; Weeks 9–12: 1 mg; Weeks 13–16: 1.7 mg; Week 17+: 2.4 mg SC qWeek (maintenance). Dosing is fixed, not weight-based.",
+            "The 7.2 mg/week (Wegovy HD) dose has not been studied in pediatric patients — do not escalate beyond 2.4 mg/week in adolescents.",
+            "Safety and effectiveness for chronic weight management have not been established in patients younger than 12 years of age.",
+          ],
+          source: medscapeRef("Dosing > Weight Management, Pediatric (SC)", SEMA_URL),
         },
         {
           id: "dosing.renal_hepatic",

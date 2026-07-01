@@ -11,6 +11,9 @@ export type DrugMonographSource = {
 export type DrugSubfield = {
   body: string[];
   id: string;
+  /** Restricts the subfield to an Adult/Pediatric toggle (Concept J). Omit for
+   * subfields that apply to both populations — they show under either tab. */
+  population?: "adult" | "pediatric";
   source: DrugMonographSource;
   summary: string;
   title: string;
