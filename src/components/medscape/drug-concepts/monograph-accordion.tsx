@@ -264,8 +264,14 @@ function SectionRow({
       style={{
         animationDelay: `${index * 45}ms`,
         borderColor: isHighlighted ? highlightAccent.fg : "#e4ebf3",
+        // Flat (Concept J / Figma match): the border alone marks the highlight —
+        // no extra ring. A ring drawn via box-shadow paints 1px OUTSIDE the
+        // border box, which the sticky tab bar (same declared width) doesn't
+        // cover, so it bled through during scroll.
         boxShadow: isHighlighted
-          ? `0 0 0 1px ${highlightAccent.fg}, 0 4px 14px ${highlightAccent.tint}`
+          ? flat
+            ? `0 4px 14px ${highlightAccent.tint}`
+            : `0 0 0 1px ${highlightAccent.fg}, 0 4px 14px ${highlightAccent.tint}`
           : "0 1px 2px rgba(16,24,40,0.04)",
       }}
     >
