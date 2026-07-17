@@ -9,11 +9,13 @@ type DrugConceptShellProps = {
   className?: string;
   /** When true, forces the tab bar to letter-only (compact) mode — used inside fixed-width phone frames where viewport breakpoints don't reflect visual width. */
   compact?: boolean;
+  /** When true, omits the concept tab bar — for standalone prototypes (e.g. AI drug mono V1) that reuse a concept screen outside the A–J concept browser. */
+  hideTabBar?: boolean;
 };
 
 // Layout shell that pins the DrugConceptTabBar above the white chat panel.
 // Every concept screen renders inside this so the tab bar is identical across all eight.
-export function DrugConceptShell({ activeConcept, children, className, compact }: DrugConceptShellProps) {
+export function DrugConceptShell({ activeConcept, children, className, compact, hideTabBar }: DrugConceptShellProps) {
   return (
     <main
       className={`relative flex min-h-0 flex-col overflow-hidden bg-[#dce8fb] ${className ?? "h-dvh"}`}
@@ -28,12 +30,16 @@ export function DrugConceptShell({ activeConcept, children, className, compact }
       </div>
 
       {/* Tab bar — sits above the white panel in the gradient bg */}
-      <div className="relative z-10 shrink-0">
-        <DrugConceptTabBar activeConcept={activeConcept} compact={compact} />
-      </div>
+      {!hideTabBar && (
+        <div className="relative z-10 shrink-0">
+          <DrugConceptTabBar activeConcept={activeConcept} compact={compact} />
+        </div>
+      )}
 
       {/* White chat panel */}
-      <section className="relative flex min-h-0 flex-1 px-2 pb-2 md:px-3 md:pb-3">
+      <section
+        className={`relative flex min-h-0 flex-1 px-2 pb-2 md:px-3 md:pb-3 ${hideTabBar ? "pt-2 md:pt-3" : ""}`}
+      >
         <div className="relative flex min-h-0 flex-1 overflow-hidden rounded-[22px] border border-[rgba(109,153,206,0.42)] bg-white shadow-[0_18px_44px_rgba(6,74,167,0.12)]">
           {children}
         </div>

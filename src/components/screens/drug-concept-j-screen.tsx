@@ -162,7 +162,17 @@ type ActiveTurn = {
   status: "loading" | "complete";
 };
 
-export function DrugConceptFlatAnswerScreen() {
+type DrugConceptFlatAnswerScreenProps = {
+  /** When true, renders without the A–J concept tab bar — for standalone prototypes like AI drug mono V1. */
+  hideConceptTabs?: boolean;
+  /** Landing hero title. Defaults to the Concept J wording; standalone prototypes pass their own name. */
+  heroTitle?: string;
+};
+
+export function DrugConceptFlatAnswerScreen({
+  hideConceptTabs,
+  heroTitle = "Canonical content first, AI answer below",
+}: DrugConceptFlatAnswerScreenProps = {}) {
   const composerInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -284,7 +294,7 @@ export function DrugConceptFlatAnswerScreen() {
       : [];
 
   return (
-    <DrugConceptShell activeConcept="J">
+    <DrugConceptShell activeConcept="J" hideTabBar={hideConceptTabs}>
       <div className="relative flex min-h-0 min-w-0 flex-1">
         {/* Chat / answer column */}
         <section
@@ -365,11 +375,13 @@ export function DrugConceptFlatAnswerScreen() {
               {!turn && !composerNotice ? (
                 // ── Landing — hero + example questions ──────────────────────
                 <div className="flex flex-col items-center py-10 md:py-14">
-                  <div className="dc-fade mb-3 rounded-full bg-[rgba(6,74,167,0.06)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mscp-color-brand-primary)]">
-                    Concept J · Canonical Card + AI Answer
-                  </div>
+                  {!hideConceptTabs && (
+                    <div className="dc-fade mb-3 rounded-full bg-[rgba(6,74,167,0.06)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mscp-color-brand-primary)]">
+                      Concept J · Canonical Card + AI Answer
+                    </div>
+                  )}
                   <h2 className="dc-rise mt-2 max-w-[440px] text-center text-[22px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#161b1d] [text-wrap:balance] md:text-[28px]">
-                    Canonical content first, AI answer below
+                    {heroTitle}
                   </h2>
                   <p className="dc-rise mt-3 max-w-[480px] text-center text-[13.5px] leading-[1.65] text-[#5a6e7e] [text-wrap:balance]">
                     Each reply shows the canonical monograph card instantly, then the AI-generated
