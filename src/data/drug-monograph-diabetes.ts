@@ -30,6 +30,8 @@ export const semaglutideMonograph: DrugMonograph = {
     drugClass: "GLP-1 receptor agonist",
     id: "semaglutide",
     name: "Semaglutide",
+    referenceUrl:
+      "https://reference.medscape.com/drug/ozempic-rybelsus-wegovy-semaglutide-1000174",
   },
 
   keyFields: [
@@ -476,6 +478,8 @@ export const tirzepatideMonograph: DrugMonograph = {
     drugClass: "Dual GIP/GLP-1 receptor agonist",
     id: "tirzepatide",
     name: "Tirzepatide",
+    referenceUrl:
+      "https://reference.medscape.com/drug/mounjaro-zepbound-tirzepatide-4000264",
   },
 
   keyFields: [

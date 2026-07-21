@@ -154,13 +154,129 @@ function AiAnswerSection({
   );
 }
 
-// ─── Main screen ──────────────────────────────────────────────────────────────
+// ─── Thread turn (question + card + AI answer) ─────────────────────────────────
+// Each submitted question appends a turn; earlier turns stay visible above so
+// the conversation reads as one thread. Only the newest turn's AI answer
+// shimmers — a follow-up renders a NEW card in the new answer (per the locked
+// V1 behavior), never mutates a previous one.
 
-type ActiveTurn = {
+type ScenarioTurn = {
+  id: number;
+  kind: "scenario";
   scenario: DrugConceptJScenario;
   /** Governs only the AI answer below the card — the card itself is instant. */
   status: "loading" | "complete";
 };
+
+type NoticeTurn = {
+  id: number;
+  kind: "notice";
+  text: string;
+};
+
+type ThreadTurn = ScenarioTurn | NoticeTurn;
+
+function ScenarioTurnBlock({
+  isLast,
+  onFollowUpQuestionSelect,
+  onOpenCanvas,
+  turn,
+  turnIndex,
+}: {
+  isLast: boolean;
+  onFollowUpQuestionSelect: (question: string) => void;
+  onOpenCanvas: (drugId: string, anchor?: string) => void;
+  turn: ScenarioTurn;
+  turnIndex: number;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const aiAnswerRef = useRef<HTMLDivElement>(null);
+  const referencesRef = useRef<HTMLDivElement>(null);
+
+  const monograph = requireMonograph(turn.scenario.drugId);
+  const references = buildReferences(monograph, turn.scenario.answerKey);
+  // Follow-up chips only on the newest answer — earlier turns keep their
+  // references/articles but stop inviting branching from the middle of the thread.
+  const followUpQuestions = isLast
+    ? (monograph.synthesizedAnswers[turn.scenario.answerKey]?.followUpQuestions ?? [])
+    : [];
+
+  const scrollToCard = useCallback(() => {
+    cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  // "References" chip — jumps to this turn's References section once the AI
+  // answer has rendered it; falls back to the AI answer block while generating.
+  const scrollToReferences = useCallback(() => {
+    (referencesRef.current ?? aiAnswerRef.current)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, []);
+
+  return (
+    <article className="mx-auto max-w-[860px]">
+      <h1 className="mb-4 text-[20px] font-extrabold leading-[1.24] tracking-[-0.02em] text-[#161b1d] [text-wrap:balance] md:text-[26px]">
+        {turn.scenario.question}
+      </h1>
+
+      <div className="space-y-6">
+        {/* References / Sources chip */}
+        <DrugAnswerSourceChips
+          references={references}
+          onJumpToReferences={scrollToReferences}
+          onJumpToSources={scrollToCard}
+        />
+
+        {/* Canonical monograph card — shown instantly */}
+        <div ref={cardRef} className="scroll-mt-4">
+          <DrugMonographCardFrame
+            anchor={turn.scenario.anchor}
+            boxedWarningVariant="navy"
+            expandSubfields
+            flat
+            hideMatchBadges
+            hideSectionSummary
+            monograph={monograph}
+            onOpenMonograph={(subfieldId) => {
+              if (monograph.drug.referenceUrl) {
+                window.open(monograph.drug.referenceUrl, "_blank", "noopener");
+              } else {
+                onOpenCanvas(turn.scenario.drugId, subfieldId);
+              }
+            }}
+            tabStyle="underline"
+          />
+        </div>
+
+        {/* AI answer below the card — shimmer until generated */}
+        <div ref={aiAnswerRef} className="scroll-mt-4">
+          {turn.status === "loading" ? (
+            <DrugAnswerLoadingSkeleton />
+          ) : (
+            <AiAnswerSection
+              aiAnswer={turn.scenario.aiAnswer}
+              analyticsContext={{
+                prototypeFamily: "drug-concept",
+                prototypeRoute: "/drug-concept-j",
+                prototypeSlug: "drug-concept-j",
+                question: turn.scenario.question,
+                screenType: "drug-concept-j",
+                turnId: turnIndex + 1,
+              }}
+              followUpQuestions={followUpQuestions}
+              onFollowUpQuestionSelect={onFollowUpQuestionSelect}
+              references={references}
+              referencesRef={referencesRef}
+            />
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+// ─── Main screen ──────────────────────────────────────────────────────────────
 
 type DrugConceptFlatAnswerScreenProps = {
   /** When true, renders without the A–J concept tab bar — for standalone prototypes like AI drug mono V1. */
@@ -175,17 +291,17 @@ export function DrugConceptFlatAnswerScreen({
 }: DrugConceptFlatAnswerScreenProps = {}) {
   const composerInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const aiAnswerRef = useRef<HTMLDivElement>(null);
-  const referencesRef = useRef<HTMLDivElement>(null);
+  const lastTurnRef = useRef<HTMLDivElement>(null);
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const turnIdRef = useRef(0);
 
-  const [turn, setTurn] = useState<ActiveTurn | null>(null);
+  const [thread, setThread] = useState<ThreadTurn[]>([]);
   const [draft, setDraft] = useState("");
-  const [composerNotice, setComposerNotice] = useState<string | null>(null);
   const [canvas, setCanvas] = useState<{ anchor?: string; drugId: string } | null>(null);
 
-  const isGenerating = turn?.status === "loading";
+  const isGenerating = thread.some(
+    (item) => item.kind === "scenario" && item.status === "loading",
+  );
 
   const clearTimer = useCallback(() => {
     if (loadTimerRef.current) {
@@ -196,30 +312,50 @@ export function DrugConceptFlatAnswerScreen({
 
   useEffect(() => () => clearTimer(), [clearTimer]);
 
+  // Earlier turns never stay in the shimmer state once a new question lands.
+  const completeAll = (items: ThreadTurn[]): ThreadTurn[] =>
+    items.map((item) =>
+      item.kind === "scenario" ? { ...item, status: "complete" as const } : item,
+    );
+
   const playScenario = useCallback(
     (scenarioId: string, updateUrl = true) => {
       const scenario = getConceptJScenarioById(scenarioId);
       if (!scenario) return;
       clearTimer();
-      setComposerNotice(null);
       setCanvas(null);
-      setTurn({ scenario, status: "loading" });
+      const turnId = ++turnIdRef.current;
+      setThread((prev) => [
+        ...completeAll(prev),
+        { id: turnId, kind: "scenario", scenario, status: "loading" },
+      ]);
       if (updateUrl && typeof window !== "undefined") {
         const url = new URL(window.location.href);
         url.searchParams.set("scenario", scenarioId);
         window.history.replaceState(null, "", url.toString());
       }
-      requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0 }));
       loadTimerRef.current = setTimeout(() => {
-        setTurn((prev) =>
-          prev && prev.scenario.id === scenario.id
-            ? { ...prev, status: "complete" }
-            : prev,
+        setThread((prev) =>
+          prev.map((item) =>
+            item.kind === "scenario" && item.id === turnId
+              ? { ...item, status: "complete" }
+              : item,
+          ),
         );
       }, ANSWER_DELAY_MS);
     },
     [clearTimer],
   );
+
+  // Scroll the newest question to the top of the viewport when a turn is added.
+  const threadLength = thread.length;
+  useEffect(() => {
+    if (threadLength > 0) {
+      requestAnimationFrame(() =>
+        lastTurnRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
+    }
+  }, [threadLength]);
 
   // ?scenario= deep link on mount.
   useEffect(() => {
@@ -237,8 +373,11 @@ export function DrugConceptFlatAnswerScreen({
         playScenario(matched.id);
       } else {
         clearTimer();
-        setTurn(null);
-        setComposerNotice(trimmed);
+        const turnId = ++turnIdRef.current;
+        setThread((prev) => [
+          ...completeAll(prev),
+          { id: turnId, kind: "notice", text: trimmed },
+        ]);
       }
     },
     [playScenario, clearTimer],
@@ -246,8 +385,7 @@ export function DrugConceptFlatAnswerScreen({
 
   const resetToBrowser = useCallback(() => {
     clearTimer();
-    setTurn(null);
-    setComposerNotice(null);
+    setThread([]);
     setCanvas(null);
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
@@ -264,34 +402,12 @@ export function DrugConceptFlatAnswerScreen({
 
   const handleStopGeneration = useCallback(() => {
     clearTimer();
-    setTurn((prev) => (prev ? { ...prev, status: "complete" } : prev));
+    setThread((prev) => completeAll(prev));
   }, [clearTimer]);
-
-  const scrollToCard = useCallback(() => {
-    cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
-  // "References" chip — jumps to the References section in the footer once
-  // the AI answer has rendered it; falls back to the AI answer block while
-  // the answer is still generating.
-  const scrollToReferences = useCallback(() => {
-    (referencesRef.current ?? aiAnswerRef.current)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, []);
 
   const openCanvas = useCallback((drugId: string, anchor?: string) => {
     setCanvas({ anchor, drugId });
   }, []);
-
-  const monograph = turn ? requireMonograph(turn.scenario.drugId) : null;
-  const references =
-    turn && monograph ? buildReferences(monograph, turn.scenario.answerKey) : [];
-  const followUpQuestions =
-    turn && monograph
-      ? (monograph.synthesizedAnswers[turn.scenario.answerKey]?.followUpQuestions ?? [])
-      : [];
 
   return (
     <DrugConceptShell activeConcept="J" hideTabBar={hideConceptTabs}>
@@ -318,7 +434,7 @@ export function DrugConceptFlatAnswerScreen({
                 </button>
               }
               center={
-                turn || composerNotice ? (
+                thread.length > 0 ? (
                   <ExamplesPill onClick={resetToBrowser} />
                 ) : (
                   <img
@@ -347,7 +463,7 @@ export function DrugConceptFlatAnswerScreen({
                 >
                   <AiMenuIcon />
                 </button>
-                {turn || composerNotice ? (
+                {thread.length > 0 ? (
                   <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     <ExamplesPill onClick={resetToBrowser} />
                   </div>
@@ -372,7 +488,7 @@ export function DrugConceptFlatAnswerScreen({
               aria-live="polite"
               className="mx-auto w-full max-w-[900px] px-4 pb-[136px] pt-4 md:px-6 md:pt-6"
             >
-              {!turn && !composerNotice ? (
+              {thread.length === 0 ? (
                 // ── Landing — hero + example questions ──────────────────────
                 <div className="flex flex-col items-center py-10 md:py-14">
                   {!hideConceptTabs && (
@@ -411,73 +527,46 @@ export function DrugConceptFlatAnswerScreen({
                     ))}
                   </div>
                 </div>
-              ) : turn && monograph ? (
-                // ── Active answer ───────────────────────────────────────────
-                <article className="mx-auto max-w-[860px]">
-                  <h1 className="mb-4 text-[20px] font-extrabold leading-[1.24] tracking-[-0.02em] text-[#161b1d] [text-wrap:balance] md:text-[26px]">
-                    {turn.scenario.question}
-                  </h1>
-
-                  <div className="space-y-6">
-                    {/* References / Sources chip */}
-                    <DrugAnswerSourceChips
-                      references={references}
-                      onJumpToReferences={scrollToReferences}
-                      onJumpToSources={scrollToCard}
-                    />
-
-                    {/* Canonical monograph card — shown instantly */}
-                    <div ref={cardRef} className="scroll-mt-4">
-                      <DrugMonographCardFrame
-                        anchor={turn.scenario.anchor}
-                        boxedWarningVariant="navy"
-                        expandSubfields
-                        flat
-                        hideMatchBadges
-                        hideSectionSummary
-                        monograph={monograph}
-                        onOpenMonograph={(subfieldId) =>
-                          openCanvas(turn.scenario.drugId, subfieldId)
-                        }
-                        tabStyle="underline"
-                      />
-                    </div>
-
-                    {/* AI answer below the card — shimmer until generated */}
-                    <div ref={aiAnswerRef} className="scroll-mt-4">
-                      {turn.status === "loading" ? (
-                        <DrugAnswerLoadingSkeleton />
-                      ) : (
-                        <AiAnswerSection
-                          aiAnswer={turn.scenario.aiAnswer}
-                          analyticsContext={{
-                            prototypeFamily: "drug-concept",
-                            prototypeRoute: "/drug-concept-j",
-                            prototypeSlug: "drug-concept-j",
-                            question: turn.scenario.question,
-                            screenType: "drug-concept-j",
-                            turnId: 1,
-                          }}
-                          followUpQuestions={followUpQuestions}
-                          onFollowUpQuestionSelect={submitQuestion}
-                          references={references}
-                          referencesRef={referencesRef}
-                        />
-                      )}
-                    </div>
-                  </div>
-                </article>
               ) : (
-                // ── Composer fallback notice ────────────────────────────────
-                <article className="mx-auto max-w-[860px]">
-                  <h1 className="mb-4 text-[20px] font-extrabold leading-[1.24] tracking-[-0.02em] text-[#161b1d] md:text-[26px]">
-                    {composerNotice}
-                  </h1>
-                  <p className="rounded-[12px] border border-[#e6edf4] bg-[#f8fafc] px-4 py-3 text-[13.5px] leading-[1.6] text-[#5a6e7e]">
-                    This prototype is scripted — it plays preset questions rather than answering
-                    live. Tap Examples in the header to browse the available questions.
-                  </p>
-                </article>
+                // ── Conversation thread — every Q&A stays visible ───────────
+                <div className="space-y-0">
+                  {thread.map((item, index) => {
+                    const isLast = index === thread.length - 1;
+                    return (
+                      <div
+                        key={item.id}
+                        ref={isLast ? lastTurnRef : undefined}
+                        className={
+                          index > 0
+                            ? "mt-10 scroll-mt-4 border-t border-[#dde7f0] pt-8"
+                            : "scroll-mt-4"
+                        }
+                      >
+                        {item.kind === "scenario" ? (
+                          <ScenarioTurnBlock
+                            isLast={isLast}
+                            onFollowUpQuestionSelect={submitQuestion}
+                            onOpenCanvas={openCanvas}
+                            turn={item}
+                            turnIndex={index}
+                          />
+                        ) : (
+                          // ── Composer fallback notice ────────────────────
+                          <article className="mx-auto max-w-[860px]">
+                            <h1 className="mb-4 text-[20px] font-extrabold leading-[1.24] tracking-[-0.02em] text-[#161b1d] md:text-[26px]">
+                              {item.text}
+                            </h1>
+                            <p className="rounded-[12px] border border-[#e6edf4] bg-[#f8fafc] px-4 py-3 text-[13.5px] leading-[1.6] text-[#5a6e7e]">
+                              This prototype is scripted — it plays preset questions rather than
+                              answering live. Tap Examples in the header to browse the available
+                              questions.
+                            </p>
+                          </article>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           </div>

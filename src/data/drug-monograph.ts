@@ -53,7 +53,14 @@ export type DrugSynthesizedAnswer = {
 
 export type DrugMonograph = {
   blackBoxWarnings: DrugBlackBoxWarning[];
-  drug: { drugClass: string; id: string; name: string };
+  drug: {
+    drugClass: string;
+    id: string;
+    name: string;
+    /** Live reference.medscape.com monograph URL — "Full X in monograph"
+     * links open this in a new tab when present. */
+    referenceUrl?: string;
+  };
   keyFields: DrugKeyField[];
   sections: DrugSection[];
   synthesizedAnswers: Record<string, DrugSynthesizedAnswer>;
