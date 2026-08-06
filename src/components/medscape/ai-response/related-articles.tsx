@@ -18,6 +18,8 @@ export type RelatedArticle = {
   /** Source / content-type label, e.g. "Medscape Medical News". */
   contentType: string;
   id: string;
+  /** Project-local editorial thumbnail shown at the bottom of the card. */
+  imageSrc?: string;
   /** Marks a paid placement — shown as "Sponsored" instead of a time-ago. */
   sponsored?: boolean;
   /** Relative time, e.g. "2 hours ago". Omitted for sponsored items. */
@@ -79,10 +81,18 @@ export function AiResponseRelatedArticles({
                 )}
               </p>
             </div>
-            <div
-              aria-hidden="true"
-              className={`h-[112px] w-full bg-gradient-to-br ${article.accent}`}
-            />
+            {article.imageSrc ? (
+              <img
+                src={article.imageSrc}
+                alt=""
+                className="h-[112px] w-full object-cover"
+              />
+            ) : (
+              <div
+                aria-hidden="true"
+                className={`h-[112px] w-full bg-gradient-to-br ${article.accent}`}
+              />
+            )}
           </a>
         ))}
       </div>

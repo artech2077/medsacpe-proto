@@ -77,6 +77,7 @@ export const DRUG_CONCEPT_J_RELATED_ARTICLES: RelatedArticle[] = [
     contentType: "Sponsored",
     sponsored: true,
     accent: "from-[#e7eefb] to-[#cdddf7]",
+    imageSrc: "/assets/ai-drug-mono-v2/related-pert-glp1.png",
   },
   {
     id: "glp1-crc",
@@ -84,6 +85,7 @@ export const DRUG_CONCEPT_J_RELATED_ARTICLES: RelatedArticle[] = [
     contentType: "Medscape Medical News",
     timeAgo: "2 hours ago",
     accent: "from-[#e9f6ef] to-[#cdebd9]",
+    imageSrc: "/assets/ai-drug-mono-v2/related-glp1-colorectal-cancer.png",
   },
   {
     id: "glp1-stroke",
@@ -91,6 +93,7 @@ export const DRUG_CONCEPT_J_RELATED_ARTICLES: RelatedArticle[] = [
     contentType: "Medscape Medical News",
     timeAgo: "2 hours ago",
     accent: "from-[#f3ecfb] to-[#e0d2f5]",
+    imageSrc: "/assets/ai-drug-mono-v2/related-glp1-neurology.png",
   },
 ];
 

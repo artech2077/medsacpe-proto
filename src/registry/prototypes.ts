@@ -117,11 +117,11 @@ export const prototypeRegistry: PrototypeDefinition[] = [
   },
   {
     description:
-      "V2 exploration workspace — starts from the AI drug mono V1 experience (canonical card + AI answer, no concept tabs) as the base for upcoming V2 changes.",
+      "V2 stakeholder walkthrough — one cumulative apixaban journey combining the monograph update alert, exact anchored answer, confirmed patient-context criteria match, rivaroxaban comparison, labeled peer-search context, and regimen interaction check.",
     route: "/ai-drug-mono-v2",
     slug: "ai-drug-mono-v2",
-    status: "draft",
+    status: "active",
     tags: ["medscape-ai", "drug-reference", "drug-concept"],
-    title: "AI drug monograph V2 explorations",
+    title: "AI drug monograph V2 walkthrough",
   },
 ];

@@ -1,8 +1,7 @@
-import { DrugConceptFlatAnswerScreen } from "@/components/screens/drug-concept-j-screen";
+import { AiDrugMonoV2Screen } from "@/components/screens/ai-drug-mono-v2-screen";
 
-// V2 explorations start from the V1 experience; V2-specific changes land here.
+// V2: one connected stakeholder walkthrough on top of the V1 canonical
+// monograph experience. V1 (/ai-drug-mono-v1) is untouched.
 export default function AiDrugMonoV2Page() {
-  return (
-    <DrugConceptFlatAnswerScreen hideConceptTabs heroTitle="AI drug search V2 explorations" />
-  );
+  return <AiDrugMonoV2Screen />;
 }

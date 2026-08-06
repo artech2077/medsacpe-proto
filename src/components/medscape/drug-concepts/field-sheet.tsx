@@ -90,7 +90,7 @@ const TAB_LABEL: Record<string, string> = {
   "interactions.cyp3a4_pgp": "CYP3A4/P-gp",
   "interactions.nsaids": "NSAIDs",
   "renal.mild_moderate": "CrCl 15–79",
-  "renal.severe": "CrCl <15",
+  "renal.severe": "Severe / ESRD",
   "hepatic.impairment": "Hepatic",
 };
 

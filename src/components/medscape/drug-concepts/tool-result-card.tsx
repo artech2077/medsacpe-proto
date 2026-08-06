@@ -20,10 +20,12 @@ const SEVERITY_STYLE: Record<
 function ToolFrame({
   badge,
   children,
+  showBadge = true,
   title,
 }: {
   badge: string;
   children: React.ReactNode;
+  showBadge?: boolean;
   title: string;
 }) {
   return (
@@ -39,20 +41,28 @@ function ToolFrame({
           </svg>
         </span>
         <h3 className="text-[13px] font-bold text-[#22303c]">{title}</h3>
-        <span className="ml-auto rounded-full bg-[rgba(6,74,167,0.07)] px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.08em] text-[var(--mscp-color-brand-primary)]">
-          {badge}
-        </span>
+        {showBadge ? (
+          <span className="ml-auto rounded-full bg-[rgba(6,74,167,0.07)] px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-[0.08em] text-[var(--mscp-color-brand-primary)]">
+            {badge}
+          </span>
+        ) : null}
       </header>
       {children}
     </section>
   );
 }
 
-export function DrugToolResultCard({ tool }: { tool: DrugToolResult }) {
+export function DrugToolResultCard({
+  hideBadge = false,
+  tool,
+}: {
+  hideBadge?: boolean;
+  tool: DrugToolResult;
+}) {
   if (tool.kind === "interaction") {
     const sev = SEVERITY_STYLE[tool.severity] ?? SEVERITY_STYLE["Monitor Closely"];
     return (
-      <ToolFrame title={tool.title} badge="Deterministic tool">
+      <ToolFrame title={tool.title} badge="Deterministic tool" showBadge={!hideBadge}>
         <div className="px-4 py-3.5">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[14px] font-bold text-[#1c2935]">{tool.pair[0]}</span>
@@ -89,7 +99,7 @@ export function DrugToolResultCard({ tool }: { tool: DrugToolResult }) {
   }
 
   return (
-    <ToolFrame title={tool.title} badge="Deterministic tool">
+    <ToolFrame title={tool.title} badge="Deterministic tool" showBadge={!hideBadge}>
       <div className="px-4 py-3.5">
         <dl className="grid gap-2 sm:grid-cols-2">
           {tool.inputs.map((input) => (

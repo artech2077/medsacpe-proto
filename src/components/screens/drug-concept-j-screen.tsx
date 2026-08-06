@@ -7,6 +7,7 @@ import { DrugMonographCardFrame } from "@/components/medscape/drug-concepts/comp
 import { DrugMonographCanvas } from "@/components/medscape/drug-concepts/monograph-canvas";
 import { DrugAnswerSourceChips } from "@/components/medscape/drug-concepts/answer-source-chips";
 import { DrugAnswerLoadingSkeleton } from "@/components/medscape/drug-concepts/answer-loading-skeleton";
+import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
 import { AiResponseAnswerContent } from "@/components/medscape/ai-response/answer-content";
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
@@ -15,6 +16,7 @@ import { AiResponseFollowUpQuestions } from "@/components/medscape/ai-response/f
 import { AiResponseRelatedArticles } from "@/components/medscape/ai-response/related-articles";
 import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiMenuIcon } from "@/components/medscape/ai-response/iconography";
+import { PrototypeNavSidebar } from "@/components/medscape/drug-concepts/prototype-nav-sidebar";
 import { AiTopRailAction } from "@/components/medscape/ai-response/top-rail-action";
 import { ScrollDownFAB } from "@/components/ui/scroll-down-fab";
 import { aiResponseAssets } from "@/data/ai-response";
@@ -216,6 +218,17 @@ function ScenarioTurnBlock({
 
   return (
     <article className="mx-auto max-w-[860px]">
+      {/* Mobile-only — desktop shows a single sticky ad above the whole thread instead. */}
+      <MedscapeCurrentAdBlock
+        adPlacement="before-question"
+        adSlot="drug_concept_j_top"
+        className="mb-5 md:hidden"
+        prototypeFamily="drug-concept"
+        prototypeRoute="/drug-concept-j"
+        prototypeSlug="drug-concept-j"
+        screenType="drug-concept-j"
+        turnId={turnIndex + 1}
+      />
       <h1 className="mb-4 text-[20px] font-extrabold leading-[1.24] tracking-[-0.02em] text-[#161b1d] [text-wrap:balance] md:text-[26px]">
         {turn.scenario.question}
       </h1>
@@ -297,6 +310,7 @@ export function DrugConceptFlatAnswerScreen({
 
   const [thread, setThread] = useState<ThreadTurn[]>([]);
   const [draft, setDraft] = useState("");
+  const [navOpen, setNavOpen] = useState(false);
   const [canvas, setCanvas] = useState<{ anchor?: string; drugId: string } | null>(null);
 
   const isGenerating = thread.some(
@@ -419,6 +433,7 @@ export function DrugConceptFlatAnswerScreen({
             canvas ? "flex-1 md:w-[48%] md:flex-none md:min-w-[360px]" : "flex-1",
           ].join(" ")}
         >
+          <PrototypeNavSidebar isOpen={navOpen} onClose={() => setNavOpen(false)} />
           {/* Header */}
           <div className="z-20 shrink-0 bg-white">
             <AiMobileTopRail
@@ -427,7 +442,9 @@ export function DrugConceptFlatAnswerScreen({
               left={
                 <button
                   type="button"
-                  aria-label="Home"
+                  aria-label="Open prototypes menu"
+                  aria-expanded={navOpen}
+                  onClick={() => setNavOpen(true)}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-[#f1f5f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
                 >
                   <AiMenuIcon />
@@ -458,7 +475,9 @@ export function DrugConceptFlatAnswerScreen({
               <div className="relative flex min-h-[48px] items-center justify-between gap-2 px-5 pt-2">
                 <button
                   type="button"
-                  aria-label="Home"
+                  aria-label="Open prototypes menu"
+                  aria-expanded={navOpen}
+                  onClick={() => setNavOpen(true)}
                   className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-[#f1f5f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
                 >
                   <AiMenuIcon />
@@ -529,8 +548,21 @@ export function DrugConceptFlatAnswerScreen({
                 </div>
               ) : (
                 // ── Conversation thread — every Q&A stays visible ───────────
-                <div className="space-y-0">
-                  {thread.map((item, index) => {
+                <>
+                  {/* Desktop-only — one persistent ad, sticky above the thread,
+                      instead of a new banner per turn/follow-up. */}
+                  <div className="sticky top-0 z-10 mx-auto hidden max-w-[860px] bg-white pb-3 md:block">
+                    <MedscapeCurrentAdBlock
+                      adPlacement="before-question"
+                      adSlot="drug_concept_j_top"
+                      prototypeFamily="drug-concept"
+                      prototypeRoute="/drug-concept-j"
+                      prototypeSlug="drug-concept-j"
+                      screenType="drug-concept-j"
+                    />
+                  </div>
+                  <div className="space-y-0">
+                    {thread.map((item, index) => {
                     const isLast = index === thread.length - 1;
                     return (
                       <div
@@ -565,8 +597,9 @@ export function DrugConceptFlatAnswerScreen({
                         )}
                       </div>
                     );
-                  })}
-                </div>
+                    })}
+                  </div>
+                </>
               )}
             </div>
           </div>

@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import type { DrugBlackBoxWarning, DrugMonographSource } from "@/data/drug-monograph";
 
 // ─── Clinical zone accent system ────────────────────────────────────────────────
@@ -312,15 +314,87 @@ export function ClinicalBoxedWarning({
         </span>
       </div>
       <div className="px-3.5 py-2.5">
-        {warnings.map((warning) => (
-          <p
-            key={warning.id}
-            className={`text-[12.5px] leading-[1.55] ${tone.text} ${compact ? "line-clamp-2" : ""}`}
-          >
+        {compact ? (
+          warnings.map((warning) => (
+            <p key={warning.id} className={`text-[12.5px] leading-[1.55] ${tone.text} line-clamp-2`}>
+              {warning.text}
+            </p>
+          ))
+        ) : (
+          <TruncatedWarningText warnings={warnings} textClassName={tone.text} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Collapsed by default (5 lines on mobile, 3 on desktop) across all warnings
+// combined, with a "Read more" / "Read less" toggle that only appears when
+// the combined text actually overflows.
+function TruncatedWarningText({
+  warnings,
+  textClassName,
+}: {
+  warnings: DrugBlackBoxWarning[];
+  textClassName: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => setOverflows(el.scrollHeight - el.clientHeight > 1);
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [warnings]);
+
+  return (
+    <div>
+      <div
+        ref={ref}
+        className={`text-[12.5px] leading-[1.55] ${textClassName} ${
+          expanded ? "" : "line-clamp-5 md:line-clamp-3"
+        }`}
+      >
+        {warnings.map((warning, index) => (
+          <span key={warning.id}>
             {warning.text}
-          </p>
+            {index < warnings.length - 1 && (
+              <>
+                <br />
+                <br />
+              </>
+            )}
+          </span>
         ))}
       </div>
+      {(overflows || expanded) && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-1 inline-flex items-center gap-1 text-[12px] font-semibold text-[var(--mscp-color-brand-primary)]"
+        >
+          {expanded ? "Read less" : "Read more"}
+          <svg
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            className={`h-3 w-3 shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`}
+            fill="none"
+          >
+            <path
+              d="m4 6 4 4 4-4"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

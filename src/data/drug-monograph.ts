@@ -73,12 +73,20 @@ const drugRefSource = (section: string): DrugMonographSource => ({
   url: "#drug-reference",
 });
 
+// Content transcribed from the Medscape apixaban (Eliquis) monograph —
+// reference.medscape.com/drug/eliquis-apixaban-999805, captured 2026-07-23.
+// Reference copy: AI drug search/Misc/Reference Data/Reference_Monographs/apixaban-eliquis.md
 export const apixabanMonograph: DrugMonograph = {
   blackBoxWarnings: [
     {
       id: "bbw_premature_discontinuation",
-      source: drugRefSource("Boxed Warning"),
-      text: "Premature discontinuation of any oral anticoagulant, including apixaban, increases the risk of thrombotic events. If apixaban is discontinued for a reason other than pathological bleeding or completion of a course of therapy, consider coverage with another anticoagulant.",
+      source: drugRefSource("Warnings > Black Box Warnings"),
+      text: "Premature anticoagulant discontinuation: Discontinuing oral anticoagulants prematurely increases risk of thrombotic events. Consider coverage with another anticoagulant if apixaban is stopped for any reason other than pathological bleeding or completion of a course of therapy.",
+    },
+    {
+      id: "bbw_spinal_hematoma",
+      source: drugRefSource("Warnings > Black Box Warnings"),
+      text: "Spinal/epidural hematoma: Patients receiving neuraxial anesthesia or undergoing spinal puncture are at risk for epidural or spinal hematoma development. These hematomas may result in long-term or permanent paralysis. Consider hematoma risk factors when scheduling patients for spinal procedures.",
     },
   ],
 
@@ -86,6 +94,7 @@ export const apixabanMonograph: DrugMonograph = {
     drugClass: "Factor Xa inhibitor",
     id: "apixaban",
     name: "Apixaban",
+    referenceUrl: "https://reference.medscape.com/drug/eliquis-apixaban-999805",
   },
 
   keyFields: [
@@ -102,83 +111,102 @@ export const apixabanMonograph: DrugMonograph = {
       subfields: [
         {
           body: [
-            "Standard dose: 5 mg PO BID.",
-            "Dose reduction to 2.5 mg PO BID is required in patients with nonvalvular AF who have at least 2 of the following characteristics: age ≥80 years, body weight ≤60 kg, or serum creatinine ≥1.5 mg/dL.",
-            "Duration: continue indefinitely in patients with persistent AF unless contraindicated.",
+            "To prevent stroke and systemic embolism in nonvalvular atrial fibrillation.",
+            "5 mg PO BID.",
+            "Decrease dose to 2.5 mg PO BID in patients with any 2 of the following characteristics: age ≥80 years, weight ≤60 kg, serum creatinine ≥1.5 mg/dL.",
           ],
           id: "dosing.afib",
-          source: drugRefSource("Dosing > Nonvalvular Atrial Fibrillation"),
-          summary: "5 mg PO BID (standard); reduce to 2.5 mg BID if ≥2 of: age ≥80, wt ≤60 kg, SCr ≥1.5",
-          title: "Nonvalvular Atrial Fibrillation",
+          population: "adult",
+          source: drugRefSource("Dosing & Uses > Stroke Prophylaxis with Atrial Fibrillation"),
+          summary: "5 mg PO BID; decrease to 2.5 mg BID with any 2 of: age ≥80 y, weight ≤60 kg, SCr ≥1.5 mg/dL",
+          title: "Stroke Prophylaxis with Atrial Fibrillation",
         },
         {
           body: [
-            "Reduce dose to 2.5 mg PO BID when the patient meets at least 2 of the following 3 criteria:",
+            "Decrease dose to 2.5 mg PO BID in patients with any 2 of the following characteristics:",
             "1. Age ≥80 years",
-            "2. Body weight ≤60 kg",
-            "3. Serum creatinine ≥1.5 mg/dL (133 micromol/L)",
-            "Apply only ONE dose reduction criterion at a time regardless of how many criteria are met beyond 2.",
+            "2. Weight ≤60 kg",
+            "3. Serum creatinine ≥1.5 mg/dL",
           ],
           id: "dosing.dose_reduction",
-          source: drugRefSource("Dosing > Dose Reduction Criteria"),
-          summary: "Reduce to 2.5 mg BID if ≥2 of: age ≥80 y, weight ≤60 kg, SCr ≥1.5 mg/dL",
+          population: "adult",
+          source: drugRefSource("Dosing & Uses > Dosage Modifications > Nonvalvular Atrial Fibrillation"),
+          summary: "2.5 mg BID with any 2 of: age ≥80 y, weight ≤60 kg, SCr ≥1.5 mg/dL",
           title: "2.5 mg BID Dose-Reduction Criteria",
         },
         {
           body: [
-            "DVT/PE treatment: 10 mg PO BID for 7 days, then 5 mg PO BID.",
-            "Reduction of recurrence risk (after ≥6 months treatment): 2.5 mg PO BID.",
-            "Prophylaxis following hip or knee replacement surgery: 2.5 mg PO BID; start 12–24 hours post-surgery.",
+            "DVT or PE treatment: 10 mg PO BID x 7 days, then 5 mg BID.",
+            "Reduce risk for recurrent DVT or PE (following initial 6 months treatment for DVT and/or PE): 2.5 mg PO BID.",
+            "Postoperative prophylaxis following hip or knee replacement surgery — initial: 2.5 mg PO 12-24 hr after surgery; duration: 2.5 mg PO BID for 35 days (hip replacement) or 12 days (knee replacement).",
           ],
           id: "dosing.dvt_pe",
-          source: drugRefSource("Dosing > DVT/PE"),
-          summary: "10 mg PO BID × 7 days, then 5 mg PO BID; recurrence prevention 2.5 mg PO BID",
+          population: "adult",
+          source: drugRefSource("Dosing & Uses > DVT or PE Treatment"),
+          summary: "10 mg PO BID × 7 days, then 5 mg BID; recurrence reduction 2.5 mg PO BID",
           title: "DVT / PE Treatment",
         },
         {
           body: [
-            "No dose adjustment is recommended based on renal function alone in patients with nonvalvular AF, unless the patient meets the dose-reduction criteria (age, weight, SCr).",
-            "Serum creatinine ≥1.5 mg/dL qualifies as one of the three dose-reduction criteria for AF; it does not mandate a standalone renal adjustment.",
-            "Avoid use in patients with CrCl <15 mL/min or those on dialysis; clinical data are limited in this population.",
-            "For DVT/PE: no specific renal dose adjustment; avoid if CrCl <15 mL/min.",
+            "Indicated for treatment of venous thromboembolism (VTE) and for reduction in risk of recurrent VTE in pediatric patients aged from birth and older after at least 5 days of initial anticoagulant treatment.",
+            "Dosage based on patient weight; adjust dose according to weight-tier as treatment progresses. Use not studied in patients weighing <2.6 kg.",
+            "2.6 to <4 kg (sprinkle capsules): 0.3 mg PO twice daily on Days 1-7, then 0.15 mg twice daily on Days ≥8.",
+            "4 to <6 kg: 1 mg then 0.5 mg · 6 to <9 kg: 2 mg then 1 mg · 9 to <12 kg: 3 mg then 1.5 mg · 12 to <18 kg: 4 mg then 2 mg · 18 to <25 kg: 6 mg then 3 mg · 25 to <35 kg: 8 mg then 4 mg (PO twice daily; Days 1-7, then Days ≥8; tablets for oral suspension).",
+            "≥35 kg (tablets): 10 mg PO twice daily on Days 1-7, then 5 mg twice daily on Days ≥8.",
+            "Renal impairment (≥2 years): eGFR <30 mL/min/1.73 m²: not recommended.",
+          ],
+          id: "dosing.pediatric_vte",
+          population: "pediatric",
+          source: drugRefSource("Dosing & Uses > Pediatric > Venous Thromboembolism (VTE)"),
+          summary: "Weight-tiered PO BID dosing from birth; ≥35 kg: 10 mg BID Days 1-7, then 5 mg BID",
+          title: "Venous Thromboembolism (VTE) — Pediatric",
+        },
+        {
+          body: [
+            "Nonvalvular atrial fibrillation — mild-to-moderate renal impairment: no dosage adjustment required.",
+            "Serum creatinine ≥1.5 mg/dL: decrease dose to 2.5 mg BID if patient has 1 additional characteristic of age ≥80 years or weight ≤60 kg.",
+            "ESRD maintained on hemodialysis: 5 mg BID; decrease dose to 2.5 mg BID if 1 additional characteristic of age ≥80 years or weight ≤60 kg is present.",
+            "DVT/PE: no dose adjustment recommended; not studied in ESRD on dialysis or patients with a CrCl <15 mL/min; dosing recommendations based on pharmacokinetic and pharmacodynamic (anti-FXa activity) data in study subjects with ESRD maintained on dialysis.",
           ],
           id: "dosing.renal_adjustment",
-          source: drugRefSource("Dosing > Renal Impairment"),
-          summary: "No standalone renal adjustment for AFib; avoid if CrCl <15 mL/min or dialysis",
+          population: "adult",
+          source: drugRefSource("Dosing & Uses > Renal Impairment"),
+          summary: "AF: no adjustment for mild-moderate; SCr ≥1.5 counts toward the 2.5 mg BID rule; ESRD on HD: 5 mg BID",
           title: "Renal Impairment",
         },
         {
           body: [
-            "Mild-to-moderate hepatic impairment (Child-Pugh A or B): use with caution; no dose adjustment required.",
-            "Severe hepatic impairment (Child-Pugh C): avoid use. Apixaban is contraindicated due to coagulopathy and increased bleeding risk.",
-            "Patients with hepatic impairment have not been adequately studied in clinical trials.",
+            "Mild: no dosage adjustment required.",
+            "Moderate: patients may have intrinsic coagulation abnormalities; data are limited and no recommendations are available.",
+            "Severe: not recommended.",
           ],
           id: "dosing.hepatic",
-          source: drugRefSource("Dosing > Hepatic Impairment"),
-          summary: "Avoid in severe hepatic impairment (Child-Pugh C); use with caution in mild–moderate",
+          population: "adult",
+          source: drugRefSource("Dosing & Uses > Dosage Modifications > Hepatic Impairment"),
+          summary: "Mild: no adjustment; moderate: limited data, no recommendations; severe: not recommended",
           title: "Hepatic Impairment",
         },
         {
           body: [
-            "Perioperative bridging is generally NOT recommended; apixaban has a predictable offset.",
-            "For procedures with low bleeding risk: stop apixaban ≥24 hours before procedure.",
-            "For procedures with high bleeding risk or spinal/epidural anesthesia: stop apixaban ≥48 hours before procedure.",
-            "Restart as soon as hemostasis is achieved and the clinical situation allows.",
+            "Discontinue at least 48 hr before elective surgery or invasive procedures with a moderate or high risk of unacceptable or clinically significant bleeding.",
+            "Discontinue at least 24 hr before elective surgery or invasive procedures with low risk of unacceptable bleeding or where bleeding would be noncritical in location and easily controlled.",
           ],
           id: "dosing.perioperative",
-          source: drugRefSource("Dosing > Perioperative Management"),
-          summary: "Stop ≥24 h before low-risk or ≥48 h before high-risk procedures; no bridging needed",
-          title: "Perioperative Management",
+          population: "adult",
+          source: drugRefSource("Dosing & Uses > Dosing Considerations > Surgery/procedures"),
+          summary: "Stop ≥48 h before moderate/high bleeding-risk procedures; ≥24 h before low-risk procedures",
+          title: "Surgery / Procedures",
         },
         {
           body: [
-            "Administer with or without food.",
-            "Tablets may be crushed and suspended in water, apple juice, or apple puree for patients unable to swallow whole tablets.",
-            "If a dose is missed, take it as soon as possible on the same day. Do not double the dose.",
+            "Tablets (adults and pediatric patients ≥35 kg): swallow whole; may also crush tablets and suspend in water, 5% dextrose in water (D5W), or apple juice, or mix with applesauce in patients unable to swallow whole tablets.",
+            "Missed dose: take as soon as possible on same day, then resume twice-daily administration; do not take double dose to make up for missed dose.",
+            "NG tube: crush and suspend in 60 mL of water or D5W; promptly administer through 12 French NG tube.",
+            "Storage: 20-25ºC (68-77ºF); administer crushed tablet suspension/mixture within 4 hr of crushing.",
           ],
           id: "dosing.administration",
-          source: drugRefSource("Dosing > Administration"),
-          summary: "Take with or without food; tablets may be crushed",
+          source: drugRefSource("Administration > Oral Administration"),
+          summary: "Swallow whole or crush and suspend; missed dose same day, never doubled",
           title: "Administration",
         },
       ],
@@ -186,39 +214,63 @@ export const apixabanMonograph: DrugMonograph = {
     },
     {
       id: "safety",
-      lengthEstimate: "short",
+      lengthEstimate: "long",
       subfields: [
         {
           body: [
-            "Active pathological bleeding (e.g., peptic ulcer, intracranial hemorrhage).",
-            "Severe hypersensitivity reaction to apixaban (e.g., anaphylaxis).",
+            "Severe hypersensitivity (eg, anaphylaxis) to product.",
+            "Active pathological bleeding.",
           ],
           id: "safety.contraindications",
-          source: drugRefSource("Contraindications"),
-          summary: "Active pathological bleeding; severe hypersensitivity to apixaban",
+          source: drugRefSource("Warnings > Contraindications"),
+          summary: "Severe hypersensitivity (eg, anaphylaxis); active pathological bleeding",
           title: "Contraindications",
         },
         {
           body: [
-            "Apixaban increases bleeding risk. Concomitant use of drugs affecting hemostasis (antiplatelets, NSAIDs, SSRIs, SNRIs) increases bleeding risk further.",
-            "Monitor patients for signs and symptoms of bleeding. Discontinue apixaban in patients with active pathological hemorrhage.",
-            "Andexanet alfa (Andexxa) is an FDA-approved reversal agent for apixaban.",
+            "Increases the risk of bleeding and can cause serious, potentially fatal, bleeding; advise patients of signs and symptoms of blood loss and to report them immediately; discontinue therapy in patients with active pathological hemorrhage.",
+            "Coadministration with other drugs that affect hemostasis increases bleeding risk (eg, aspirin and other antiplatelet agents, other anticoagulants, heparin, thrombolytic agents, SSRIs, SNRIs, NSAIDs).",
+            "Reversal: anticoagulant effect expected to persist for ~24 hr after last dose (~2 half-lives); use of procoagulant reversal agents (eg, prothrombin complex concentrate) may be considered.",
+            "Coagulation factor Xa, recombinant (Andexxa) is no longer available for reversal of anticoagulation in patients taking apixaban owing to postmarketing safety data on thromboembolic events (December 2025).",
           ],
           id: "safety.bleeding_risk",
-          source: drugRefSource("Warnings > Bleeding Risk"),
-          summary: "Increased bleeding risk; andexanet alfa is available for reversal",
-          title: "Bleeding Risk",
+          source: drugRefSource("Warnings > Cautions / Reversing apixaban effect"),
+          summary: "Serious bleeding risk; PCC may be considered for reversal — Andexxa no longer available (Dec 2025)",
+          title: "Bleeding Risk & Reversal",
         },
         {
           body: [
-            "Serum creatinine ≥1.5 mg/dL is one of three dose-reduction criteria for nonvalvular AF dosing.",
-            "Renal function does not independently drive dose adjustment outside of the three-criterion rule.",
-            "Avoid if CrCl <15 mL/min; clinical data are insufficient to recommend use in end-stage renal disease or dialysis.",
+            "Patients receiving neuraxial anesthesia or undergoing spinal puncture are at risk for epidural or spinal hematoma development; these hematomas may result in long-term or permanent paralysis.",
+            "Do not remove indwelling epidural or intrathecal catheters earlier than 24 hr after last apixaban administration; next apixaban dose should not be administered earlier than 5 hr after catheter removal.",
+            "If traumatic puncture occurs, delay apixaban administration for 48 hr.",
+          ],
+          id: "safety.spinal_hematoma",
+          source: drugRefSource("Warnings > Spinal/epidural anesthesia or puncture"),
+          summary: "Epidural/spinal hematoma risk with neuraxial procedures; catheter timing rules apply",
+          title: "Spinal / Epidural Hematoma",
+        },
+        {
+          body: [
+            "Serum creatinine ≥1.5 mg/dL is one of the characteristics in the 2.5 mg BID dose-reduction rule for nonvalvular AF (with age ≥80 years and weight ≤60 kg).",
+            "Mild-to-moderate renal impairment: no dosage adjustment required for nonvalvular AF.",
+            "DVT/PE: not studied in ESRD on dialysis or patients with a CrCl <15 mL/min.",
           ],
           id: "safety.renal_risk",
-          source: drugRefSource("Warnings > Renal Impairment"),
-          summary: "SCr ≥1.5 mg/dL is a dose-reduction criterion; avoid if CrCl <15 mL/min",
+          source: drugRefSource("Dosing & Uses > Renal Impairment"),
+          summary: "SCr ≥1.5 mg/dL counts toward dose reduction; DVT/PE not studied at CrCl <15 mL/min",
           title: "Renal Risk Considerations",
+        },
+        {
+          body: [
+            "Safety and efficacy not studied in patients with prosthetic heart valves; use not recommended in these patients.",
+            "Direct-acting oral anticoagulants (DOACs) are not recommended for use in patients with triple-positive antiphospholipid syndrome (APS).",
+            "Increased rate of stroke observed during transition from apixaban to warfarin in patients with atrial fibrillation in clinical trials.",
+            "Not recommended as an alternative to unfractionated heparin for the initial treatment of PE in patients who present with hemodynamic instability or who may receive thrombolysis or pulmonary embolectomy.",
+          ],
+          id: "safety.cautions",
+          source: drugRefSource("Warnings > Cautions"),
+          summary: "Not recommended: prosthetic heart valves, triple-positive APS, unstable PE",
+          title: "Other Cautions",
         },
       ],
       title: "Safety & Warnings",
@@ -229,34 +281,34 @@ export const apixabanMonograph: DrugMonograph = {
       subfields: [
         {
           body: [
-            "Concomitant use with other anticoagulants (unfractionated heparin, enoxaparin, warfarin, rivaroxaban) is generally avoided due to additive bleeding risk.",
-            "Exception: use of unfractionated heparin at doses necessary to maintain patency of a central venous or arterial catheter is acceptable.",
+            "Coadministration with other anticoagulants, heparin, or thrombolytic agents increases bleeding risk.",
+            "Switching between apixaban and anticoagulants other than warfarin: discontinue one being taken, and begin the other at the next scheduled dose.",
+            "Switching from warfarin to apixaban: discontinue warfarin and initiate apixaban when INR <2.0.",
           ],
           id: "interactions.anticoagulants",
-          source: drugRefSource("Drug Interactions > Anticoagulants"),
-          summary: "Avoid combination with other anticoagulants; additive bleeding risk",
-          title: "Anticoagulant Combinations",
+          source: drugRefSource("Warnings > Cautions / Dosing Considerations"),
+          summary: "Other anticoagulants increase bleeding risk; switching rules apply",
+          title: "Anticoagulant Combinations & Switching",
         },
         {
           body: [
-            "Combined P-gp and strong CYP3A4 inhibitors (e.g., ritonavir, ketoconazole, itraconazole, clarithromycin): AVOID combination for atrial fibrillation indication.",
-            "For DVT/PE: use with caution; reduce dose if necessary.",
-            "Combined P-gp and strong CYP3A4 inducers (e.g., rifampin, carbamazepine, phenytoin, St. John's Wort): AVOID combination; significantly reduced apixaban exposure.",
+            "Coadministration with dual inhibitors of CYP3A4 and P-gp: if taking >2.5 mg PO BID, decrease dose by 50%.",
+            "If taking 2.5 mg BID, avoid coadministration with strong dual inhibitors.",
+            "Avoid coadministration with strong dual inducers of CYP3A4 and P-gp; such drugs decrease apixaban's systemic exposure.",
           ],
           id: "interactions.cyp3a4_pgp",
-          source: drugRefSource("Drug Interactions > CYP3A4 / P-gp"),
-          summary: "Avoid combined P-gp + strong CYP3A4 inhibitors (ritonavir) or inducers (rifampin)",
+          source: drugRefSource("Dosing & Uses > Dosage Modifications / Warnings > Cautions"),
+          summary: "Strong dual CYP3A4 + P-gp inhibitors: halve dose or avoid; avoid strong dual inducers",
           title: "CYP3A4 / P-gp Inhibitors & Inducers",
         },
         {
           body: [
-            "Concomitant use of aspirin, clopidogrel, NSAIDs, or SSRIs/SNRIs increases bleeding risk.",
-            "Use with aspirin 81 mg/day is common in AF patients; risk of major bleeding is increased compared to apixaban alone.",
-            "Avoid NSAIDs unless benefit outweighs bleeding risk. Use lowest effective dose for shortest duration.",
+            "Coadministration with aspirin and other antiplatelet agents, NSAIDs, SSRIs, or SNRIs increases bleeding risk.",
+            "Advise patients of signs and symptoms of blood loss and to report them immediately.",
           ],
           id: "interactions.nsaids",
-          source: drugRefSource("Drug Interactions > Antiplatelets / NSAIDs"),
-          summary: "NSAIDs, aspirin, antiplatelets increase bleeding risk; use with caution",
+          source: drugRefSource("Warnings > Cautions"),
+          summary: "Antiplatelets, NSAIDs, SSRIs, SNRIs increase bleeding risk",
           title: "NSAIDs & Antiplatelets",
         },
       ],
@@ -268,32 +320,33 @@ export const apixabanMonograph: DrugMonograph = {
       subfields: [
         {
           body: [
-            "No standalone dose adjustment required for mild-to-moderate renal impairment (CrCl 15–79 mL/min).",
-            "Apixaban is approximately 27% renally cleared; moderate renal impairment does not materially alter drug exposure.",
+            "Nonvalvular AF — mild-to-moderate renal impairment: no dosage adjustment required.",
+            "Serum creatinine ≥1.5 mg/dL: decrease dose to 2.5 mg BID if patient has 1 additional characteristic of age ≥80 years or weight ≤60 kg.",
           ],
           id: "renal.mild_moderate",
-          source: drugRefSource("Special Populations > Renal Impairment"),
-          summary: "CrCl 15–79 mL/min: no standalone dose adjustment needed",
-          title: "Mild–Moderate Renal Impairment (CrCl 15–79)",
+          source: drugRefSource("Dosing & Uses > Renal Impairment"),
+          summary: "Mild-to-moderate: no adjustment; SCr ≥1.5 mg/dL counts toward the dose-reduction rule",
+          title: "Mild–Moderate Renal Impairment",
         },
         {
           body: [
-            "CrCl <15 mL/min or dialysis-dependent: avoid use. There are insufficient clinical data to support a dosing recommendation.",
-            "Apixaban is NOT significantly removed by hemodialysis.",
+            "ESRD maintained on hemodialysis (nonvalvular AF): 5 mg BID; decrease dose to 2.5 mg BID if 1 additional characteristic of age ≥80 years or weight ≤60 kg is present.",
+            "DVT/PE: no dose adjustment recommended; not studied in ESRD on dialysis or patients with a CrCl <15 mL/min; dosing recommendations based on pharmacokinetic and pharmacodynamic (anti-FXa activity) data in study subjects with ESRD maintained on dialysis.",
           ],
           id: "renal.severe",
-          source: drugRefSource("Special Populations > Severe Renal Impairment"),
-          summary: "CrCl <15 mL/min or dialysis: use not recommended",
-          title: "Severe Renal Impairment (CrCl <15 / Dialysis)",
+          source: drugRefSource("Dosing & Uses > Renal Impairment"),
+          summary: "ESRD on hemodialysis (AF): 5 mg BID; DVT/PE not studied at CrCl <15 mL/min",
+          title: "Severe Renal Impairment / ESRD",
         },
         {
           body: [
-            "Child-Pugh A or B: use with caution; no specific dose adjustment established.",
-            "Child-Pugh C: contraindicated due to high risk of coagulopathy and bleeding.",
+            "Mild: no dosage adjustment required.",
+            "Moderate: patients may have intrinsic coagulation abnormalities; data are limited and no recommendations are available.",
+            "Severe: not recommended.",
           ],
           id: "hepatic.impairment",
-          source: drugRefSource("Special Populations > Hepatic Impairment"),
-          summary: "Child-Pugh A/B: use with caution; Child-Pugh C: contraindicated",
+          source: drugRefSource("Dosing & Uses > Dosage Modifications > Hepatic Impairment"),
+          summary: "Mild: no adjustment; moderate: no recommendations available; severe: not recommended",
           title: "Hepatic Impairment",
         },
       ],
@@ -305,28 +358,84 @@ export const apixabanMonograph: DrugMonograph = {
       subfields: [
         {
           body: [
-            "Bleeding is the most clinically significant adverse effect. Major bleeding rate in ARISTOTLE: 2.13%/year (vs. warfarin 3.09%/year).",
-            "Fatal bleeding rate was significantly lower than warfarin.",
-            "Most common bleeding sites: gastrointestinal, urogenital, and soft tissue.",
+            "Hemorrhage is the most clinically significant adverse effect: ≤15% in adults (major hemorrhage ≤2.13%); 36.2% in pediatric patients.",
+            "Bleeding-related events (adults, 1-10%): epistaxis (≤3.6%), contusion (1.4-2.2%), hematuria (≤2.1%), hematoma (1.3-2%), menorrhagia (1.4%), gingival bleeding (≤1.4%), hemoptysis (≤1.2%), rectal hemorrhage (≤1%).",
+            "Other clinically significant bleeding (<1%): GI hemorrhage (eg, hematemesis, melena), intracranial/eye/muscle/wound hemorrhage, ecchymosis, petechiae.",
           ],
           id: "adverse.bleeding",
-          source: drugRefSource("Adverse Reactions > Bleeding"),
-          summary: "Most common AE; major bleeding ~2.1%/year (lower than warfarin)",
+          source: drugRefSource("Adverse Effects"),
+          summary: "Hemorrhage ≤15% in adults (major ≤2.13%); 36.2% in pediatric patients",
           title: "Bleeding",
         },
         {
           body: [
-            "Nausea (3%), anemia (<1%).",
-            "Rare: hypersensitivity reactions including anaphylaxis, angioedema, and rash.",
-            "Elevated liver enzymes reported; consider hepatic monitoring in at-risk patients.",
+            "Adults (1-10%): nausea (2.6%), anemia (2.6%).",
+            "Pediatric patients (>10%): headache (16.4%), vomiting (13.8%).",
+            "Adults (<1%): AST/transaminase increased, gamma glutamyltransferase increased, hypersensitivity, postprocedural hemorrhage.",
           ],
           id: "adverse.other",
-          source: drugRefSource("Adverse Reactions > Other"),
-          summary: "Nausea 3%; rare hypersensitivity; elevated liver enzymes reported",
+          source: drugRefSource("Adverse Effects"),
+          summary: "Nausea 2.6%, anemia 2.6%; rare hypersensitivity and transaminase elevations",
           title: "Other Adverse Effects",
         },
       ],
       title: "Adverse Effects",
+    },
+    {
+      id: "pregnancy",
+      lengthEstimate: "short",
+      subfields: [
+        {
+          body: [
+            "There are no adequate and well-controlled studies in pregnant women; treatment is likely to increase the risk of hemorrhage during pregnancy and delivery.",
+            "Therapy should be administered during pregnancy only if the potential benefit outweighs the potential risk to the mother and fetus.",
+            "Labor and delivery: use in women receiving neuraxial anesthesia may result in epidural or spinal hematomas; consider use of a shorter acting anticoagulant as delivery approaches.",
+          ],
+          id: "pregnancy.pregnancy",
+          source: drugRefSource("Pregnancy & Lactation > Pregnancy"),
+          summary: "No controlled studies; hemorrhage risk — use only if benefit outweighs risk",
+          title: "Pregnancy",
+        },
+        {
+          body: [
+            "There are no data on presence of drug metabolites in human milk, effects on breastfed child, or effects on milk production; rats excrete apixaban in milk (12% of the maternal dose).",
+            "Because human exposure through milk is unknown, instruct women to either discontinue breastfeeding or to discontinue apixaban therapy, taking into account the importance of the drug to the mother.",
+          ],
+          id: "pregnancy.lactation",
+          source: drugRefSource("Pregnancy & Lactation > Lactation"),
+          summary: "Human milk exposure unknown — discontinue breastfeeding or the drug",
+          title: "Lactation",
+        },
+      ],
+      title: "Pregnancy & Lactation",
+    },
+    {
+      id: "pharmacology",
+      lengthEstimate: "short",
+      subfields: [
+        {
+          body: [
+            "Factor Xa inhibitor that inhibits platelet activation by selectively and reversibly blocking the active site of factor Xa without requiring a cofactor (eg, antithrombin III) for activity.",
+            "Inhibits free and clot-bound factor Xa, and prothrombinase activity; no direct effect on platelet aggregation, but indirectly inhibits platelet aggregation induced by thrombin.",
+          ],
+          id: "pharmacology.moa",
+          source: drugRefSource("Pharmacology > Mechanism of Action"),
+          summary: "Selective, reversible factor Xa inhibitor — no cofactor required",
+          title: "Mechanism of Action",
+        },
+        {
+          body: [
+            "Bioavailability 50%; Tmax 3-4 hr (adults); protein binding 87%; Vd 21 L.",
+            "Metabolized primarily via CYP3A4 with minor contributions from CYP1A2, 2C8, 2C9, 2C19, and 2J2; no active circulating metabolites.",
+            "Half-life ~12 hr; clearance 3.3 L/hr (adults); urine and feces: 27% recovered as metabolites.",
+          ],
+          id: "pharmacology.pk",
+          source: drugRefSource("Pharmacology > Absorption / Metabolism / Elimination"),
+          summary: "Bioavailability 50%; CYP3A4 metabolism; half-life ~12 hr",
+          title: "Pharmacokinetics",
+        },
+      ],
+      title: "Pharmacology",
     },
   ],
 
@@ -341,7 +450,7 @@ export const apixabanMonograph: DrugMonograph = {
         "What about hepatic impairment?",
         "How do I manage it perioperatively?",
       ],
-      text: "Standard apixaban dosing for nonvalvular atrial fibrillation is 5 mg PO BID [1]. Dose reduction to 2.5 mg BID is required when the patient meets at least 2 of 3 criteria: age ≥80 years, weight ≤60 kg, or serum creatinine ≥1.5 mg/dL [2].",
+      text: "Standard apixaban dosing to prevent stroke and systemic embolism in nonvalvular atrial fibrillation is 5 mg PO BID [1]. Decrease the dose to 2.5 mg BID in patients with any 2 of the following characteristics: age ≥80 years, weight ≤60 kg, or serum creatinine ≥1.5 mg/dL [2].",
     },
     "renal-dose-gfr35": {
       citations: [
@@ -353,7 +462,7 @@ export const apixabanMonograph: DrugMonograph = {
         "What are the key drug interactions?",
         "What are the contraindications?",
       ],
-      text: "At an eGFR of approximately 35 mL/min, apixaban does not require a dose adjustment based on renal function alone for the atrial fibrillation indication [1]. The dose-reduction rule (to 2.5 mg BID) is triggered by meeting at least 2 of 3 criteria — age ≥80 y, weight ≤60 kg, or serum creatinine ≥1.5 mg/dL — so the creatinine value alone does not mandate reduction [2]. Avoid apixaban if CrCl falls below 15 mL/min or the patient is on dialysis [1].",
+      text: "For nonvalvular atrial fibrillation, mild-to-moderate renal impairment requires no dosage adjustment on its own [1]. Serum creatinine ≥1.5 mg/dL counts toward the dose-reduction rule — decrease to 2.5 mg BID when any 2 of age ≥80 years, weight ≤60 kg, or SCr ≥1.5 mg/dL are present [2]. Patients with ESRD maintained on hemodialysis receive 5 mg BID, reduced to 2.5 mg BID with 1 additional characteristic [1].",
     },
     "hepatic": {
       citations: [
@@ -363,9 +472,9 @@ export const apixabanMonograph: DrugMonograph = {
       followUpQuestions: [
         "What about renal impairment?",
         "What are the contraindications?",
-        "How does ketoconazole affect apixaban levels?",
+        "How do CYP3A4 inhibitors affect apixaban?",
       ],
-      text: "For hepatic impairment, apixaban can be used with caution in Child-Pugh A or B — no dose adjustment is established [1]. However, it is contraindicated in severe hepatic impairment (Child-Pugh C) due to the high risk of coagulopathy and bleeding [2].",
+      text: "In mild hepatic impairment, no dosage adjustment is required [1]. In moderate impairment, patients may have intrinsic coagulation abnormalities — data are limited and no recommendations are available [1]. In severe hepatic impairment, apixaban is not recommended [2].",
     },
     "perioperative": {
       citations: [
@@ -376,7 +485,7 @@ export const apixabanMonograph: DrugMonograph = {
         "What are the bleeding risk considerations?",
         "Are there any drug interactions to watch post-op?",
       ],
-      text: "Perioperative bridging is generally NOT recommended for apixaban given its predictable pharmacokinetic offset [1]. Stop apixaban ≥24 hours before low-risk procedures, or ≥48 hours before high-risk procedures or those involving spinal/epidural anesthesia [1]. Restart as soon as adequate hemostasis is confirmed.",
+      text: "Discontinue apixaban at least 48 hours before elective surgery or invasive procedures with a moderate or high risk of unacceptable or clinically significant bleeding [1]. For procedures with low bleeding risk, or where bleeding would be noncritical in location and easily controlled, discontinue at least 24 hours before [1].",
     },
     "interactions-cyp3a4": {
       citations: [
@@ -388,7 +497,7 @@ export const apixabanMonograph: DrugMonograph = {
         "How does this affect AFib dosing?",
         "What are the bleeding risk considerations?",
       ],
-      text: "Avoid combined P-gp and strong CYP3A4 inhibitors — such as ketoconazole, ritonavir, itraconazole, or clarithromycin — when using apixaban for atrial fibrillation [1]. Concurrent NSAIDs, aspirin, or antiplatelet agents significantly increase bleeding risk and should be used with caution or avoided where possible [2].",
+      text: "With dual inhibitors of CYP3A4 and P-gp, decrease the apixaban dose by 50% if taking more than 2.5 mg PO BID; patients already taking 2.5 mg BID should avoid coadministration with strong dual inhibitors [1]. Avoid strong dual inducers, which decrease apixaban's systemic exposure [1]. Aspirin and other antiplatelet agents, NSAIDs, SSRIs, and SNRIs increase bleeding risk [2].",
     },
     "bleeding": {
       citations: [
@@ -400,7 +509,7 @@ export const apixabanMonograph: DrugMonograph = {
         "How do I manage perioperative risk?",
         "Which drug interactions increase bleeding?",
       ],
-      text: "Apixaban increases bleeding risk, particularly when combined with antiplatelet agents, NSAIDs, SSRIs, or SNRIs [1]. In the ARISTOTLE trial, major bleeding occurred at 2.13%/year — significantly lower than warfarin (3.09%/year) [2]. Andexanet alfa (Andexxa) is FDA-approved for reversal when clinically needed [1].",
+      text: "Apixaban increases the risk of bleeding and can cause serious, potentially fatal, bleeding — particularly with other drugs that affect hemostasis (antiplatelets, other anticoagulants, SSRIs, SNRIs, NSAIDs) [1]. In adults, hemorrhage occurs in up to 15% of patients, with major hemorrhage in up to 2.13% [2]. For reversal, procoagulant agents such as prothrombin complex concentrate may be considered; Andexxa (coagulation factor Xa, recombinant) is no longer available as of December 2025 [1].",
     },
     "contraindications": {
       citations: [
@@ -412,7 +521,7 @@ export const apixabanMonograph: DrugMonograph = {
         "What about renal impairment?",
         "What's the standard dosing for AFib?",
       ],
-      text: "Apixaban is contraindicated in patients with active pathological bleeding (e.g., peptic ulcer, intracranial hemorrhage) or a severe hypersensitivity reaction to the drug [1]. It is also contraindicated in severe hepatic impairment (Child-Pugh C) due to coagulopathy risk [2].",
+      text: "Apixaban is contraindicated in patients with severe hypersensitivity to the product (eg, anaphylaxis) or active pathological bleeding [1]. It is also not recommended in severe hepatic impairment [2].",
     },
     "dvt-pe": {
       citations: [
@@ -423,7 +532,7 @@ export const apixabanMonograph: DrugMonograph = {
         "How does the dose differ from AFib dosing?",
         "What are the key drug interactions?",
       ],
-      text: "For acute DVT or PE treatment, the standard regimen is 10 mg PO BID for 7 days, then 5 mg PO BID for at least 3 months [1]. To reduce the risk of recurrent VTE after ≥6 months of treatment, the dose may be reduced to 2.5 mg PO BID [1].",
+      text: "For DVT or PE treatment, the regimen is 10 mg PO BID for 7 days, then 5 mg BID [1]. To reduce the risk of recurrent DVT or PE following the initial 6 months of treatment, the dose is 2.5 mg PO BID [1].",
     },
     "dose-reduction": {
       citations: [
@@ -435,7 +544,7 @@ export const apixabanMonograph: DrugMonograph = {
         "What's the DVT/PE dosing by comparison?",
         "What about hepatic impairment?",
       ],
-      text: "The dose-reduction rule for apixaban in nonvalvular AF requires meeting at least 2 of 3 criteria: age ≥80 years, weight ≤60 kg, or serum creatinine ≥1.5 mg/dL [1]. When the threshold is met, reduce from 5 mg PO BID to 2.5 mg PO BID [2]. Apply only one reduction level regardless of how many criteria are met beyond two [1].",
+      text: "For nonvalvular AF, decrease the apixaban dose to 2.5 mg PO BID in patients with any 2 of the following characteristics: age ≥80 years, weight ≤60 kg, or serum creatinine ≥1.5 mg/dL [1]. The standard dose is otherwise 5 mg PO BID [2].",
     },
   },
 

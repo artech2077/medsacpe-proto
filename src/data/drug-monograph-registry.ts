@@ -2,6 +2,7 @@
 // Import from here (not individual files) when you need multi-drug support.
 
 import { apixabanMonograph } from "./drug-monograph";
+import { rivaroxabanMonograph } from "./drug-monograph-rivaroxaban";
 import {
   semaglutideMonograph,
   tirzepatideMonograph,
@@ -48,6 +49,12 @@ export const DRUG_MONOGRAPH_REGISTRY: DrugMonographEntry[] = [
     monograph: apixabanMonograph,
     shortName: "Apixaban",
   },
+  {
+    brandNames: "Xarelto",
+    id: "rivaroxaban",
+    monograph: rivaroxabanMonograph,
+    shortName: "Rivaroxaban",
+  },
 ];
 
 export function getMonographById(id: string): DrugMonograph | undefined {
@@ -61,5 +68,6 @@ export {
   liraglutideMonograph,
   insulinRegularHumanMonograph,
   apixabanMonograph,
+  rivaroxabanMonograph,
 };
 export type { DrugMonograph };

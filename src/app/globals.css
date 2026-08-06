@@ -96,6 +96,25 @@ input:disabled {
   animation: dc-fade 0.4s ease both;
 }
 
+/* Navigation highlight on the anchored monograph row (V2 exact-answer
+   anchoring): arrives with a brief stronger tint, then settles into a
+   seamless persistent soft-blue block (no border/bar); the row title turns
+   brand blue via the accordion. Reduced-motion users get the static state. */
+@keyframes dc-anchor-flash {
+  0% {
+    background-color: rgba(6, 74, 167, 0.14);
+  }
+  100% {
+    background-color: rgba(6, 74, 167, 0.055);
+  }
+}
+
+.dc-anchor-flash {
+  border-radius: 12px;
+  background-color: rgba(6, 74, 167, 0.055);
+  animation: dc-anchor-flash 1.6s ease-out both;
+}
+
 /* Shimmer placeholder while a delayed AI answer is still generating (Concept I, S10) */
 @keyframes dc-shimmer {
   0% {
@@ -137,8 +156,13 @@ input:disabled {
   .dc-rise,
   .dc-fade,
   .dc-card-flash,
-  .dc-shimmer {
+  .dc-shimmer,
+  .dc-anchor-flash {
     animation: none;
+  }
+  /* Static persistent emphasis instead of the arrival flash. */
+  .dc-anchor-flash {
+    background-color: rgba(6, 74, 167, 0.055);
   }
   .dc-collapse {
     transition: none;

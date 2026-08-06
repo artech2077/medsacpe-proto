@@ -9,6 +9,7 @@ import {
   getZoneAccent,
 } from "@/components/medscape/drug-concepts/clinical-system";
 import { AiResponseAnswerContent } from "@/components/medscape/ai-response/answer-content";
+import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
 import {
   type DrugMonograph,
   type DrugSection,
@@ -79,8 +80,10 @@ function smoothScrollTo(scroller: HTMLElement, target: number) {
 function SubfieldRow({
   accentFg,
   expandAll = false,
+  flashAnchor = false,
   flat = false,
   hideMatchBadge = false,
+  hideSummary = false,
   isCritical,
   isMatched,
   onToggle,
@@ -90,11 +93,16 @@ function SubfieldRow({
   accentFg: string;
   /** When true, the body is always shown (no per-subfield toggle or chevron). */
   expandAll?: boolean;
+  /** When true AND this row is the matched subfield, plays the temporary
+   * navigation flash on the row (V2 exact-answer anchoring). */
+  flashAnchor?: boolean;
   /** When true (Concept J / Figma match): no leading bullet, no card border
    * around the body, no trailing citation line. */
   flat?: boolean;
   /** When true, the "Answer" badge on the matched subfield is suppressed. */
   hideMatchBadge?: boolean;
+  /** When true, a collapsed row shows only the title — no summary preview line. */
+  hideSummary?: boolean;
   isCritical: boolean;
   isMatched: boolean;
   onToggle: () => void;
@@ -120,7 +128,13 @@ function SubfieldRow({
           <span
             className={
               flat
-                ? "text-[16px] font-bold leading-snug text-[#161b1d]"
+                ? `text-[16px] font-bold leading-snug ${
+                    // Anchored row (V2): title reads in brand blue so the
+                    // highlighted subsection is unmistakable without a bar.
+                    isMatched && flashAnchor
+                      ? "text-[var(--mscp-color-brand-primary)]"
+                      : "text-[#161b1d]"
+                  }`
                 : "text-[12.5px] font-semibold leading-snug"
             }
             style={flat ? undefined : { color: isMatched ? accentFg : "#1c2227" }}
@@ -141,7 +155,7 @@ function SubfieldRow({
             </span>
           )}
         </span>
-        {!isOpen && (
+        {!isOpen && !hideSummary && (
           <span className="mt-0.5 block text-[11.5px] leading-[1.45] text-[#647689] [font-variant-numeric:tabular-nums]">
             {subfield.summary}
           </span>
@@ -170,10 +184,12 @@ function SubfieldRow({
     </div>
   );
 
+  const flashClass = flashAnchor && isMatched ? "dc-anchor-flash" : undefined;
+
   // expandAll: static row, body always visible — no toggle, no collapse animation.
   if (expandAll) {
     return (
-      <li>
+      <li className={flashClass}>
         <div className="flex w-full items-start gap-2.5 rounded-[9px] px-2 py-2.5 text-left">
           {header}
         </div>
@@ -183,7 +199,7 @@ function SubfieldRow({
   }
 
   return (
-    <li>
+    <li className={flashClass}>
       <button
         type="button"
         onClick={onToggle}
@@ -205,8 +221,10 @@ function SubfieldRow({
 function SectionRow({
   expandedSubfields,
   expandSubfields = false,
+  flashAnchor = false,
   flat = false,
   hideMatchBadges = false,
+  hideSubfieldSummary = false,
   hideSummary = false,
   index,
   isMatched,
@@ -221,11 +239,15 @@ function SectionRow({
   expandedSubfields: Set<string>;
   /** When true, every subfield body is shown in full — no per-subfield toggle. */
   expandSubfields?: boolean;
+  /** When true, the matched subfield row plays the temporary navigation flash. */
+  flashAnchor?: boolean;
   /** When true (Concept J / Figma match): no section icon, no subfield-count
    * badge, and subfield rows render flat (see SubfieldRow). */
   flat?: boolean;
   /** When true, the "Matched"/"Answer" badges are suppressed. */
   hideMatchBadges?: boolean;
+  /** When true, collapsed subfield rows show only the title (no summary preview). */
+  hideSubfieldSummary?: boolean;
   /** When true, collapsed sections show only the header (no summary preview). */
   hideSummary?: boolean;
   index: number;
@@ -356,8 +378,10 @@ function SectionRow({
                   key={subfield.id}
                   accentFg={accent.fg}
                   expandAll={expandSubfields}
+                  flashAnchor={flashAnchor}
                   flat={flat}
                   hideMatchBadge={hideMatchBadges}
+                  hideSummary={hideSubfieldSummary}
                   isCritical={CRITICAL_SUBFIELD_IDS.includes(subfield.id)}
                   isMatched={matchedSubfieldId === subfield.id}
                   onToggle={() => onToggleSubfield(subfield.id)}
@@ -415,6 +439,10 @@ type DrugMonographAccordionProps = {
   /** When true, every subfield body is shown in full inside an open section —
    * no per-subfield accordion toggle. Section rows still expand/collapse. */
   expandSubfields?: boolean;
+  /** When true, the matched subfield row plays a brief navigation flash
+   * (~2.5s; static emphasis under reduced motion). V2 exact-answer anchoring —
+   * defaults off so existing prototypes are unchanged. */
+  flashAnchor?: boolean;
   /** When true (Concept J / Figma match): section rows drop their icon and
    * subfield-count badge, and subfield rows drop their bullet, card border,
    * and trailing citation line. */
@@ -423,10 +451,17 @@ type DrugMonographAccordionProps = {
   hideMatchBadges?: boolean;
   /** When true, collapsed section rows show only the header (no summary preview). */
   hideSectionSummary?: boolean;
+  /** When true, collapsed subfield rows show only the title (no summary preview). */
+  hideSubfieldSummary?: boolean;
   matchedSubfieldId?: string;
   monograph: DrugMonograph;
   /** When provided, "Full X in monograph" section links call this instead of navigating to Concept B. */
   onOpenMonograph?: (subfieldId: string) => void;
+  /** When true, the selected section (initially the matched section, then
+   * whichever tab is tapped) is reordered to the top of the section list so it
+   * sits right under the sticky tab bar — no long scroll to reach it. Opt-in;
+   * defaults off so existing prototypes keep canonical section order. */
+  promoteSelectedSection?: boolean;
   /** Sticky jump-bar style — "pill" (default, colored dot chips) or
    * "underline" (Concept J / Figma match: plain text tabs with a blue
    * underline on the active tab). */
@@ -436,17 +471,39 @@ type DrugMonographAccordionProps = {
 export function DrugMonographAccordion({
   boxedWarningVariant = "critical",
   expandSubfields = false,
+  flashAnchor = false,
   flat = false,
   hideMatchBadges = false,
   hideSectionSummary = false,
+  hideSubfieldSummary = false,
   matchedSubfieldId,
   monograph,
   onOpenMonograph,
+  promoteSelectedSection = false,
   tabStyle = "pill",
 }: DrugMonographAccordionProps) {
   const matchedSection = matchedSubfieldId
     ? getSectionBySubfieldId(monograph, matchedSubfieldId)
     : undefined;
+
+  // The section currently promoted to the top (V2). Starts at the matched
+  // section (the answer), then tracks whichever tab the user taps.
+  const [selectedSectionId, setSelectedSectionId] = useState<string | undefined>(
+    () => matchedSection?.id,
+  );
+
+  // Body render order — when promotion is on, the selected section is floated to
+  // the top and the rest keep canonical order. Tabs stay in canonical order.
+  const orderedSections = useMemo(() => {
+    if (!promoteSelectedSection || !selectedSectionId) return monograph.sections;
+    const selected = monograph.sections.find((s) => s.id === selectedSectionId);
+    if (!selected) return monograph.sections;
+    return [selected, ...monograph.sections.filter((s) => s.id !== selectedSectionId)];
+  }, [promoteSelectedSection, selectedSectionId, monograph.sections]);
+
+  // Which tab reads as active — the promoted/selected section when promotion is
+  // on, otherwise the matched (answering) section.
+  const activeTabSectionId = promoteSelectedSection ? selectedSectionId : matchedSection?.id;
 
   const sectionRefs = useRef(new Map<string, HTMLDivElement>());
   const registerRef = useCallback((sectionId: string, node: HTMLDivElement | null) => {
@@ -489,13 +546,16 @@ export function DrugMonographAccordion({
   }, []);
 
   const jumpToSection = useCallback((sectionId: string) => {
+    // Promote the tapped section to the top of the list (V2) and open it.
+    setSelectedSectionId(sectionId);
     setExpandedSections((prev) => {
       if (prev.has(sectionId)) return prev;
       const next = new Set(prev);
       next.add(sectionId);
       return next;
     });
-    // Defer the scroll until the section has expanded so its target is in place.
+    // Defer the scroll until the section has expanded (and, when promotion is
+    // on, reordered to the top) so its target is in place.
     requestAnimationFrame(() => {
       const node = sectionRefs.current.get(sectionId);
       const scroller = getScrollParent(node ?? null);
@@ -517,7 +577,7 @@ export function DrugMonographAccordion({
           // the Figma "ds-tab" row (node 1287:15410).
           <div className="flex items-center gap-1 overflow-x-auto border-b border-[#e4ebf3] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {monograph.sections.map((section) => {
-              const isMatched = matchedSection?.id === section.id;
+              const isMatched = activeTabSectionId === section.id;
               return (
                 <button
                   key={section.id}
@@ -545,7 +605,7 @@ export function DrugMonographAccordion({
           <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {monograph.sections.map((section) => {
               const accent = getZoneAccent(section.id);
-              const isMatched = matchedSection?.id === section.id;
+              const isMatched = activeTabSectionId === section.id;
               return (
                 <button
                   key={section.id}
@@ -584,13 +644,15 @@ export function DrugMonographAccordion({
 
       {/* Section accordion rows */}
       <div className="space-y-2 pb-2 pt-4">
-        {monograph.sections.map((section, index) => (
+        {orderedSections.map((section, index) => (
           <SectionRow
             key={section.id}
             expandedSubfields={expandedSubfields}
             expandSubfields={expandSubfields}
+            flashAnchor={flashAnchor}
             flat={flat}
             hideMatchBadges={hideMatchBadges}
+            hideSubfieldSummary={hideSubfieldSummary}
             hideSummary={hideSectionSummary}
             index={index}
             isMatched={matchedSection?.id === section.id}
@@ -605,11 +667,12 @@ export function DrugMonographAccordion({
         ))}
       </div>
 
-      {/* Inline source label */}
-      <p className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-medium text-[#9aa9b8]">
-        <span className="h-1.5 w-1.5 rounded-full bg-[#12b76a]" aria-hidden="true" />
-        Verbatim from Drug Reference — no AI synthesis
-      </p>
+      {/* Ad banner — after the monograph sections */}
+      <MedscapeCurrentAdBlock
+        adPlacement="after-monograph-sections"
+        adSlot="drug_monograph_sections_end"
+        className="mt-3"
+      />
     </div>
   );
 }

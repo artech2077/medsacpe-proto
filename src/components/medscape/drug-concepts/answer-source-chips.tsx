@@ -24,16 +24,22 @@ export function DrugAnswerSourceChips({
   className,
   onJumpToReferences,
   onJumpToSources,
+  referenceCount,
   references,
+  showSources = true,
 }: {
   className?: string;
   /** Called by the "References" segment — scrolls to the References section in the footer. */
   onJumpToReferences?: () => void;
   /** Called by the "Sources" segment — scrolls to the canonical monograph card. */
   onJumpToSources?: () => void;
-  references: AiAnswerReference[];
+  /** Overrides the displayed count when the references are represented by another UI. */
+  referenceCount?: number;
+  references?: AiAnswerReference[];
+  /** Renders a compact References-only pill when source navigation is not needed. */
+  showSources?: boolean;
 }) {
-  const count = references.length;
+  const count = referenceCount ?? references?.length ?? 0;
 
   return (
     <div className={className}>
@@ -50,15 +56,19 @@ export function DrugAnswerSourceChips({
             {count}
           </span>
         </button>
-        <span aria-hidden="true" className="h-[20px] w-px bg-[#c5ced3]" />
-        <button
-          type="button"
-          onClick={onJumpToSources}
-          style={{ touchAction: "manipulation" }}
-          className="text-[14px] font-semibold leading-none text-[var(--mscp-color-brand-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
-        >
-          Sources
-        </button>
+        {showSources ? (
+          <>
+            <span aria-hidden="true" className="h-[20px] w-px bg-[#c5ced3]" />
+            <button
+              type="button"
+              onClick={onJumpToSources}
+              style={{ touchAction: "manipulation" }}
+              className="text-[14px] font-semibold leading-none text-[var(--mscp-color-brand-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-1"
+            >
+              Sources
+            </button>
+          </>
+        ) : null}
       </div>
     </div>
   );

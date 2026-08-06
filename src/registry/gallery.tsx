@@ -13,8 +13,27 @@ import { DrugPinnedRail } from "@/components/medscape/drug-concepts/pinned-rail"
 import { ClinicalZoneIcon, getZoneAccent } from "@/components/medscape/drug-concepts/clinical-system";
 import { DrugScenarioPicker } from "@/components/medscape/drug-concepts/scenario-picker";
 import { DrugClarifyingQuestionCard } from "@/components/medscape/drug-concepts/clarifying-question-card";
-import { DrugComparisonView } from "@/components/medscape/drug-concepts/comparison-view";
+import {
+  DrugComparisonTopicTable,
+  DrugComparisonView,
+} from "@/components/medscape/drug-concepts/comparison-view";
+import { DrugComparisonIntro } from "@/components/medscape/drug-concepts/comparison-intro";
+import { DrugQuestionHeading } from "@/components/medscape/drug-concepts/question-heading";
 import { DrugToolResultCard } from "@/components/medscape/drug-concepts/tool-result-card";
+import {
+  DrugPatientContextPanel,
+  DrugPatientDetailsPrompt,
+} from "@/components/medscape/drug-concepts/patient-context-panel";
+import { DrugPeerContextStrip } from "@/components/medscape/drug-concepts/peer-context-strip";
+import { PrototypeNavSidebar } from "@/components/medscape/drug-concepts/prototype-nav-sidebar";
+import { DrugRegimenChecker } from "@/components/medscape/drug-concepts/regimen-checker";
+import { DrugMonographChangeAlert } from "@/components/medscape/drug-concepts/monograph-change-alert";
+import {
+  COMPARISON,
+  MONOGRAPH_UPDATE,
+  PEER_CONTEXT,
+} from "@/data/drug-intelligence-scenarios";
+import { rivaroxabanMonograph } from "@/data/drug-monograph-rivaroxaban";
 import { ConditionArticleCard } from "@/components/medscape/drug-concepts/condition-article-card";
 import { DrugAnswerSourceChips } from "@/components/medscape/drug-concepts/answer-source-chips";
 import { DrugAnswerLoadingSkeleton } from "@/components/medscape/drug-concepts/answer-loading-skeleton";
@@ -36,6 +55,7 @@ import { MedscapeCurrentHeader } from "@/components/medscape/ai-current/global-h
 import { MedscapePaidTrafficQuickStart } from "@/components/medscape/ai-current/paid-traffic-quick-start";
 import { DrugAiTablesArticle } from "@/components/medscape/drug-ai-tables/drug-monograph";
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
+import { AiResponseAnswerFooter } from "@/components/medscape/ai-response/answer-footer";
 import {
   AiResponseAnswerContent,
   splitLeadingKeyPoints,
@@ -488,6 +508,17 @@ function AiResponseRelatedArticlesPreview() {
   );
 }
 
+function AiResponseAnswerFooterPreview() {
+  return (
+    <div className="max-w-[760px] rounded-[16px] bg-white p-4">
+      <AiResponseAnswerFooter
+        answer="Medscape AI prototype answer"
+        articles={DRUG_CONCEPT_J_RELATED_ARTICLES}
+      />
+    </div>
+  );
+}
+
 // Static preview of DrugFieldSheet — shows the sheet in its open position
 // over a simulated thread so reviewers can see both the chip strip and the sheet.
 function DrugFieldSheetPreview() {
@@ -584,6 +615,112 @@ function DrugPinnedRailPreview() {
         focusAnchor="dosing.afib"
         monograph={apixabanMonograph}
       />
+    </div>
+  );
+}
+
+function DrugPatientContextPanelPreview() {
+  return (
+    <div className="max-w-[640px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugPatientContextPanel compareLabel="Compare with rivaroxaban" />
+    </div>
+  );
+}
+
+function DrugPatientDetailsPromptPreview() {
+  return (
+    <div className="max-w-[640px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugPatientDetailsPrompt onConfirm={() => {}} onDismiss={() => {}} />
+    </div>
+  );
+}
+
+function DrugPeerContextStripPreview() {
+  return (
+    <div className="max-w-[640px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugPeerContextStrip
+        activeTopicId={PEER_CONTEXT.topics[0]?.id}
+        alternatives={PEER_CONTEXT.alternatives}
+        alternativesDescription={PEER_CONTEXT.alternativesDescription}
+        alternativesHeader={PEER_CONTEXT.alternativesHeader}
+        behaviorLabel={PEER_CONTEXT.behaviorLabel}
+        body={PEER_CONTEXT.body}
+        explanation={PEER_CONTEXT.explanation}
+        header={PEER_CONTEXT.header}
+        onAlternativeSelect={() => {}}
+        topics={PEER_CONTEXT.topics}
+      />
+    </div>
+  );
+}
+
+function PrototypeNavSidebarPreview() {
+  return (
+    <div className="relative h-[420px] max-w-[640px] overflow-hidden rounded-[16px] border border-[rgba(109,153,206,0.42)] bg-white">
+      <PrototypeNavSidebar isOpen onClose={() => {}} />
+    </div>
+  );
+}
+
+function DrugRegimenCheckerPreview() {
+  return (
+    <div className="max-w-[720px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugRegimenChecker />
+    </div>
+  );
+}
+
+function DrugMonographChangeAlertPreview() {
+  return (
+    <div className="max-w-[720px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugMonographChangeAlert
+        badge={MONOGRAPH_UPDATE.badge}
+        changedSectionsLabel={MONOGRAPH_UPDATE.changedSectionsLabel}
+        drugName="Apixaban"
+        lastViewedDate={MONOGRAPH_UPDATE.lastViewedDate}
+        sections={MONOGRAPH_UPDATE.sections}
+      />
+    </div>
+  );
+}
+
+function DrugComparisonTopicTablePreview() {
+  return (
+    <div className="max-w-[760px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugComparisonTopicTable
+        activeTopicId={COMPARISON.topics[0]?.id}
+        left={apixabanMonograph}
+        right={rivaroxabanMonograph}
+        topics={COMPARISON.topics.slice(0, 3).map((topic) => ({
+          cells: { left: topic.cells.apixaban, right: topic.cells.rivaroxaban },
+          id: topic.id,
+          title: topic.title,
+        }))}
+      />
+    </div>
+  );
+}
+
+function DrugComparisonIntroPreview() {
+  return (
+    <div className="max-w-[760px] rounded-[16px] bg-white p-4">
+      <DrugComparisonIntro
+        description={COMPARISON.intro.description}
+        drugNames={["Apixaban", "Rivaroxaban"]}
+        question={COMPARISON.intro.question}
+        referenceCount={COMPARISON.topics.length}
+      />
+    </div>
+  );
+}
+
+function DrugQuestionHeadingPreview() {
+  return (
+    <div className="max-w-[760px] rounded-[16px] bg-white p-4">
+      <DrugQuestionHeading>
+        Compare apixaban with rivaroxaban for this patient.
+      </DrugQuestionHeading>
+      <p className="text-[14px] text-[#5a6e7e]">Content following the question heading.</p>
     </div>
   );
 }
@@ -1012,14 +1149,154 @@ export const galleryRegistry: GalleryEntry[] = [
   {
     category: "content",
     description:
-      "Related Articles carousel for the answer footer — a horizontal row of Medscape article cards (content-type, time-ago, title, gradient thumbnail). Supports a Sponsored variant. Used in Concept J below the AI answer.",
+      "Related Articles carousel for the answer footer — a horizontal row of Medscape article cards (content-type, time-ago, title, and optional project-local editorial thumbnail). Supports a Sponsored variant.",
     id: "ai-response-related-articles",
     preview: AiResponseRelatedArticlesPreview,
     sourcePath: "src/components/medscape/ai-response/related-articles.tsx",
     title: "AiResponseRelatedArticles",
     usageNotes: [
       "Pass RelatedArticle[] — set sponsored:true to render the 'Sponsored' label instead of a time-ago.",
-      "Thumbnails are token gradient placeholders (accent classes) — no external image dependency.",
+      "Pass imageSrc for a project-local thumbnail; omit it to retain the token-gradient placeholder.",
+    ],
+  },
+  {
+    category: "feedback",
+    description:
+      "Reusable answer footer with Helpful, Not Helpful, Copy, static Ask a follow-up prompts, and Related Articles. Used after every V2 result state.",
+    id: "ai-response-answer-footer",
+    preview: AiResponseAnswerFooterPreview,
+    sourcePath: "src/components/medscape/ai-response/answer-footer.tsx",
+    title: "AiResponseAnswerFooter",
+    usageNotes: [
+      "Use a shared data set when a prototype needs the same footer after each answer, regardless of answer type.",
+      "Pass onQuestionSelect only when static follow-up chips should create another prototype turn.",
+    ],
+  },
+  {
+    category: "input",
+    description:
+      "V2 patient-specific criteria matching (Connected Drug Intelligence, Moment 2): AI-extracted values render as editable fields the physician must confirm before any result appears; the result is a deterministic threshold match against the published monograph criteria, with a renal-guidance row and a 'How this was determined' trace. No recommendation, probability, or AI badge.",
+    id: "drug-patient-context-panel",
+    preview: DrugPatientContextPanelPreview,
+    sourcePath: "src/components/medscape/drug-concepts/patient-context-panel.tsx",
+    title: "DrugPatientContextPanel",
+    usageNotes: [
+      "Field definitions, validation bounds, and the criteria evaluator live in drug-intelligence-scenarios.ts (evaluateDoseReductionCriteria) — thresholds are canonical monograph facts, never inline strings.",
+      "onConfirm receives field TYPES only (never patient values) for analytics; values are session-only and cleared on cancel/reset.",
+      "Wire onSelectRenalAnchor to move the canonical card's anchor to dosing.renal_adjustment beneath the panel.",
+      "Pass initialValues + startInResult when the values were already entered and confirmed in DrugPatientDetailsPrompt — the deterministic result renders immediately and stays editable per turn.",
+    ],
+  },
+  {
+    category: "input",
+    description:
+      "Clarify-style patient-details entry card (Concept I clarifying-question chrome) docked above the composer once the first answer has fully rendered. Fields start empty; the physician enters age/weight/SCr/CrCl for THIS check only — values are never saved for later turns. Confirm is gated on at least two of the three criteria values.",
+    id: "drug-patient-details-prompt",
+    preview: DrugPatientDetailsPromptPreview,
+    sourcePath: "src/components/medscape/drug-concepts/patient-context-panel.tsx",
+    title: "DrugPatientDetailsPrompt",
+    usageNotes: [
+      "Remount with a fresh key each time it opens so the fields always start empty — per-check values, no persistence.",
+      "onConfirm receives the entered values; render the result as a new turn via DrugPatientContextPanel with initialValues + startInResult.",
+      "Field definitions and plausibility bounds come from PATIENT_CONTEXT in drug-intelligence-scenarios.ts — same source as the panel.",
+    ],
+  },
+  {
+    category: "content",
+    description:
+      "Responsive EB Garamond question heading for V2 drug-intelligence turns: 24px / 27.6px on mobile and 40px / 52px on desktop, with 470 font weight, zero letter spacing, and matching paragraph spacing.",
+    id: "drug-question-heading",
+    preview: DrugQuestionHeadingPreview,
+    sourcePath: "src/components/medscape/drug-concepts/question-heading.tsx",
+    title: "DrugQuestionHeading",
+    usageNotes: [
+      "Use for physician questions and comparison prompts; pass as=\"h2\" only when the surrounding document hierarchy already has an h1.",
+      "The component owns its bottom paragraph spacing, so do not add a competing bottom margin at the call site.",
+    ],
+  },
+  {
+    category: "content",
+    description:
+      "Editorial comparison preface with utility actions, a references-only pill, and explanatory copy immediately before a drug comparison table.",
+    id: "drug-comparison-intro",
+    preview: DrugComparisonIntroPreview,
+    sourcePath: "src/components/medscape/drug-concepts/comparison-intro.tsx",
+    title: "DrugComparisonIntro",
+    usageNotes: [
+      "Pass the compared drug names to visually emphasize them in the supporting sentence; keep the full copy in typed scenario data.",
+      "Use referenceCount for the number of distinct comparison topics or citations represented by the table.",
+      "Wire onJumpToReferences to the canonical drug-monograph section represented by the comparison.",
+    ],
+  },
+  {
+    category: "content",
+    description:
+      "V2 topic-row comparison for two drugs: full canonical monograph subsections side by side per clinical topic. Desktop is a table with sticky drug headers; mobile shows one topic at a time with a sticky topic selector and Previous/Next controls. Cells carry the complete anchored section + source link, or 'Not stated in this monograph'.",
+    id: "drug-comparison-topic-table",
+    preview: DrugComparisonTopicTablePreview,
+    sourcePath: "src/components/medscape/drug-concepts/comparison-view.tsx",
+    title: "DrugComparisonTopicTable",
+    usageNotes: [
+      "Topic specs reference monograph anchors resolved via getSubfieldById — never copy clinical strings into topic data.",
+      "activeTopicId is controlled so the peer-context strip can move the table to a topic; the active desktop row scrolls into view.",
+      "Renders no winner and no synthesis; keep boxed warnings eager above/inside the surrounding comparison view.",
+    ],
+  },
+  {
+    category: "content",
+    description:
+      "V2 aggregated peer-search context (Moment 4): a visually secondary module below the canonical comparison. Uses explicit vertical rankings and link affordances for commonly reviewed fields and frequently compared alternatives without reporting prescribing behavior or drug preference.",
+    id: "drug-peer-context-strip",
+    preview: DrugPeerContextStripPreview,
+    sourcePath: "src/components/medscape/drug-concepts/peer-context-strip.tsx",
+    title: "DrugPeerContextStrip",
+    usageNotes: [
+      "Data comes from the typed PEER_CONTEXT fixture in drug-intelligence-scenarios.ts so it can be replaced or removed without touching the component.",
+      "onTopicSelect maps a ranked topic link to a comparison topic id — the strip itself never renders clinical content.",
+      "onAlternativeSelect opens the selected ranked drug link through the existing canonical monograph search flow; ordering indicates comparison-search frequency, never preference.",
+      "Keep the cohort and time-window explanation, methodology, and behavioral-data explanation visible whenever peer behavior is shown.",
+    ],
+  },
+  {
+    category: "navigation",
+    description:
+      "Slide-in prototype navigator: lists the workspace-level prototypes (title + description) plus a single 'V1 explorations' entry that opens the A–J concept set (via the concept tab bar) — not the ten individual concepts. Current route highlighted, dimmed backdrop, Escape/close/backdrop dismissal. Wired to the top-left menu button on the standalone drug-mono screens (V1 Concept J, V2) that hide the concept tab bar and otherwise have no way to jump between prototypes.",
+    id: "prototype-nav-sidebar",
+    preview: PrototypeNavSidebarPreview,
+    sourcePath: "src/components/medscape/drug-concepts/prototype-nav-sidebar.tsx",
+    title: "PrototypeNavSidebar",
+    usageNotes: [
+      "Workspace entries come from prototypeRegistry filtered to non-concept routes (excludes /drug-concept-*), so new workspace prototypes appear automatically; the concept explorations collapse to one entry pointing at /drug-concept-j.",
+      "Renders as an absolute overlay inside the nearest relatively-positioned ancestor; the host screen owns the isOpen state and toggles it from its menu button.",
+      "Uses usePathname to mark the active route with aria-current; clicking any entry navigates and calls onClose.",
+    ],
+  },
+  {
+    category: "input",
+    description:
+      "V2 regimen interaction check: AI-extracted medication chips the physician edits and confirms (no check runs on unconfirmed extraction), then deterministic DIMS-backed pair results grouped by provisional severity — the most serious group expanded first. Includes ambiguous-name resolution, duplicate merge notice, no-known-interaction, and data-unavailable states.",
+    id: "drug-regimen-checker",
+    preview: DrugRegimenCheckerPreview,
+    sourcePath: "src/components/medscape/drug-concepts/regimen-checker.tsx",
+    title: "DrugRegimenChecker",
+    usageNotes: [
+      "Pair results are typed DrugToolResult fixtures in drug-intelligence-scenarios.ts, rendered through the existing DrugToolResultCard — this component only adds the regimen-level composition.",
+      "Removing a drug deterministically filters its pairs on rerun; severity groups carry the 'Prototype — provisional DIMS tiers' label until sign-off.",
+      "Try 'dilt' (ambiguous) and 'Eliquis' (duplicate merge) in the add-medication input to demo the edge states.",
+    ],
+  },
+  {
+    category: "feedback",
+    description:
+      "V2 returning-user monograph change alert: a banner ('Updated since you last viewed' + changed-section count) expanding into section titles and their added/removed changes, with links to the exact updated row.",
+    id: "drug-monograph-change-alert",
+    preview: DrugMonographChangeAlertPreview,
+    sourcePath: "src/components/medscape/drug-concepts/monograph-change-alert.tsx",
+    title: "DrugMonographChangeAlert",
+    usageNotes: [
+      "Diff sections come from the MONOGRAPH_UPDATE fixture in drug-intelligence-scenarios.ts — current-side lines must match the canonical fixture text.",
+      "Wire onOpenSection to re-anchor the canonical card (or canvas) at the changed subfield; falls back to the section when no row-level mapping exists.",
+      "In-product alert only: no subscription settings or push/email prompts.",
     ],
   },
 ];

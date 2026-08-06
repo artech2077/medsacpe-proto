@@ -38,9 +38,9 @@ export function DrugConceptShell({ activeConcept, children, className, compact, 
 
       {/* White chat panel */}
       <section
-        className={`relative flex min-h-0 flex-1 px-2 pb-2 md:px-3 md:pb-3 ${hideTabBar ? "pt-2 md:pt-3" : ""}`}
+        className={`relative flex min-h-0 flex-1 md:px-3 md:pb-3 ${hideTabBar ? "md:pt-3" : ""}`}
       >
-        <div className="relative flex min-h-0 flex-1 overflow-hidden rounded-[22px] border border-[rgba(109,153,206,0.42)] bg-white shadow-[0_18px_44px_rgba(6,74,167,0.12)]">
+        <div className="relative flex min-h-0 flex-1 overflow-hidden rounded-none border-0 bg-white shadow-none md:rounded-[22px] md:border md:border-[rgba(109,153,206,0.42)] md:shadow-[0_18px_44px_rgba(6,74,167,0.12)]">
           {children}
         </div>
       </section>
