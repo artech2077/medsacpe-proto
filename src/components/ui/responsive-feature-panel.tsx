@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { createPortal } from "react-dom";
 import {
   forwardRef,
   useCallback,
@@ -194,7 +195,8 @@ export function ResponsiveFeaturePanel({
         title={title}
       />
 
-      {isOpen ? (
+      {isOpen && typeof document !== "undefined"
+        ? createPortal(
         <div className="fixed inset-0 z-[80]" role="presentation">
           <button
             type="button"
@@ -259,7 +261,10 @@ export function ResponsiveFeaturePanel({
             </div>
           </div>
         </div>
-      ) : null}
+          ,
+          document.body,
+        )
+        : null}
     </>
   );
 }

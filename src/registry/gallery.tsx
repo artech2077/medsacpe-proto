@@ -26,6 +26,7 @@ import {
 } from "@/components/medscape/drug-concepts/patient-context-panel";
 import { DrugPeerContextStrip } from "@/components/medscape/drug-concepts/peer-context-strip";
 import { DrugPeerContextFeature } from "@/components/medscape/drug-concepts/peer-context-feature";
+import { InteractionCheckerFeature } from "@/components/medscape/drug-concepts/interaction-checker-feature";
 import { PrototypeNavSidebar } from "@/components/medscape/drug-concepts/prototype-nav-sidebar";
 import { DrugRegimenChecker } from "@/components/medscape/drug-concepts/regimen-checker";
 import { DrugMonographChangeAlert } from "@/components/medscape/drug-concepts/monograph-change-alert";
@@ -139,6 +140,14 @@ function ResponsiveFeaturePanelPreview() {
           Feature-specific content renders inside this shared responsive panel.
         </p>
       </ResponsiveFeaturePanel>
+    </div>
+  );
+}
+
+function InteractionCheckerFeaturePreview() {
+  return (
+    <div className="max-w-[640px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <InteractionCheckerFeature />
     </div>
   );
 }
@@ -835,6 +844,19 @@ export const galleryRegistry: GalleryEntry[] = [
     usageNotes: [
       "Pass typed update data so the same modal can render one or many slides.",
       "Use overlay mode in product screens and embedded mode for previews or configuration flows.",
+    ],
+  },
+  {
+    category: "input",
+    description:
+      "Shared interaction-checker launcher: opens the regimen checker as a right drawer on desktop and a bottom sheet on mobile.",
+    id: "interaction-checker-feature",
+    preview: InteractionCheckerFeaturePreview,
+    sourcePath: "src/components/medscape/drug-concepts/interaction-checker-feature.tsx",
+    title: "InteractionCheckerFeature",
+    usageNotes: [
+      "Use this launcher in task lists and as the interactionAction of DrugMonographAccordion; it reuses the same checker state and responsive drawer behavior.",
+      "Use onOpenChange and onRunCheck for analytics without coupling the shared feature to a specific screen.",
     ],
   },
   {

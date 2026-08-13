@@ -17,6 +17,7 @@ import {
   DrugPatientDetailsPrompt,
 } from "@/components/medscape/drug-concepts/patient-context-panel";
 import { DrugPeerContextFeature } from "@/components/medscape/drug-concepts/peer-context-feature";
+import { InteractionCheckerFeature } from "@/components/medscape/drug-concepts/interaction-checker-feature";
 import { DrugRegimenChecker } from "@/components/medscape/drug-concepts/regimen-checker";
 import { DrugMonographChangeAlert } from "@/components/medscape/drug-concepts/monograph-change-alert";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
@@ -354,27 +355,12 @@ function ExactAnswerTurn({
               onClick={onCompare}
             />
 
-            <ResponsiveFeaturePanel
-              headerIcon={
-                <img
-                  src="/assets/Intercations.svg"
-                  alt=""
-                  className="h-5 w-auto"
-                />
-              }
-              panelTitle="Interaction Checker"
-              title={CONNECTED_JOURNEY.actions.checkInteractions}
+            <InteractionCheckerFeature
               onOpenChange={(isOpen) =>
                 logV2Event(isOpen ? "interaction_checker_opened" : "interaction_checker_closed")
               }
-            >
-              <DrugRegimenChecker
-                presentation="panel"
-                onRunCheck={(drugCount) =>
-                  logV2Event("regimen_check_run", { drugCount })
-                }
-              />
-            </ResponsiveFeaturePanel>
+              onRunCheck={(drugCount) => logV2Event("regimen_check_run", { drugCount })}
+            />
           </div>
         </section>
 
@@ -390,6 +376,18 @@ function ExactAnswerTurn({
             hideMatchBadges
             hideSectionSummary
             hideSubfieldSummary
+            interactionAction={
+              <InteractionCheckerFeature
+                onOpenChange={(isOpen) =>
+                  logV2Event(
+                    isOpen
+                      ? "interaction_checker_opened_from_monograph"
+                      : "interaction_checker_closed",
+                  )
+                }
+                onRunCheck={(drugCount) => logV2Event("regimen_check_run", { drugCount })}
+              />
+            }
             monograph={monograph}
             onOpenMonograph={() => openLiveMonograph(monograph)}
             promoteSelectedSection

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { DrugMonographAccordion } from "@/components/medscape/drug-concepts/monograph-accordion";
 import { getSubfieldById, type DrugMonograph } from "@/data/drug-monograph";
 
@@ -20,6 +20,7 @@ export function DrugMonographCardFrame({
   hideSectionSummary = false,
   hideSubfieldSummary = false,
   highlight = false,
+  interactionAction,
   monograph,
   onOpenMonograph,
   promoteSelectedSection = false,
@@ -47,6 +48,8 @@ export function DrugMonographCardFrame({
   hideSubfieldSummary?: boolean;
   /** Plays a brief highlight sweep — S9 "card updated in place". */
   highlight?: boolean;
+  /** Action inserted before interaction severity rows when that section is open. */
+  interactionAction?: ReactNode;
   monograph: DrugMonograph;
   onOpenMonograph?: (subfieldId: string) => void;
   /** Float the selected section to the top of the list so it sits under the
@@ -105,6 +108,7 @@ export function DrugMonographCardFrame({
         hideMatchBadges={hideMatchBadges}
         hideSectionSummary={hideSectionSummary}
         hideSubfieldSummary={hideSubfieldSummary}
+        interactionAction={interactionAction}
         matchedSubfieldId={anchor}
         monograph={monograph}
         onOpenMonograph={onOpenMonograph}

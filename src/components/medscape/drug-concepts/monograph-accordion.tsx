@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ClinicalBoxedWarning,
   ClinicalChevron,
@@ -256,6 +256,7 @@ function SectionRow({
   hideSubfieldSummary = false,
   hideSummary = false,
   index,
+  interactionAction,
   isMatched,
   matchedSubfieldId,
   onOpenMonograph,
@@ -280,6 +281,8 @@ function SectionRow({
   /** When true, collapsed sections show only the header (no summary preview). */
   hideSummary?: boolean;
   index: number;
+  /** Optional feature launcher inserted ahead of interaction severity rows. */
+  interactionAction?: ReactNode;
   isMatched: boolean;
   matchedSubfieldId?: string;
   onOpenMonograph?: (subfieldId: string) => void;
@@ -401,6 +404,10 @@ function SectionRow({
                 })}
               </div>
             )}
+            {interactionAction &&
+            (section.id === "interactions" || section.id === "drug-interactions") ? (
+              <div className="px-2 pb-2 pt-1.5">{interactionAction}</div>
+            ) : null}
             <ul className="space-y-0.5">
               {visibleSubfields.map((subfield) => (
                 <SubfieldRow
@@ -487,6 +494,8 @@ type DrugMonographAccordionProps = {
   hideSectionSummary?: boolean;
   /** When true, collapsed subfield rows show only the title (no summary preview). */
   hideSubfieldSummary?: boolean;
+  /** Reusable action rendered above the severity rows in the Interactions section. */
+  interactionAction?: ReactNode;
   matchedSubfieldId?: string;
   monograph: DrugMonograph;
   /** When provided, "Full X in monograph" section links call this instead of navigating to Concept B. */
@@ -510,6 +519,7 @@ export function DrugMonographAccordion({
   hideMatchBadges = false,
   hideSectionSummary = false,
   hideSubfieldSummary = false,
+  interactionAction,
   matchedSubfieldId,
   monograph,
   onOpenMonograph,
@@ -692,6 +702,7 @@ export function DrugMonographAccordion({
             hideSubfieldSummary={hideSubfieldSummary}
             hideSummary={hideSectionSummary}
             index={index}
+            interactionAction={interactionAction}
             isMatched={matchedSection?.id === section.id}
             matchedSubfieldId={matchedSubfieldId}
             onOpenMonograph={onOpenMonograph}
