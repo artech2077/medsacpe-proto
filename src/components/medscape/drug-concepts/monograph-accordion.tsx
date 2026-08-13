@@ -14,16 +14,21 @@ import {
   type DrugMonograph,
   type DrugSection,
   type DrugSubfield,
+  getSubfieldAncestorIds,
   getSectionBySubfieldId,
 } from "@/data/drug-monograph";
 
 // Short jump-bar labels per section id. Falls back to the full section title.
 const SECTION_JUMP_LABEL: Record<string, string> = {
-  administration: "Admin",
+  administration: "Administration",
   adverse: "Adverse",
-  dosing: "Dosing",
+  "adverse-effects": "Adverse Effects",
+  "contraindications-cautions": "Warnings",
+  dosing: "Dosing & Uses",
+  "drug-interactions": "Interactions",
   interactions: "Interactions",
   pharmacology: "Pharmacology",
+  "pregnancy-lactation": "Pregnancy",
   pregnancy: "Pregnancy",
   renal_hepatic: "Renal",
   safety: "Safety",
@@ -112,6 +117,8 @@ function SubfieldRow({
   // Verbatim canonical body, rendered through the shared answer renderer so the
   // deep text matches existing AI-answer typography exactly.
   const answer = useMemo(() => subfield.body.join("\n"), [subfield.body]);
+  const subsections = subfield.subsections ?? [];
+  const hasSubsections = subsections.length > 0;
   const isOpen = expandAll || open;
 
   const header = (
@@ -165,22 +172,44 @@ function SubfieldRow({
     </>
   );
 
+  const content = hasSubsections ? (
+    <ul className="space-y-3">
+      {subsections.map((subsection) => (
+        <li key={subsection.id}>
+          <p className="text-[12.5px] font-semibold leading-snug text-[#647689]">
+            {subsection.title}
+          </p>
+          <AiResponseAnswerContent
+            answer={subsection.body.join("\n")}
+            className="mt-0.5 text-[13.5px] leading-[1.6] text-[#2e3d4a] [font-variant-numeric:tabular-nums]"
+          />
+          {!flat && (
+            <div className="mt-2 border-t border-[#eef3f8] pt-2">
+              <ClinicalSourceLabel source={subsection.source} />
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <AiResponseAnswerContent
+      answer={answer}
+      className="text-[13.5px] leading-[1.6] text-[#2e3d4a] [font-variant-numeric:tabular-nums]"
+    />
+  );
+
   const body = flat ? (
     <div className="mb-1 mt-1">
-      <AiResponseAnswerContent
-        answer={answer}
-        className="text-[13.5px] leading-[1.6] text-[#2e3d4a] [font-variant-numeric:tabular-nums]"
-      />
+      {content}
     </div>
   ) : (
     <div className="mb-1 mt-1 rounded-[9px] border border-[#e3ebf4] bg-white px-3 py-2.5">
-      <AiResponseAnswerContent
-        answer={answer}
-        className="text-[13.5px] leading-[1.6] text-[#2e3d4a] [font-variant-numeric:tabular-nums]"
-      />
-      <div className="mt-2.5 border-t border-[#eef3f8] pt-2">
-        <ClinicalSourceLabel source={subfield.source} />
-      </div>
+      {content}
+      {!hasSubsections && (
+        <div className="mt-2.5 border-t border-[#eef3f8] pt-2">
+          <ClinicalSourceLabel source={subfield.source} />
+        </div>
+      )}
     </div>
   );
 
@@ -383,7 +412,12 @@ function SectionRow({
                   hideMatchBadge={hideMatchBadges}
                   hideSummary={hideSubfieldSummary}
                   isCritical={CRITICAL_SUBFIELD_IDS.includes(subfield.id)}
-                  isMatched={matchedSubfieldId === subfield.id}
+                  isMatched={
+                    matchedSubfieldId === subfield.id ||
+                    subfield.subsections?.some(
+                      (nested) => nested.id === matchedSubfieldId,
+                    ) === true
+                  }
                   onToggle={() => onToggleSubfield(subfield.id)}
                   open={expandedSubfields.has(subfield.id)}
                   subfield={subfield}
@@ -524,6 +558,9 @@ export function DrugMonographAccordion({
   const [expandedSubfields, setExpandedSubfields] = useState<Set<string>>(() => {
     const initial = new Set<string>();
     if (matchedSubfieldId) initial.add(matchedSubfieldId);
+    for (const ancestorId of getSubfieldAncestorIds(monograph, matchedSubfieldId ?? "")) {
+      initial.add(ancestorId);
+    }
     return initial;
   });
 

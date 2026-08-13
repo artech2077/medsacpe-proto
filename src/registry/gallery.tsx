@@ -25,6 +25,7 @@ import {
   DrugPatientDetailsPrompt,
 } from "@/components/medscape/drug-concepts/patient-context-panel";
 import { DrugPeerContextStrip } from "@/components/medscape/drug-concepts/peer-context-strip";
+import { DrugPeerContextFeature } from "@/components/medscape/drug-concepts/peer-context-feature";
 import { PrototypeNavSidebar } from "@/components/medscape/drug-concepts/prototype-nav-sidebar";
 import { DrugRegimenChecker } from "@/components/medscape/drug-concepts/regimen-checker";
 import { DrugMonographChangeAlert } from "@/components/medscape/drug-concepts/monograph-change-alert";
@@ -33,7 +34,10 @@ import {
   MONOGRAPH_UPDATE,
   PEER_CONTEXT,
 } from "@/data/drug-intelligence-scenarios";
-import { rivaroxabanMonograph } from "@/data/drug-monograph-rivaroxaban";
+import {
+  bevacizumabPocScenarioMonograph,
+  ramucirumabPocScenarioMonograph,
+} from "@/data/drug-monograph-poc-v2-scenarios";
 import { ConditionArticleCard } from "@/components/medscape/drug-concepts/condition-article-card";
 import { DrugAnswerSourceChips } from "@/components/medscape/drug-concepts/answer-source-chips";
 import { DrugAnswerLoadingSkeleton } from "@/components/medscape/drug-concepts/answer-loading-skeleton";
@@ -71,6 +75,7 @@ import {
 } from "@/components/medscape/ai-response/prompt-card";
 import { AiTopRailAction } from "@/components/medscape/ai-response/top-rail-action";
 import { ScreenShell } from "@/components/ui/screen-shell";
+import { ResponsiveFeaturePanel } from "@/components/ui/responsive-feature-panel";
 import {
   aiResponseAssets,
   buildMockAnswer,
@@ -122,6 +127,18 @@ function ScreenShellPreview() {
           Screen content preview
         </div>
       </ScreenShell>
+    </div>
+  );
+}
+
+function ResponsiveFeaturePanelPreview() {
+  return (
+    <div className="max-w-[640px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <ResponsiveFeaturePanel title="Clinical calculator">
+        <p className="text-[15px] leading-relaxed text-[#435056]">
+          Feature-specific content renders inside this shared responsive panel.
+        </p>
+      </ResponsiveFeaturePanel>
     </div>
   );
 }
@@ -654,6 +671,24 @@ function DrugPeerContextStripPreview() {
   );
 }
 
+function DrugPeerContextFeaturePreview() {
+  return (
+    <div className="max-w-[640px] rounded-[16px] bg-[#f0f5fb] p-4">
+      <DrugPeerContextFeature
+        activeTopicId={PEER_CONTEXT.topics[0]?.id}
+        alternatives={PEER_CONTEXT.alternatives}
+        alternativesDescription={PEER_CONTEXT.alternativesDescription}
+        alternativesHeader={PEER_CONTEXT.alternativesHeader}
+        behaviorLabel={PEER_CONTEXT.behaviorLabel}
+        body={PEER_CONTEXT.body}
+        explanation={PEER_CONTEXT.explanation}
+        header={PEER_CONTEXT.header}
+        topics={PEER_CONTEXT.topics}
+      />
+    </div>
+  );
+}
+
 function PrototypeNavSidebarPreview() {
   return (
     <div className="relative h-[420px] max-w-[640px] overflow-hidden rounded-[16px] border border-[rgba(109,153,206,0.42)] bg-white">
@@ -676,7 +711,7 @@ function DrugMonographChangeAlertPreview() {
       <DrugMonographChangeAlert
         badge={MONOGRAPH_UPDATE.badge}
         changedSectionsLabel={MONOGRAPH_UPDATE.changedSectionsLabel}
-        drugName="Apixaban"
+        drugName="Bevacizumab"
         lastViewedDate={MONOGRAPH_UPDATE.lastViewedDate}
         sections={MONOGRAPH_UPDATE.sections}
       />
@@ -689,10 +724,10 @@ function DrugComparisonTopicTablePreview() {
     <div className="max-w-[760px] rounded-[16px] bg-[#f0f5fb] p-4">
       <DrugComparisonTopicTable
         activeTopicId={COMPARISON.topics[0]?.id}
-        left={apixabanMonograph}
-        right={rivaroxabanMonograph}
+        left={bevacizumabPocScenarioMonograph}
+        right={ramucirumabPocScenarioMonograph}
         topics={COMPARISON.topics.slice(0, 3).map((topic) => ({
-          cells: { left: topic.cells.apixaban, right: topic.cells.rivaroxaban },
+          cells: topic.cells,
           id: topic.id,
           title: topic.title,
         }))}
@@ -706,7 +741,7 @@ function DrugComparisonIntroPreview() {
     <div className="max-w-[760px] rounded-[16px] bg-white p-4">
       <DrugComparisonIntro
         description={COMPARISON.intro.description}
-        drugNames={["Apixaban", "Rivaroxaban"]}
+        drugNames={["Bevacizumab", "Ramucirumab"]}
         question={COMPARISON.intro.question}
         referenceCount={COMPARISON.topics.length}
       />
@@ -726,6 +761,22 @@ function DrugQuestionHeadingPreview() {
 }
 
 export const galleryRegistry: GalleryEntry[] = [
+  {
+    category: "layout",
+    description:
+      "Reusable expandable feature shell: a bordered launcher opens a modal right drawer on desktop and a modal bottom sheet on mobile.",
+    id: "responsive-feature-panel",
+    preview: ResponsiveFeaturePanelPreview,
+    sourcePath: "src/components/ui/responsive-feature-panel.tsx",
+    title: "ResponsiveFeaturePanel",
+    usageNotes: [
+      "Pass any feature content as children; the shell owns its launcher, responsive presentation, focus return, Escape key, and backdrop dismissal.",
+      "Use for peer reviews, calculators, interaction tools, and other secondary features that should not expand inline.",
+      "Use panelTitle when the compact launcher label differs from the panel’s full feature name; headerIcon can identify the tool without coupling the shell to a feature.",
+      "Use ResponsiveFeatureTrigger by itself for direct actions that need the same Figma-sized launcher styling without opening a panel.",
+      "Use onOpenChange for feature-specific analytics without coupling the shell to an event schema.",
+    ],
+  },
   {
     category: "layout",
     description: "Shared frame for route-level prototypes with a consistent title, description, and action rail.",
@@ -1183,6 +1234,7 @@ export const galleryRegistry: GalleryEntry[] = [
     usageNotes: [
       "Field definitions, validation bounds, and the criteria evaluator live in drug-intelligence-scenarios.ts (evaluateDoseReductionCriteria) — thresholds are canonical monograph facts, never inline strings.",
       "onConfirm receives field TYPES only (never patient values) for analytics; values are session-only and cleared on cancel/reset.",
+      "Pass oncologyDose with presentation=\"panel\" to render the labeled oncology calculator as a step-by-step flow inside ResponsiveFeaturePanel; its POC-backed calculation and source row remain the same.",
       "Wire onSelectRenalAnchor to move the canonical card's anchor to dosing.renal_adjustment beneath the panel.",
       "Pass initialValues + startInResult when the values were already entered and confirmed in DrugPatientDetailsPrompt — the deterministic result renders immediately and stays editable per turn.",
     ],
@@ -1245,6 +1297,20 @@ export const galleryRegistry: GalleryEntry[] = [
   {
     category: "content",
     description:
+      "Compact launcher for the existing V2 aggregated peer-search context. Opens the shared responsive feature panel as a right drawer on desktop and a bottom sheet on mobile.",
+    id: "drug-peer-context-feature",
+    preview: DrugPeerContextFeaturePreview,
+    sourcePath: "src/components/medscape/drug-concepts/peer-context-feature.tsx",
+    title: "DrugPeerContextFeature",
+    usageNotes: [
+      "The launcher and responsive overlay behavior come from ResponsiveFeaturePanel; DrugPeerContextStrip remains the single renderer for the existing peer-search content.",
+      "Pass the typed PEER_CONTEXT data rather than embedding peer-search copy in a screen.",
+      "Reuse ResponsiveFeaturePanel directly for calculators, interaction tools, and other expandable features.",
+    ],
+  },
+  {
+    category: "content",
+    description:
       "V2 aggregated peer-search context (Moment 4): a visually secondary module below the canonical comparison. Uses explicit vertical rankings and link affordances for commonly reviewed fields and frequently compared alternatives without reporting prescribing behavior or drug preference.",
     id: "drug-peer-context-strip",
     preview: DrugPeerContextStripPreview,
@@ -1274,15 +1340,16 @@ export const galleryRegistry: GalleryEntry[] = [
   {
     category: "input",
     description:
-      "V2 regimen interaction check: AI-extracted medication chips the physician edits and confirms (no check runs on unconfirmed extraction), then deterministic DIMS-backed pair results grouped by provisional severity — the most serious group expanded first. Includes ambiguous-name resolution, duplicate merge notice, no-known-interaction, and data-unavailable states.",
+      "V2 regimen-risk check: AI-extracted medication chips the physician edits and confirms (no check runs on unconfirmed extraction), then deterministic pair results grouped by severity — the most serious group expanded first. Includes ambiguous-name resolution, duplicate merge notice, no-known-interaction, and data-unavailable states.",
     id: "drug-regimen-checker",
     preview: DrugRegimenCheckerPreview,
     sourcePath: "src/components/medscape/drug-concepts/regimen-checker.tsx",
     title: "DrugRegimenChecker",
     usageNotes: [
       "Pair results are typed DrugToolResult fixtures in drug-intelligence-scenarios.ts, rendered through the existing DrugToolResultCard — this component only adds the regimen-level composition.",
-      "Removing a drug deterministically filters its pairs on rerun; severity groups carry the 'Prototype — provisional DIMS tiers' label until sign-off.",
-      "Try 'dilt' (ambiguous) and 'Eliquis' (duplicate merge) in the add-medication input to demo the edge states.",
+      "Pass presentation=\"panel\" inside ResponsiveFeaturePanel to use the compact search-and-chip editor with plain severity-grouped results; the drawer shell owns the title, icon, and close behavior.",
+      "Removing a drug deterministically filters its displayed pairs; severity groups retain the prototype disclaimer until clinical review.",
+      "Try 'cap' (ambiguous) and 'Avastin' (duplicate merge) in the add-medication input to demo the edge states.",
     ],
   },
   {

@@ -23,6 +23,7 @@ export function DrugMonographCardFrame({
   monograph,
   onOpenMonograph,
   promoteSelectedSection = false,
+  sourceStatement = "Verbatim from Medscape Drug Reference — no AI synthesis",
   tabStyle,
 }: {
   /** Subfield id to auto-expand two levels deep. Omit for a collapsed card. */
@@ -51,6 +52,8 @@ export function DrugMonographCardFrame({
   /** Float the selected section to the top of the list so it sits under the
    * sticky tab bar with no long scroll (V2). Defaults off. */
   promoteSelectedSection?: boolean;
+  /** Provenance copy beneath the monograph title. */
+  sourceStatement?: string;
   /** Sticky jump-bar style — "pill" (default) or "underline" (Concept J / Figma match). */
   tabStyle?: "pill" | "underline";
 }) {
@@ -91,7 +94,7 @@ export function DrugMonographCardFrame({
           <path d="M8 7.3v3.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           <circle cx="8" cy="5.1" r="0.85" fill="currentColor" />
         </svg>
-        Verbatim from Medscape Drug Reference — no AI synthesis
+        {sourceStatement}
       </p>
       <DrugMonographAccordion
         key={anchor ?? "collapsed"}

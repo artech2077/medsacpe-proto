@@ -12,7 +12,7 @@ import type {
 // vertical ordered lists with link affordances — never recommendation cards,
 // prescribing/preference claims, or precise-looking percentages.
 
-type DrugPeerContextStripProps = {
+export type DrugPeerContextStripProps = {
   activeTopicId?: string;
   alternatives: readonly PeerComparedAlternative[];
   alternativesDescription: string;
@@ -23,6 +23,7 @@ type DrugPeerContextStripProps = {
   header: string;
   onAlternativeSelect?: (alternative: PeerComparedAlternative) => void;
   onTopicSelect?: (topic: PeerContextTopic) => void;
+  presentation?: "card" | "panel";
   topics: readonly PeerContextTopic[];
 };
 
@@ -37,39 +38,52 @@ export function DrugPeerContextStrip({
   header,
   onAlternativeSelect,
   onTopicSelect,
+  presentation = "card",
   topics,
 }: DrugPeerContextStripProps) {
+  const isPanel = presentation === "panel";
+
   return (
     <aside
       aria-label="Aggregated peer search behavior"
-      className="dc-rise scroll-mb-[152px] overflow-hidden rounded-[14px] border border-dashed border-[#b9cce0] bg-[#f8fbfe] shadow-[0_1px_3px_rgba(16,24,40,0.04)]"
+      className={
+        isPanel
+          ? "overflow-hidden"
+          : "dc-rise scroll-mb-[152px] overflow-hidden rounded-[14px] border border-dashed border-[#b9cce0] bg-[#f8fbfe] shadow-[0_1px_3px_rgba(16,24,40,0.04)]"
+      }
     >
-      <div className="border-b border-[#dfe9f2] bg-white/75 px-4 py-3.5 sm:px-5">
-        <div className="flex items-start gap-2">
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              aria-hidden="true"
-              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#e8f0fa] text-[#355d83]"
-            >
-              <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="5.5" cy="5" r="2" />
-                <circle cx="10.5" cy="5" r="2" />
-                <path d="M1.8 13c.5-2 2-3 3.7-3s3.2 1 3.7 3M8.8 13c.5-2 2-3 3.7-3 .5 0 1 .1 1.4.3" />
-              </svg>
-            </span>
-            <div className="min-w-0">
-              <h3 className="text-[13.5px] font-extrabold leading-snug text-[#263847]">
-                {header}
-              </h3>
-              <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.075em] text-[#60788f]">
-                {behaviorLabel}
-              </p>
+      {isPanel ? (
+        <p className="border-b border-[#dfe9f2] pb-4 text-[10px] font-bold uppercase tracking-[0.075em] text-[#60788f]">
+          {behaviorLabel}
+        </p>
+      ) : (
+        <div className="border-b border-[#dfe9f2] bg-white/75 px-4 py-3.5 sm:px-5">
+          <div className="flex items-start gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                aria-hidden="true"
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#e8f0fa] text-[#355d83]"
+              >
+                <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="5.5" cy="5" r="2" />
+                  <circle cx="10.5" cy="5" r="2" />
+                  <path d="M1.8 13c.5-2 2-3 3.7-3s3.2 1 3.7 3M8.8 13c.5-2 2-3 3.7-3 .5 0 1 .1 1.4.3" />
+                </svg>
+              </span>
+              <div className="min-w-0">
+                <h3 className="text-[13.5px] font-extrabold leading-snug text-[#263847]">
+                  {header}
+                </h3>
+                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.075em] text-[#60788f]">
+                  {behaviorLabel}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="px-4 py-4 sm:px-5">
+      <div className={isPanel ? "pt-5" : "px-4 py-4 sm:px-5"}>
         <p className="text-[13px] leading-[1.6] text-[#3c4d5b]">{body}</p>
 
         <section className="mt-4" aria-labelledby="peer-topics-heading">

@@ -54,13 +54,33 @@ function ToolFrame({
 
 export function DrugToolResultCard({
   hideBadge = false,
+  presentation = "card",
   tool,
 }: {
   hideBadge?: boolean;
+  /** A plain result row for dense, grouped tool surfaces such as interaction checkers. */
+  presentation?: "bare" | "card";
   tool: DrugToolResult;
 }) {
   if (tool.kind === "interaction") {
     const sev = SEVERITY_STYLE[tool.severity] ?? SEVERITY_STYLE["Monitor Closely"];
+    if (presentation === "bare") {
+      return (
+        <article className="py-4 first:pt-0">
+          <h4 className="text-[15px] font-bold leading-[1.35] text-[#30353a]">
+            {tool.pair[0]} + {tool.pair[1]}
+          </h4>
+          <p className="mt-2 text-[13px] font-semibold leading-[1.5] text-[#4b5359]">
+            {tool.summary}
+          </p>
+          <div className="mt-2 space-y-1.5 text-[13px] leading-[1.52] text-[#343a40]">
+            {tool.lines.map((line, index) => (
+              <p key={index}>{line}</p>
+            ))}
+          </div>
+        </article>
+      );
+    }
     return (
       <ToolFrame title={tool.title} badge="Deterministic tool" showBadge={!hideBadge}>
         <div className="px-4 py-3.5">

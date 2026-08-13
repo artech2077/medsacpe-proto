@@ -15,6 +15,9 @@ export type DrugSubfield = {
    * subfields that apply to both populations — they show under either tab. */
   population?: "adult" | "pediatric";
   source: DrugMonographSource;
+  /** Nested source rows, used when a POC subsection contains labeled details
+   * (for example, Dosage Forms & Strengths → injectable solution). */
+  subsections?: DrugSubfield[];
   summary: string;
   title: string;
 };
@@ -586,8 +589,19 @@ export function getSubfieldById(
   monograph: DrugMonograph,
   subfieldId: string,
 ): DrugSubfield | undefined {
+  const findSubfield = (subfields: DrugSubfield[]): DrugSubfield | undefined => {
+    for (const subfield of subfields) {
+      if (subfield.id === subfieldId) return subfield;
+      const nested = subfield.subsections
+        ? findSubfield(subfield.subsections)
+        : undefined;
+      if (nested) return nested;
+    }
+    return undefined;
+  };
+
   for (const section of monograph.sections) {
-    const found = section.subfields.find((sf) => sf.id === subfieldId);
+    const found = findSubfield(section.subfields);
     if (found) return found;
   }
   return undefined;
@@ -597,7 +611,44 @@ export function getSectionBySubfieldId(
   monograph: DrugMonograph,
   subfieldId: string,
 ): DrugSection | undefined {
-  return monograph.sections.find((s) => s.subfields.some((sf) => sf.id === subfieldId));
+  const containsSubfield = (subfields: DrugSubfield[]): boolean =>
+    subfields.some(
+      (subfield) =>
+        subfield.id === subfieldId ||
+        Boolean(
+          subfield.subsections && containsSubfield(subfield.subsections),
+        ),
+    );
+
+  return monograph.sections.find((section) =>
+    containsSubfield(section.subfields),
+  );
+}
+
+/** Parent subsection IDs required to reveal a nested source row. */
+export function getSubfieldAncestorIds(
+  monograph: DrugMonograph,
+  subfieldId: string,
+): string[] {
+  const findAncestors = (
+    subfields: DrugSubfield[],
+    ancestors: string[],
+  ): string[] | undefined => {
+    for (const subfield of subfields) {
+      if (subfield.id === subfieldId) return ancestors;
+      const nested = subfield.subsections
+        ? findAncestors(subfield.subsections, [...ancestors, subfield.id])
+        : undefined;
+      if (nested) return nested;
+    }
+    return undefined;
+  };
+
+  for (const section of monograph.sections) {
+    const ancestors = findAncestors(section.subfields, []);
+    if (ancestors) return ancestors;
+  }
+  return [];
 }
 
 // Concept D: maps free-text queries directly to a task chip id for auto-routing.

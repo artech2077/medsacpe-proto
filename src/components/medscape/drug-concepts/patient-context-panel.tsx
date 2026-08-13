@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   evaluateDoseReductionCriteria,
+  ONCOLOGY_DOSE_CONTEXT,
   PATIENT_CLARIFY_STEPS,
   PATIENT_CONTEXT,
   type PatientClarifyStep,
@@ -87,10 +88,236 @@ type DrugPatientContextPanelProps = {
   onOpenSource?: (anchor: string) => void;
   /** Move the canonical card's anchor (renal-guidance row selection). */
   onSelectRenalAnchor?: (anchor: string) => void;
+  /** Reuses the patient-context component for a labeled weight-based oncology
+   * calculation rather than the default AF dose-reduction check. */
+  oncologyDose?: typeof ONCOLOGY_DOSE_CONTEXT;
+  /** Bare content for a responsive feature panel; inline cards retain their frame. */
+  presentation?: "inline" | "panel";
   /** Values were already confirmed upstream (patient-details prompt) — render
    * the deterministic result immediately; Edit remains available. */
   startInResult?: boolean;
 };
+
+function OncologyDoseContextPanel({
+  context,
+  initialValues,
+  onConfirm,
+  onOpenSource,
+  presentation = "inline",
+  startInResult,
+}: {
+  context: typeof ONCOLOGY_DOSE_CONTEXT;
+  initialValues?: Record<string, string>;
+  onConfirm?: (fieldIds: string[]) => void;
+  onOpenSource?: (anchor: string) => void;
+  presentation?: "inline" | "panel";
+  startInResult: boolean;
+}) {
+  const [phase, setPhase] = useState<"questions" | "result">(
+    startInResult ? "result" : "questions",
+  );
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [traceOpen, setTraceOpen] = useState(false);
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      context.fields.map((field) => [
+        field.id,
+        initialValues?.[field.id] ?? field.value,
+      ]),
+    ),
+  );
+  const weight = Number(values.weight?.replace(",", "."));
+  const validWeight = Number.isFinite(weight) && weight >= 25 && weight <= 350;
+  const dose = validWeight ? weight * context.mgPerKg : null;
+  const regimen = context.fields.find((field) => field.id === "regimen")?.value ?? "FOLFOX4";
+
+  const frame = (content: React.ReactNode, title: string) =>
+    presentation === "panel" ? (
+      content
+    ) : (
+      <DeterministicFrame
+        badge={phase === "result" ? "Deterministic calculation" : "Patient context"}
+        title={title}
+      >
+        {content}
+      </DeterministicFrame>
+    );
+
+  if (phase === "questions") {
+    const question = [
+      "Which labeled regimen is being calculated?",
+      "What is the patient’s body weight?",
+      "Confirm the dose schedule",
+    ][questionIndex]!;
+
+    const content = (
+      <div aria-label={question} role="form" className="pb-2">
+        <div aria-label={`Question ${questionIndex + 1} of 3`} className="grid grid-cols-3 gap-3">
+          {[0, 1, 2].map((index) => (
+            <span
+              key={index}
+              aria-hidden="true"
+              className={`h-1.5 rounded-full ${
+                index <= questionIndex
+                  ? "bg-[var(--mscp-color-brand-primary)]"
+                  : "bg-[#eef0f2]"
+              }`}
+            />
+          ))}
+        </div>
+
+        <p className="mt-5 text-[17px] font-medium leading-[1.3] text-[#52616c]">
+          Question {questionIndex + 1} of 3
+        </p>
+        <h3 className="mt-2 text-[23px] font-semibold leading-[1.26] tracking-[-0.012em] text-[#1c2329]">
+          {question}
+        </h3>
+
+        {questionIndex === 0 ? (
+          <div className="mt-7 border-y border-[#c7d0d7]">
+            <button
+              type="button"
+              onClick={() => {
+                setValues((previous) => ({ ...previous, regimen }));
+                setQuestionIndex(1);
+              }}
+              className="flex w-full items-center gap-4 px-4 py-4 text-left text-[20px] font-medium text-[#1c2329] transition hover:bg-[#f6f9fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--mscp-color-brand-primary)]"
+            >
+              <span aria-hidden="true" className="h-5 w-5 shrink-0 rounded-full border-2 border-[var(--mscp-color-brand-primary)]" />
+              {regimen}
+            </button>
+          </div>
+        ) : null}
+
+        {questionIndex === 1 ? (
+          <form
+            className="mt-7"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (validWeight) setQuestionIndex(2);
+            }}
+          >
+            <label className="sr-only" htmlFor="oncology-dose-weight">
+              Body weight in kilograms
+            </label>
+            <div className="flex items-stretch gap-2">
+              <div className="flex min-w-0 flex-1 items-center rounded-[8px] border border-[#aebcc7] bg-white px-4 focus-within:border-[var(--mscp-color-brand-primary)] focus-within:ring-1 focus-within:ring-[var(--mscp-color-brand-primary)]">
+                <input
+                  id="oncology-dose-weight"
+                  autoFocus
+                  inputMode="decimal"
+                  value={values.weight ?? ""}
+                  onChange={(event) =>
+                    setValues((previous) => ({ ...previous, weight: event.target.value }))
+                  }
+                  placeholder="Enter body weight"
+                  className="min-w-0 flex-1 bg-transparent py-4 text-[20px] font-medium text-[#1c2329] outline-none placeholder:text-[#718796] [font-variant-numeric:tabular-nums]"
+                />
+                <span className="ml-3 text-[18px] font-medium text-[#52616c]">kg</span>
+              </div>
+              <button
+                type="submit"
+                disabled={!validWeight}
+                className="shrink-0 rounded-[8px] bg-[var(--mscp-color-brand-primary)] px-4 text-[14px] font-bold text-white transition hover:bg-[#053b85] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)] focus-visible:ring-offset-2 disabled:bg-[#c2cfdc]"
+              >
+                Continue
+              </button>
+            </div>
+            {!validWeight ? (
+              <p role="alert" className="mt-2 text-[13px] font-medium text-[#b42318]">
+                Enter a body weight between 25 and 350 kg.
+              </p>
+            ) : null}
+          </form>
+        ) : null}
+
+        {questionIndex === 2 ? (
+          <div className="mt-7 border-y border-[#c7d0d7]">
+            <button
+              type="button"
+              onClick={() => {
+                onConfirm?.(["weight", "regimen"]);
+                setPhase("result");
+              }}
+              className="flex w-full items-center gap-4 px-4 py-4 text-left text-[20px] font-medium text-[#1c2329] transition hover:bg-[#f6f9fc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--mscp-color-brand-primary)]"
+            >
+              <span aria-hidden="true" className="h-5 w-5 shrink-0 rounded-full border-2 border-[var(--mscp-color-brand-primary)]" />
+              {context.doseLine}
+            </button>
+          </div>
+        ) : null}
+
+        {questionIndex > 0 ? (
+          <button
+            type="button"
+            onClick={() => setQuestionIndex((index) => index - 1)}
+            className="mt-5 text-[14px] font-bold text-[var(--mscp-color-brand-primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
+          >
+            Back
+          </button>
+        ) : null}
+        <p className="mt-5 text-[11px] font-medium text-[#8497a9]">
+          Patient details apply to this task only and are cleared on reset.
+        </p>
+      </div>
+    );
+
+    return frame(content, "Patient dose calculator");
+  }
+
+  const result = (
+      <div aria-live="polite" className="pb-2">
+        <div className="rounded-[10px] border border-[rgba(6,74,167,0.22)] bg-[rgba(6,74,167,0.05)] px-3 py-2.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[var(--mscp-color-brand-primary)]">
+            Calculated dose
+          </p>
+          <p className="mt-0.5 text-[20px] font-extrabold text-[var(--mscp-color-brand-primary)] [font-variant-numeric:tabular-nums]">
+            {dose?.toLocaleString()} mg IV
+          </p>
+          <p className="mt-1 text-[12.5px] leading-[1.5] text-[#2e4763]">
+            {weight} kg × {context.mgPerKg} mg/kg · every 2 weeks
+          </p>
+        </div>
+        <p className="mt-3 text-[13px] font-bold text-[#1c2935]">{context.doseLine}</p>
+        <button
+          type="button"
+          onClick={() => setTraceOpen((open) => !open)}
+          aria-expanded={traceOpen}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full text-[12px] font-semibold text-[var(--mscp-color-brand-primary)] transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
+        >
+          How this was determined
+        </button>
+        {traceOpen ? (
+          <div className="mt-2 rounded-[10px] bg-[#f6f9fc] px-3 py-2.5 text-[12.5px] leading-[1.55] text-[#46535f]">
+            <p className="font-semibold text-[#22303c]">Confirmed inputs</p>
+            <p className="mt-0.5">Body weight: {weight} kg · {values.regimen}</p>
+            <p className="mt-2 font-semibold text-[#22303c]">Monograph row</p>
+            <button
+              type="button"
+              onClick={() => onOpenSource?.(context.sourceAnchor)}
+              className="mt-0.5 text-left font-mono text-[11.5px] font-semibold text-[var(--mscp-color-brand-primary)] hover:underline"
+            >
+              {context.sourceLine}
+            </button>
+          </div>
+        ) : null}
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#eef3f8] pt-3">
+          <button
+            type="button"
+            onClick={() => {
+              setQuestionIndex(0);
+              setPhase("questions");
+            }}
+            className="inline-flex items-center rounded-full border border-[rgba(6,74,167,0.35)] px-4 py-2 text-[13px] font-bold text-[var(--mscp-color-brand-primary)] transition hover:bg-[#f2f7fe] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
+          >
+            Edit answers
+          </button>
+        </div>
+      </div>
+  );
+
+  return frame(result, context.resultLabel);
+}
 
 export function DrugPatientContextPanel({
   compareLabel = "Compare alternatives",
@@ -100,8 +327,23 @@ export function DrugPatientContextPanel({
   onConfirm,
   onOpenSource,
   onSelectRenalAnchor,
+  oncologyDose,
+  presentation = "inline",
   startInResult = false,
 }: DrugPatientContextPanelProps) {
+  if (oncologyDose) {
+    return (
+      <OncologyDoseContextPanel
+        context={oncologyDose}
+        initialValues={initialValues}
+        onConfirm={onConfirm}
+        onOpenSource={onOpenSource}
+        presentation={presentation}
+        startInResult={startInResult}
+      />
+    );
+  }
+
   const [phase, setPhase] = useState<PanelPhase>(startInResult ? "result" : "confirm");
   const [dismissed, setDismissed] = useState(false);
   const [traceOpen, setTraceOpen] = useState(false);

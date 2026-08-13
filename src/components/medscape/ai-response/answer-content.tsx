@@ -35,6 +35,9 @@ type TooltipPosition = {
 
 const LEADING_KEY_POINTS_PATTERN =
   /^\s*Key Points\s*\n((?:-\s+.*(?:\n|$))*)(?:\n+)*/i;
+const WEIGHT_DOSING_CALCULATOR_TAG = "{calc_weight_dosing}";
+export const WEIGHT_DOSING_CALCULATOR_URL =
+  "https://reference.medscape.com/calculator/895/weight-based-liquid-medication-dosing";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -218,24 +221,73 @@ export function renderInlineText(
   text: string,
   renderCitation?: (citationId: number, key: string) => ReactNode,
 ): ReactNode[] {
-  return text
-    .split(/(\*\*[^*]+\*\*|\[\d+\])/g)
+  const nodes: ReactNode[] = [];
+  let appendCalculatorIcon = false;
+
+  text
+    .split(/(\{calc_weight_dosing\}|\*\*[^*]+\*\*|\[\d+\])/g)
     .filter(Boolean)
-    .map((part, index) => {
+    .forEach((part, index) => {
+      if (part === WEIGHT_DOSING_CALCULATOR_TAG) {
+        appendCalculatorIcon = true;
+        return;
+      }
+
+      let node: ReactNode;
       if (part.startsWith("**") && part.endsWith("**")) {
-        return (
+        node = (
           <strong key={`${part}-${index}`} className="font-extrabold">
             {part.slice(2, -2)}
           </strong>
         );
+      } else if (renderCitation && /^\[\d+\]$/.test(part)) {
+        node = renderCitation(Number(part.slice(1, -1)), `${part}-${index}`);
+      } else {
+        node = part;
       }
 
-      if (renderCitation && /^\[\d+\]$/.test(part)) {
-        return renderCitation(Number(part.slice(1, -1)), `${part}-${index}`);
+      nodes.push(node);
+      if (appendCalculatorIcon) {
+        nodes.push(<WeightDosingCalculatorIcon key={`weight-dosing-${index}`} />);
+        appendCalculatorIcon = false;
       }
-
-      return part;
     });
+
+  return nodes;
+}
+
+/** Inline visual treatment for the Content API POC's weight-dosing marker. */
+export function WeightDosingCalculatorIcon() {
+  return (
+    <a
+      aria-label="Open weight-based dose calculator in a new tab"
+      className="ml-2 inline-flex translate-y-[3px] text-[#0085bd]"
+      href={WEIGHT_DOSING_CALCULATOR_URL}
+      rel="noopener noreferrer"
+      target="_blank"
+      title="Open weight-based dose calculator"
+    >
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height="22"
+        viewBox="0 0 24 34"
+        width="15"
+      >
+        <rect x="1.5" y="1.5" width="21" height="31" rx="2.75" stroke="currentColor" strokeWidth="2.5" />
+        <rect x="5" y="5.5" width="14" height="5.5" rx="0.9" stroke="currentColor" strokeWidth="2" />
+        <circle cx="7" cy="16" r="1.35" fill="currentColor" />
+        <circle cx="12" cy="16" r="1.35" fill="currentColor" />
+        <circle cx="17" cy="16" r="1.35" fill="currentColor" />
+        <circle cx="7" cy="21.5" r="1.35" fill="currentColor" />
+        <circle cx="12" cy="21.5" r="1.35" fill="currentColor" />
+        <circle cx="17" cy="21.5" r="1.35" fill="currentColor" />
+        <circle cx="7" cy="27" r="1.35" fill="currentColor" />
+        <circle cx="12" cy="27" r="1.35" fill="currentColor" />
+        <circle cx="17" cy="27" r="1.35" fill="currentColor" />
+      </svg>
+    </a>
+  );
 }
 
 export function AiResponseAnswerContent({

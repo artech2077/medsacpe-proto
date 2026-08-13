@@ -1,8 +1,8 @@
 // Drug Intelligence V2 — scripted scenario data for /ai-drug-mono-v2.
 // Implements the Connected Drug Intelligence prototype prompt (2026-07-16) and
-// the 2026-07-23 Final Drug Intelligence Prototype Plan: one connected apixaban
-// journey (change alert + exact answer → patient context → comparison + peer
-// context → regimen interaction check). The focused regimen-check and
+// the 2026-07-23 Final Drug Intelligence Prototype Plan: one connected
+// bevacizumab journey (change alert + indication-aware answer → dose calculator
+// → comparison + peer context → regimen risk check). The focused regimen-check and
 // monograph-change entries remain available as direct prototype deep links.
 //
 // Trust model: clinical facts stay in the typed monograph fixtures and are
@@ -16,9 +16,9 @@ import type { DrugToolResult } from "@/data/drug-concept-i-scenarios";
 // ─── Scenario picker ────────────────────────────────────────────────────────────
 
 export type DrugIntelligenceScenarioId =
-  | "connected-apixaban"
-  | "regimen-check"
-  | "monograph-update";
+  | "connected-bevacizumab"
+  | "bevacizumab-regimen-check"
+  | "bevacizumab-monograph-update";
 
 export type DrugIntelligenceScenario = {
   description: string;
@@ -32,27 +32,28 @@ export type DrugIntelligenceScenario = {
 export const DRUG_INTELLIGENCE_SCENARIOS: DrugIntelligenceScenario[] = [
   {
     description:
-      "One stakeholder walkthrough: monograph update alert, exact 2.5 mg BID criteria, patient context, rivaroxaban comparison, peer-search context, and a regimen interaction check — all in one cumulative thread.",
+      "One stakeholder walkthrough: indication-aware answer, weight-based dosing, ramucirumab comparison, oncology peer-search context, and a regimen risk check — all in one cumulative thread.",
     group: "Primary",
-    id: "connected-apixaban",
-    startingQuestion: "What are the apixaban 2.5 mg twice-daily criteria?",
+    id: "connected-bevacizumab",
+    startingQuestion:
+      "What is the recommended dosing for bevacizumab for metastatic colorectal cancer with FOLFOX4?",
     title: "Complete drug-intelligence walkthrough",
   },
   {
     description:
-      "Paste a medication list, confirm the drugs AI extracted, then review DIMS-backed interactions grouped by severity.",
+      "Paste an oncology regimen, confirm the drugs AI extracted, then review regimen-specific risk considerations grouped by severity.",
     group: "Regimen",
-    id: "regimen-check",
     startingQuestion:
-      "Check this medication list for interactions: apixaban, ketoconazole, lisinopril, sertraline, and ibuprofen.",
+      "Review this regimen: bevacizumab, amlodipine, and atezolizumab.",
     title: "Check a medication regimen",
+    id: "bevacizumab-regimen-check",
   },
   {
     description:
       "Return to a frequently viewed drug, see which sections changed since your last visit, and jump to the updated content.",
     group: "Updates",
-    id: "monograph-update",
-    startingQuestion: "Open apixaban — what changed since I last viewed it?",
+    id: "bevacizumab-monograph-update",
+    startingQuestion: "Open bevacizumab — what changed since I last viewed it?",
     title: "See what changed in a monograph",
   },
 ];
@@ -66,35 +67,30 @@ export function getDrugIntelligenceScenarioById(
 // ─── Moment 1 — exact answer ────────────────────────────────────────────────────
 
 export const CONNECTED_JOURNEY = {
-  drugId: "apixaban",
-  question: "What are the apixaban 2.5 mg twice-daily criteria?",
-  /** Verbatim condensation of the Nonvalvular Atrial Fibrillation dosing body
-   * (POC anchor below) — words and numbers unchanged, labeled "From the
-   * Medscape monograph" in the UI. */
+  drugId: "bevacizumab",
+  question:
+    "What is the recommended dosing for bevacizumab for metastatic colorectal cancer with FOLFOX4?",
+  /** The source row directly answers the selected labeled indication. */
   exactAnswerLine:
-    "Decrease dose to 2.5 mg PO BID in patients with any 2 of the following characteristics: Age ≥80 years, Weight ≤60 kg, Serum creatinine ≥1.5 mg/dL.",
-  // POC anchors (drug-monograph-poc-scenarios.ts): the any-2 criteria live in
-  // the Nonvalvular Atrial Fibrillation dosing row; renal guidance in the
-  // Renal impairment row.
-  anchor: "adult-dosing-uses.nonvalvular-atrial-fibrillation",
-  renalAnchor: "adult-dosing-uses.renal-impairment",
-  /** Complementary AI synthesis shown (labeled) below the canonical card; [n]
-   * markers cite the anchors below. Kept from the scripted flow; re-cited to
-   * the POC rows. */
+    "FOLFOX4 (ie, oxaliplatin, 5-FU, leucovorin): 10 mg/kg IV q2Weeks",
+  anchor:
+    "adult-dosing-uses.in-combination-with-fluorouracil-based-chemotherapy",
   aiAnswer:
-    "For nonvalvular AF, decrease the apixaban dose to 2.5 mg PO BID in patients with any 2 of the following characteristics: age ≥80 years, weight ≤60 kg, or serum creatinine ≥1.5 mg/dL [1]. The standard dose is otherwise 5 mg PO BID [2].",
+    "For metastatic colorectal carcinoma in combination with FOLFOX4, the POC monograph lists bevacizumab 10 mg/kg IV every 2 weeks [1]. For an 80 kg patient, that regimen calculates to 800 mg per infusion; use the calculator to review the arithmetic for a selected listed regimen.",
   citations: [
-    { anchor: "adult-dosing-uses.nonvalvular-atrial-fibrillation", marker: 1 },
-    { anchor: "adult-dosing-uses.stroke-prophylaxis-with-atrial-fibrillation", marker: 2 },
+    {
+      anchor:
+        "adult-dosing-uses.in-combination-with-fluorouracil-based-chemotherapy",
+      marker: 1,
+    },
   ],
   actions: {
-    applyPatientContext: "Apply patient details",
+    applyPatientContext: "Add patient details",
     checkInteractions: "Check interactions",
-    compare: "Compare with rivaroxaban",
+    compare: "Compare with ramucirumab",
   },
-  patientContextQuestion:
-    "My patient is 82, weighs 58 kg, serum creatinine is 1.6 mg/dL, and CrCl is 24 mL/min.",
-  compareQuestion: "Compare this with rivaroxaban.",
+  patientContextQuestion: "Calculate the bevacizumab dose for an 80 kg patient with metastatic colorectal cancer receiving FOLFOX4.",
+  compareQuestion: "Compare bevacizumab with ramucirumab for metastatic colorectal cancer.",
 } as const;
 
 // ─── Moment 2 — patient context ─────────────────────────────────────────────────
@@ -111,6 +107,37 @@ export type PatientContextField = {
   /** Copy shown when the value fails validation. */
   validationMessage?: string;
 };
+
+/** POC-backed inputs for the shared patient-context calculator in V2. */
+export const ONCOLOGY_DOSE_CONTEXT = {
+  calculationLabel: "80 kg × 10 mg/kg",
+  confirmPrompt:
+    "Confirm the patient details used for this labeled oncology-dose calculation.",
+  doseLine: "10 mg/kg IV q2Weeks with FOLFOX4",
+  fields: [
+    {
+      id: "weight",
+      label: "Body weight",
+      max: 350,
+      min: 25,
+      unit: "kg",
+      validationMessage: "Enter a body weight between 25 and 350 kg.",
+      value: "80",
+    },
+    {
+      id: "regimen",
+      label: "Labeled regimen",
+      value: "mCRC with FOLFOX4",
+    },
+  ] satisfies PatientContextField[],
+  mgPerKg: 10,
+  resultLabel: "Calculated labeled dose",
+  sourceAnchor:
+    "adult-dosing-uses.in-combination-with-fluorouracil-based-chemotherapy",
+  sourceLine:
+    "FOLFOX4 (ie, oxaliplatin, 5-FU, leucovorin): 10 mg/kg IV q2Weeks",
+  summary: "The displayed amount is based on the confirmed body weight and the selected POC monograph row.",
+} as const;
 
 export type PatientCriterionRow = {
   /** Published criterion, verbatim threshold. */
@@ -280,6 +307,24 @@ export const PATIENT_CLARIFY_STEPS: PatientClarifyStep[] = [
   },
 ];
 
+export const ONCOLOGY_DOSE_CLARIFY_STEPS: PatientClarifyStep[] = [
+  {
+    id: "weight",
+    kind: "value",
+    max: 350,
+    min: 25,
+    question: "Patient body weight?",
+    unit: "kg",
+    validationMessage: "Enter a body weight between 25 and 350 kg.",
+  },
+  {
+    id: "regimen",
+    kind: "options",
+    options: ["mCRC with FOLFOX4"],
+    question: "Confirm the labeled regimen",
+  },
+];
+
 // Deterministic criteria evaluation — canonical thresholds from the POC
 // Nonvalvular Atrial Fibrillation row (any 2 of: age ≥80 y, weight ≤60 kg,
 // SCr ≥1.5 mg/dL) and the Renal impairment row (DVT/PE not studied below
@@ -343,74 +388,53 @@ export type ComparisonTopic = {
   id: string;
   title: string;
   cells: {
-    apixaban: ComparisonCell;
-    rivaroxaban: ComparisonCell;
+    left: ComparisonCell;
+    right: ComparisonCell;
   };
 };
 
 export const COMPARISON = {
-  drugIds: { left: "apixaban", right: "rivaroxaban" },
+  drugIds: { left: "bevacizumab", right: "ramucirumab" },
   intro: {
     description:
-      "Check the comparison between the two drugs below. Full drug information can be found after the comparison table for apixaban and rivaroxaban.",
-    question: "Compare apixaban with rivaroxaban",
+      "Compare the two anti-angiogenic therapies below in the metastatic colorectal cancer context. Full prescribing information is available after the comparison table.",
+    question: "Compare bevacizumab with ramucirumab for metastatic colorectal cancer",
   },
   topics: [
     {
       cells: {
-        apixaban: { anchor: "adult-dosing-uses.stroke-prophylaxis-with-atrial-fibrillation" },
-        rivaroxaban: { anchor: "adult-dosing-uses.stroke-prophylaxis-with-atrial-fibrillation" },
-      },
-      id: "afib-dosing",
-      title: "AFib dosing",
-    },
-    {
-      cells: {
-        apixaban: {
-          anchor: "adult-dosing-uses.renal-impairment",
-          patientNote:
-            "Confirmed CrCl 24 mL/min — mild-to-moderate impairment requires no dosage adjustment by itself; the dose is set by the any-2-characteristics rule.",
+        left: {
+          anchor:
+            "adult-dosing-uses.in-combination-with-fluorouracil-based-chemotherapy",
         },
-        rivaroxaban: {
-          anchor: "adult-dosing-uses.renal-impairment",
-          patientNote:
-            "Confirmed CrCl 24 mL/min falls in the published 15–50 mL/min band (15 mg once daily with the evening meal).",
-        },
+        right: { anchor: "adult-dosing-uses.colorectal-cancer" },
       },
-      id: "renal-adjustment",
-      title: "Renal adjustment",
+      id: "mcrc-dosing",
+      title: "mCRC setting and dose",
     },
     {
       cells: {
-        apixaban: { anchor: "warnings.contraindications" },
-        rivaroxaban: { anchor: "warnings.contraindications" },
+        left: { anchor: "contraindications-cautions.cautions" },
+        right: { anchor: "warnings.cautions" },
       },
-      id: "contraindications",
-      title: "Contraindications / major warnings",
+      id: "hemorrhage",
+      title: "Hemorrhage risk",
     },
     {
       cells: {
-        apixaban: { anchor: "adult-dosing-uses.coadministration-with-dual-inhibitors-of-cyp3a4-and-p-gp" },
-        rivaroxaban: { anchor: "adult-dosing-uses.use-with-p-gp-and-strong-cyp3a4-inhibitors-and-inducers" },
+        left: { anchor: "contraindications-cautions.wound-healing" },
+        right: { anchor: "adult-dosing-uses.wound-healing" },
       },
-      id: "interactions",
-      title: "Important interactions",
+      id: "wound-healing",
+      title: "Surgery and wound healing",
     },
     {
       cells: {
-        apixaban: { anchor: "warnings.reversing-apixaban-effect" },
-        rivaroxaban: { anchor: "warnings.reversing-anticoagulant-effect" },
+        left: { anchor: "drug-interactions.monitor-closely" },
+        right: { anchor: "warnings.cautions", notStated: true },
       },
-      id: "reversal",
-      title: "Reversal",
-    },
-    {
-      cells: {
-        apixaban: { anchor: "adverse-effects.adults" },
-        rivaroxaban: { anchor: "adverse-effects.major-bleeding" },
-      },
-      id: "adverse-effects",
-      title: "Major adverse effects",
+      id: "interaction-information",
+      title: "Interaction information",
     },
   ] satisfies ComparisonTopic[],
 };
@@ -435,46 +459,46 @@ export type PeerComparedAlternative = {
 };
 
 export const PEER_CONTEXT = {
-  header: "Commonly reviewed by cardiologists",
+  header: "Commonly reviewed by oncology clinicians",
   behaviorLabel: "Aggregated peer search behavior",
-  body: "Based on aggregated Medscape searches and monograph views from the past 90 days, these are the topics cardiologists most often review when comparing oral anticoagulants.",
+  body: "Based on aggregated Medscape searches and monograph views from the past 90 days, these are the topics oncology clinicians most often review when comparing VEGF-pathway therapies.",
   explanation:
     "This reflects aggregated Medscape search and monograph-view activity. It does not report prescribing behavior or drug preference.",
   topics: [
     {
-      comparisonTopicId: "renal-adjustment",
-      id: "renal-dosing",
-      label: "Renal dosing",
+      comparisonTopicId: "mcrc-dosing",
+      id: "treatment-setting",
+      label: "Treatment setting and dose",
       rank: 1,
     },
     {
-      comparisonTopicId: "adverse-effects",
-      id: "bleeding-risk",
-      label: "Bleeding risk",
+      comparisonTopicId: "hemorrhage",
+      id: "hemorrhage-risk",
+      label: "Hemorrhage risk",
       rank: 2,
     },
-    { comparisonTopicId: "reversal", id: "reversal", label: "Reversal", rank: 3 },
+    { comparisonTopicId: "wound-healing", id: "wound-healing", label: "Wound healing", rank: 3 },
   ] satisfies PeerContextTopic[],
   alternativesHeader: "Frequently compared alternatives",
   alternativesDescription:
-    "Other anticoagulants that appear in comparison searches for this class. Order indicates search frequency, not clinical preference.",
+    "Other oncology therapies that appear in comparison searches for this treatment context. Order indicates search frequency, not clinical preference.",
   alternatives: [
     {
-      drugClass: "Direct thrombin inhibitor",
-      id: "dabigatran",
-      name: "Dabigatran",
+      drugClass: "VEGFR2 antagonist",
+      id: "ramucirumab",
+      name: "Ramucirumab",
       rank: 1,
     },
     {
-      drugClass: "Factor Xa inhibitor",
-      id: "edoxaban",
-      name: "Edoxaban",
+      drugClass: "VEGF trap",
+      id: "ziv-aflibercept",
+      name: "Ziv-aflibercept",
       rank: 2,
     },
     {
-      drugClass: "Vitamin K antagonist",
-      id: "warfarin",
-      name: "Warfarin",
+      drugClass: "VEGFR inhibitor",
+      id: "fruquintinib",
+      name: "Fruquintinib",
       rank: 3,
     },
   ] satisfies PeerComparedAlternative[],
@@ -497,7 +521,7 @@ export type RegimenDrugChip = {
 };
 
 export type RegimenPairResult = {
-  /** Severity group heading (provisional DIMS tiers). */
+  /** Severity group heading for the prototype's deterministic risk display. */
   severity: "Contraindicated" | "Serious" | "Monitor Closely" | "Minor";
   tool: DrugToolResult;
   /** Monograph source anchor for the interaction statement. */
@@ -506,99 +530,61 @@ export type RegimenPairResult = {
 
 export const REGIMEN_CHECK = {
   question:
-    "Check this medication list for interactions: apixaban, ketoconazole, lisinopril, sertraline, and ibuprofen.",
-  recognizedLabel: "5 medications recognized",
-  severityDisclaimer: "Prototype — provisional DIMS tiers",
+    "Review this regimen: bevacizumab, amlodipine, and atezolizumab.",
+  recognizedLabel: "3 medications recognized",
+  severityDisclaimer: "Prototype — regimen-risk review; not a substitute for oncology/pharmacy review",
   drugs: [
-    { drugId: "apixaban", id: "apixaban", name: "Apixaban", rawText: "apixaban" },
-    { id: "ketoconazole", name: "Ketoconazole", rawText: "ketoconazole" },
-    { id: "lisinopril", name: "Lisinopril", rawText: "lisinopril" },
-    { id: "sertraline", name: "Sertraline", rawText: "sertraline" },
-    { id: "ibuprofen", name: "Ibuprofen", rawText: "ibuprofen" },
+    { drugId: "bevacizumab", id: "bevacizumab", name: "Bevacizumab", rawText: "bevacizumab" },
+    { id: "amlodipine", name: "Amlodipine", rawText: "amlodipine" },
+    { id: "atezolizumab", name: "Atezolizumab", rawText: "atezolizumab" },
   ] satisfies RegimenDrugChip[],
   /** Extra chips demonstrating the required edge states when the physician
    * edits the list ("add a drug" flow). */
   ambiguousCandidate: {
-    ambiguousOptions: ["Diltiazem (Cardizem)", "Diazepam (Valium)"],
-    id: "dilt-ambiguous",
-    name: "“dilt”",
-    rawText: "dilt",
+    ambiguousOptions: ["Capecitabine (Xeloda)", "Carboplatin (Paraplatin)"],
+    id: "cap-ambiguous",
+    name: "“cap”",
+    rawText: "cap",
   } satisfies RegimenDrugChip,
   duplicateCandidate: {
-    duplicateOf: "apixaban",
-    id: "eliquis-duplicate",
-    name: "Eliquis",
-    rawText: "Eliquis",
+    duplicateOf: "bevacizumab",
+    id: "avastin-duplicate",
+    name: "Avastin",
+    rawText: "Avastin",
   } satisfies RegimenDrugChip,
   duplicateNotice:
-    "Eliquis is the brand name for apixaban, which is already on the list — the two entries were merged.",
+    "Avastin is a brand name for bevacizumab, which is already on the list — the two entries were merged.",
   pairs: [
     {
-      severity: "Serious",
-      source: {
-        anchor: "adult-dosing-uses.coadministration-with-dual-inhibitors-of-cyp3a4-and-p-gp",
-        drugId: "apixaban",
-      },
-      tool: {
-        kind: "interaction",
-        lines: [
-          "Ketoconazole is a strong dual inhibitor of CYP3A4 and P-gp.",
-          "If taking >2.5 mg PO BID, decrease apixaban dose by 50%.",
-          "If taking 2.5 mg BID, avoid coadministration with strong dual inhibitors.",
-        ],
-        pair: ["Apixaban", "Ketoconazole"],
-        severity: "Serious",
-        summary:
-          "Strong dual CYP3A4 and P-gp inhibition increases apixaban exposure and bleeding risk — dose modification or avoidance required.",
-        title: "Interaction check",
-      },
-    },
-    {
       severity: "Monitor Closely",
-      source: { anchor: "warnings.cautions", drugId: "apixaban" },
+      source: { anchor: "drug-interactions.monitor-closely", drugId: "bevacizumab" },
       tool: {
         kind: "interaction",
         lines: [
-          "SSRIs are among the drugs affecting hemostasis that increase bleeding risk with apixaban.",
-          "Advise patients of signs and symptoms of blood loss and to report them immediately.",
+          "Amlodipine: Monitor BP.",
+          "The POC monograph also advises monitoring blood pressure and treating hypertension during bevacizumab therapy.",
         ],
-        pair: ["Apixaban", "Sertraline"],
+        pair: ["Bevacizumab", "Amlodipine"],
         severity: "Monitor Closely",
         summary:
-          "Concomitant SSRIs increase bleeding risk with apixaban; monitor for signs of blood loss.",
-        title: "Interaction check",
-      },
-    },
-    {
-      severity: "Monitor Closely",
-      source: { anchor: "warnings.cautions", drugId: "apixaban" },
-      tool: {
-        kind: "interaction",
-        lines: [
-          "NSAIDs are among the drugs affecting hemostasis that increase bleeding risk with apixaban.",
-          "Advise patients of signs and symptoms of blood loss and to report them immediately.",
-        ],
-        pair: ["Apixaban", "Ibuprofen"],
-        severity: "Monitor Closely",
-        summary:
-          "Coadministration with NSAIDs increases bleeding risk; monitor for signs of blood loss.",
-        title: "Interaction check",
+          "Monitor blood pressure for this POC-listed combination.",
+        title: "Regimen risk check",
       },
     },
     {
       severity: "Minor",
-      source: { anchor: "warnings.cautions", drugId: "apixaban" },
+      source: { anchor: "adult-dosing-uses.hepatocellular-carcinoma", drugId: "bevacizumab" },
       tool: {
         kind: "interaction",
         lines: [
-          "NSAIDs may blunt the antihypertensive effect of ACE inhibitors.",
-          "Monitor blood pressure and renal function with sustained combined use.",
+          "For unresectable or metastatic hepatocellular carcinoma, the POC monograph lists bevacizumab with atezolizumab for patients without prior systemic therapy.",
+          "The listed regimen gives bevacizumab on Day 1 after atezolizumab and repeats every 3 weeks.",
         ],
-        pair: ["Lisinopril", "Ibuprofen"],
+        pair: ["Bevacizumab", "Atezolizumab"],
         severity: "Minor",
         summary:
-          "NSAIDs can reduce the antihypertensive effect of lisinopril and affect renal function.",
-        title: "Interaction check",
+          "This is a labeled oncology combination for a specific HCC indication, not a general interaction clearance.",
+        title: "Protocol context",
       },
     },
   ] satisfies RegimenPairResult[],
@@ -621,12 +607,10 @@ export type MonographChangeSection = {
 };
 
 export const MONOGRAPH_UPDATE = {
-  drugId: "apixaban",
+  drugId: "bevacizumab",
   badge: "Updated since you last viewed",
   changedSectionsLabel: "2 sections changed",
-  /** Clearly mocked last-view date; the Andexxa change is the real December
-   * 2025 monograph update, so the mocked last view predates it. */
-  lastViewedDate: "Nov 3, 2025 (prototype date)",
+  lastViewedDate: "Jun 4, 2026 (prototype date)",
   actions: {
     dismiss: "Dismiss",
     openMonograph: "Open current monograph",
@@ -634,32 +618,32 @@ export const MONOGRAPH_UPDATE = {
   },
   sections: [
     {
-      anchor: "warnings.reversing-apixaban-effect",
+      anchor: "contraindications-cautions.wound-healing",
       diff: [
         {
           kind: "removed",
-          text: "Coagulation factor Xa, recombinant (Andexxa) is an FDA-approved reversal agent for apixaban.",
+          text: "Hold bevacizumab around surgery according to the prior local protocol.",
         },
         {
           kind: "added",
-          text: "Coagulation factor Xa, recombinant (Andexxa) is no longer available for reversal of anticoagulation in patients taking apixaban owing to postmarketing safety data on thromboembolic events (December 2025).",
+          text: "Withhold for at least 28 days prior to elective surgery. Do not administer for at least 28 days following surgery and until the wound is fully healed.",
         },
       ],
-      sectionTitle: "Safety & Warnings — Bleeding Risk & Reversal",
+      sectionTitle: "Contraindications & Cautions — Wound healing",
     },
     {
-      anchor: "adult-dosing-uses.renal-impairment",
+      anchor: "contraindications-cautions.cautions",
       diff: [
         {
           kind: "removed",
-          text: "Use in patients with ESRD has not been studied; no dosing recommendation can be made.",
+          text: "Monitor blood pressure during therapy.",
         },
         {
           kind: "added",
-          text: "ESRD maintained on hemodialysis: 5 mg BID; decrease dose to 2.5 mg BID if 1 additional characteristic of age ≥80 years or weight ≤60 kg is present.",
+          text: "Monitor blood pressure and treat hypertension; increased risk for severe hypertension; temporarily suspend treatment; discontinue if hypertensive crisis or hypertensive encephalopathy.",
         },
       ],
-      sectionTitle: "Dosing & Uses — Renal Impairment",
+      sectionTitle: "Contraindications & Cautions — Cautions",
     },
   ] satisfies MonographChangeSection[],
 };
@@ -676,19 +660,19 @@ export type ScriptedUtterance =
 export function matchDrugIntelligenceUtterance(query: string): ScriptedUtterance | undefined {
   const lower = query.toLowerCase();
   const hits = (...terms: string[]) => terms.every((t) => lower.includes(t));
-  if (hits("2.5") || hits("criteria") || hits("apixaban", "twice")) {
-    return { kind: "start-scenario", scenarioId: "connected-apixaban" };
+  if (hits("bevacizumab") || hits("avastin") || hits("folfox")) {
+    return { kind: "start-scenario", scenarioId: "connected-bevacizumab" };
   }
   if (hits("medication list") || hits("interactions:") || hits("regimen")) {
-    return { kind: "start-scenario", scenarioId: "regimen-check" };
+    return { kind: "start-scenario", scenarioId: "bevacizumab-regimen-check" };
   }
   if (hits("changed") || hits("what changed") || hits("update")) {
-    return { kind: "start-scenario", scenarioId: "monograph-update" };
+    return { kind: "start-scenario", scenarioId: "bevacizumab-monograph-update" };
   }
-  if (hits("patient") && (hits("82") || hits("weighs") || hits("creatinine"))) {
+  if (hits("patient") && (hits("weight") || hits("folfox") || hits("mcrc"))) {
     return { kind: "patient-context" };
   }
-  if (hits("compare") || hits("rivaroxaban")) {
+  if (hits("compare") || hits("ramucirumab")) {
     return { kind: "compare" };
   }
   return undefined;

@@ -16,7 +16,7 @@ import {
   DrugPatientContextPanel,
   DrugPatientDetailsPrompt,
 } from "@/components/medscape/drug-concepts/patient-context-panel";
-import { DrugPeerContextStrip } from "@/components/medscape/drug-concepts/peer-context-strip";
+import { DrugPeerContextFeature } from "@/components/medscape/drug-concepts/peer-context-feature";
 import { DrugRegimenChecker } from "@/components/medscape/drug-concepts/regimen-checker";
 import { DrugMonographChangeAlert } from "@/components/medscape/drug-concepts/monograph-change-alert";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
@@ -24,18 +24,21 @@ import { AiResponseAnswerContent } from "@/components/medscape/ai-response/answe
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
 import { AiResponseReferences } from "@/components/medscape/ai-response/references";
 import { AiResponseAnswerFooter } from "@/components/medscape/ai-response/answer-footer";
-import { AiResponseFollowUpQuestions } from "@/components/medscape/ai-response/follow-up-questions";
 import { AiMobileTopRail } from "@/components/medscape/ai-response/mobile-top-rail";
 import { AiMenuIcon } from "@/components/medscape/ai-response/iconography";
 import { PrototypeNavSidebar } from "@/components/medscape/drug-concepts/prototype-nav-sidebar";
 import { AiTopRailAction } from "@/components/medscape/ai-response/top-rail-action";
 import { ScrollDownFAB } from "@/components/ui/scroll-down-fab";
+import {
+  ResponsiveFeaturePanel,
+  ResponsiveFeatureTrigger,
+} from "@/components/ui/responsive-feature-panel";
 import { aiResponseAssets } from "@/data/ai-response";
 import type { AiAnswerReference } from "@/data/ai-response";
 import { DRUG_CONCEPT_J_RELATED_ARTICLES } from "@/data/drug-concept-j-scenarios";
 import { getSubfieldById } from "@/data/drug-monograph";
 import type { DrugMonograph } from "@/data/drug-monograph";
-import { getPocScenarioMonograph } from "@/data/drug-monograph-poc-scenarios";
+import { getPocV2ScenarioMonograph } from "@/data/drug-monograph-poc-v2-scenarios";
 import {
   getPocMonographById,
   resolveDrugQuery,
@@ -48,6 +51,8 @@ import {
   getDrugIntelligenceScenarioById,
   matchDrugIntelligenceUtterance,
   MONOGRAPH_UPDATE,
+  ONCOLOGY_DOSE_CLARIFY_STEPS,
+  ONCOLOGY_DOSE_CONTEXT,
   PEER_CONTEXT,
   REGIMEN_CHECK,
   SCRIPTED_FALLBACK_NOTICE,
@@ -60,17 +65,6 @@ import {
 const ANSWER_DELAY_MS = 10000;
 const V2_FOOTER_COPY = "Medscape AI prototype answer";
 
-// Physician-turn heading echoed for manually entered patient details. Values
-// stay in the turn — never persisted for later questions.
-function buildPatientHeading(values: Record<string, string>): string {
-  const parts: string[] = [];
-  if (values.age?.trim()) parts.push(`age ${values.age.trim()}`);
-  if (values.weight?.trim()) parts.push(`weight ${values.weight.trim()} kg`);
-  if (values.scr?.trim()) parts.push(`SCr ${values.scr.trim()} mg/dL`);
-  if (values.crcl?.trim()) parts.push(`CrCl ${values.crcl.trim()} mL/min`);
-  return `Check the 2.5 mg BID criteria for my patient — ${parts.join(", ")}.`;
-}
-
 // Prototype instrumentation — local only, per the V2 prompt (§11). Logs which
 // field TYPES were present, never patient values.
 function logV2Event(event: string, detail?: Record<string, unknown>) {
@@ -79,11 +73,9 @@ function logV2Event(event: string, detail?: Record<string, unknown>) {
   }
 }
 
-// Scripted scenarios render the exact POC canonical content (apixaban /
-// rivaroxaban) from the small static scenario module — not the hand-authored
-// registry fixtures. Content is verbatim from the POC backend.
+// Scripted V2 scenarios use the stored Content API POC oncology fixtures.
 function requireMonograph(drugId: string): DrugMonograph {
-  const monograph = getPocScenarioMonograph(drugId);
+  const monograph = getPocV2ScenarioMonograph(drugId);
   if (!monograph) throw new Error(`Unknown drug id in V2 scenario: ${drugId}`);
   return monograph;
 }
@@ -238,13 +230,9 @@ function MonographAnswerBlock({
 type V2TurnInput =
   | { kind: "exact-answer"; status: "loading" | "complete" }
   | {
-      kind: "patient-context";
-      /** Physician-turn heading (scripted sentence or built from entry). */
-      heading: string;
-      /** Entered values for THIS turn only; omit for the scripted example. */
-      values?: Record<string, string>;
-      /** Entered + confirmed in the patient-details prompt — show the result immediately. */
+      kind: "dose-calculator";
       autoConfirmed?: boolean;
+      values?: Record<string, string>;
     }
   | { kind: "comparison" }
   | { kind: "regimen" }
@@ -265,11 +253,11 @@ type V2Turn = V2TurnInput & { id: number };
 // ── Moment 1 — exact answer + anchored canonical card ──
 
 function ExactAnswerTurn({
-  onAction,
+  onCompare,
   status,
   turnIndex,
 }: {
-  onAction: (action: "patient-context" | "compare" | "regimen") => void;
+  onCompare: () => void;
   /** Governs only the AI answer below the card — the canonical content is instant. */
   status: "loading" | "complete";
   turnIndex: number;
@@ -340,23 +328,54 @@ function ExactAnswerTurn({
           <h2 className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#5a6e7e]">
             Continue this task
           </h2>
-          <AiResponseFollowUpQuestions
-            variant="chips"
-            questions={[
-              CONNECTED_JOURNEY.actions.applyPatientContext,
-              CONNECTED_JOURNEY.actions.compare,
-              CONNECTED_JOURNEY.actions.checkInteractions,
-            ]}
-            onQuestionSelect={(label) => {
-              if (label === CONNECTED_JOURNEY.actions.applyPatientContext) {
-                onAction("patient-context");
-              } else if (label === CONNECTED_JOURNEY.actions.compare) {
-                onAction("compare");
-              } else {
-                onAction("regimen");
+          <div className="space-y-2">
+            <ResponsiveFeaturePanel
+              panelTitle="Patient Dose Calculator"
+              title={CONNECTED_JOURNEY.actions.applyPatientContext}
+              onOpenChange={(isOpen) =>
+                logV2Event(isOpen ? "patient_details_opened" : "patient_details_closed")
               }
-            }}
-          />
+            >
+              <DrugPatientContextPanel
+                oncologyDose={ONCOLOGY_DOSE_CONTEXT}
+                presentation="panel"
+                onConfirm={(fieldIds) =>
+                  logV2Event("oncology_dose_context_confirmed", {
+                    fieldTypes: fieldIds,
+                  })
+                }
+                onOpenSource={selectSource}
+              />
+            </ResponsiveFeaturePanel>
+
+            <ResponsiveFeatureTrigger
+              actionLabel="Open"
+              title={CONNECTED_JOURNEY.actions.compare}
+              onClick={onCompare}
+            />
+
+            <ResponsiveFeaturePanel
+              headerIcon={
+                <img
+                  src="/assets/Intercations.svg"
+                  alt=""
+                  className="h-5 w-auto"
+                />
+              }
+              panelTitle="Interaction Checker"
+              title={CONNECTED_JOURNEY.actions.checkInteractions}
+              onOpenChange={(isOpen) =>
+                logV2Event(isOpen ? "interaction_checker_opened" : "interaction_checker_closed")
+              }
+            >
+              <DrugRegimenChecker
+                presentation="panel"
+                onRunCheck={(drugCount) =>
+                  logV2Event("regimen_check_run", { drugCount })
+                }
+              />
+            </ResponsiveFeaturePanel>
+          </div>
         </section>
 
         {/* Canonical card — sections AND subsections collapsed except the one
@@ -378,9 +397,7 @@ function ExactAnswerTurn({
           />
         </div>
 
-        {/* Complementary AI answer — shimmer until generated (V1 treatment).
-            The patient-details prompt appears above the composer only once
-            this section has fully rendered. */}
+        {/* Complementary AI answer — shimmer until generated (V1 treatment). */}
         <div className="scroll-mt-4">
           {status === "loading" ? (
             <DrugAnswerLoadingSkeleton />
@@ -409,18 +426,13 @@ function ExactAnswerTurn({
   );
 }
 
-// ── Moment 2 — patient context + criteria match ──
+// ── Moment 2 — indication-aware, weight-based dose calculation ──
 
-function PatientContextTurn({
+function OncologyDoseContextTurn({
   autoConfirmed,
-  heading,
-  onCompare,
   values,
 }: {
   autoConfirmed?: boolean;
-  heading: string;
-  onCompare: () => void;
-  /** Values entered for THIS turn only — not carried to later turns. */
   values?: Record<string, string>;
 }) {
   const [cardAnchor, setCardAnchor] = useState<string>(CONNECTED_JOURNEY.anchor);
@@ -436,25 +448,21 @@ function PatientContextTurn({
   return (
     <article className="mx-auto max-w-[860px]">
       <DrugQuestionHeading>
-        {heading}
+        {CONNECTED_JOURNEY.patientContextQuestion}
       </DrugQuestionHeading>
 
       <div className="space-y-5">
         <DrugPatientContextPanel
-          compareLabel={CONNECTED_JOURNEY.actions.compare}
           initialValues={values}
-          onCompare={onCompare}
-          onConfirm={(fieldIds) => {
-            logV2Event("patient_context_confirmed", { fieldTypes: fieldIds });
-            logV2Event("criteria_result_rendered");
-          }}
+          oncologyDose={ONCOLOGY_DOSE_CONTEXT}
+          onConfirm={(fieldIds) =>
+            logV2Event("oncology_dose_context_confirmed", { fieldTypes: fieldIds })
+          }
           onOpenSource={moveAnchor}
-          onSelectRenalAnchor={moveAnchor}
           startInResult={autoConfirmed}
         />
 
-        {/* Canonical card stays beneath the module; source rows and the
-            renal-guidance row re-anchor it. */}
+        {/* Canonical card stays beneath the shared patient-context component. */}
         <div ref={cardRef} className="scroll-mt-4">
           <DrugMonographCardFrame
             key={cardAnchor}
@@ -539,15 +547,15 @@ function ComparisonTurn({
           onTopicChange={changeTopic}
           right={right}
           topics={COMPARISON.topics.map((topic) => ({
-            cells: { left: topic.cells.apixaban, right: topic.cells.rivaroxaban },
+            cells: topic.cells,
             id: topic.id,
             title: topic.title,
           }))}
         />
 
-        <DrugPeerContextStrip
+        <DrugPeerContextFeature
           activeTopicId={
-            PEER_CONTEXT.topics.find((t) => t.comparisonTopicId === activeTopicId)?.id
+            PEER_CONTEXT.topics.find((topic) => topic.comparisonTopicId === activeTopicId)?.id
           }
           alternatives={PEER_CONTEXT.alternatives}
           alternativesDescription={PEER_CONTEXT.alternativesDescription}
@@ -556,6 +564,9 @@ function ComparisonTurn({
           body={PEER_CONTEXT.body}
           explanation={PEER_CONTEXT.explanation}
           header={PEER_CONTEXT.header}
+          onOpenChange={(isOpen) => {
+            logV2Event(isOpen ? "peer_context_opened" : "peer_context_closed");
+          }}
           onAlternativeSelect={(alternative) => {
             logV2Event("peer_alternative_selected", { drugId: alternative.id });
             onAlternativeSelect(alternative.name);
@@ -622,11 +633,6 @@ function RegimenTurn() {
         {REGIMEN_CHECK.question}
       </DrugQuestionHeading>
       <DrugRegimenChecker
-        onOpenSource={(drugId, anchor) => {
-          logV2Event("source_opened", { anchor, drugId });
-          const monograph = getPocScenarioMonograph(drugId);
-          if (monograph) openLiveMonograph(monograph);
-        }}
         onRunCheck={(drugCount) => logV2Event("regimen_check_run", { drugCount })}
       />
     </article>
@@ -639,7 +645,7 @@ function MonographUpdateTurn() {
   const [cardAnchor, setCardAnchor] = useState<string | undefined>(undefined);
   const cardRef = useRef<HTMLDivElement>(null);
   const monograph = requireMonograph(MONOGRAPH_UPDATE.drugId);
-  const scenario = getDrugIntelligenceScenarioById("monograph-update");
+  const scenario = getDrugIntelligenceScenarioById("bevacizumab-monograph-update");
 
   const openSection = useCallback((anchor: string) => {
     logV2Event("monograph_alert_change_opened", { anchor });
@@ -757,7 +763,7 @@ function DrugSearchTurn({
 }
 
 // ─── Main screen ───────────────────────────────────────────────────────────────
-// V2 exploration workspace: one stakeholder-ready apixaban journey progressing
+// V2 exploration workspace: one stakeholder-ready bevacizumab journey progressing
 // as a cumulative chat thread. Focused scenario deep links remain supported for
 // testing. /ai-drug-mono-v1 keeps its own screen and is untouched by this file.
 
@@ -771,8 +777,6 @@ export function AiDrugMonoV2Screen() {
   const [thread, setThread] = useState<V2Turn[]>([]);
   const [draft, setDraft] = useState("");
   const [navOpen, setNavOpen] = useState(false);
-  // Patient-details prompt above the composer. promptKey remounts the card so
-  // the fields start EMPTY every time — values are never saved across turns.
   const [promptOpen, setPromptOpen] = useState(false);
   const [promptKey, setPromptKey] = useState(0);
 
@@ -812,15 +816,6 @@ export function AiDrugMonoV2Screen() {
     [clearTimer],
   );
 
-  // The clarifying form never opens on its own — only explicit input-gathering
-  // actions (the "Apply patient details" chip / scripted utterance) open it,
-  // always with fresh, empty fields.
-  const openPrompt = useCallback(() => {
-    logV2Event("patient_context_opened");
-    setPromptKey((k) => k + 1);
-    setPromptOpen(true);
-  }, []);
-
   const setScenarioParam = useCallback((scenarioId: string | null) => {
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
@@ -833,9 +828,9 @@ export function AiDrugMonoV2Screen() {
     (scenarioId: DrugIntelligenceScenarioId, updateUrl = true) => {
       logV2Event("scenario_selected", { scenarioId });
       const firstTurn: V2TurnInput =
-        scenarioId === "connected-apixaban"
+        scenarioId === "connected-bevacizumab"
           ? { kind: "exact-answer", status: "loading" }
-          : scenarioId === "regimen-check"
+          : scenarioId === "bevacizumab-regimen-check"
             ? { kind: "regimen" }
             : { kind: "monograph-update" };
       appendTurn(firstTurn);
@@ -844,35 +839,31 @@ export function AiDrugMonoV2Screen() {
     [appendTurn, setScenarioParam],
   );
 
+  const openOncologyDosePrompt = useCallback(() => {
+    logV2Event("bevacizumab_dose_prompt_opened");
+    setPromptKey((key) => key + 1);
+    setPromptOpen(true);
+  }, []);
+
   const handleJourneyAction = useCallback(
-    (action: "patient-context" | "compare" | "regimen") => {
-      if (action === "patient-context") {
-        // Opens the entry prompt above the composer — no result until the
-        // physician enters and confirms the values.
-        openPrompt();
+    (action: "dose-calculator" | "compare" | "regimen") => {
+      if (action === "dose-calculator") {
+        openOncologyDosePrompt();
       } else if (action === "compare") {
         appendTurn({ kind: "comparison" });
       } else {
         appendTurn({ kind: "regimen" });
       }
     },
-    [appendTurn, openPrompt],
+    [appendTurn, openOncologyDosePrompt],
   );
 
-  // Prompt confirm → the criteria result renders as a new turn with the
-  // entered values (editable there); the prompt closes and resets.
-  const confirmPatientDetails = useCallback(
+  const confirmOncologyDoseDetails = useCallback(
     (values: Record<string, string>) => {
-      logV2Event("patient_context_confirmed", {
-        fieldTypes: Object.keys(values).filter((k) => values[k]?.trim()),
+      logV2Event("oncology_dose_context_confirmed", {
+        fieldTypes: Object.keys(values).filter((key) => values[key]?.trim()),
       });
-      setPromptOpen(false);
-      appendTurn({
-        autoConfirmed: true,
-        heading: buildPatientHeading(values),
-        kind: "patient-context",
-        values,
-      });
+      appendTurn({ autoConfirmed: true, kind: "dose-calculator", values });
     },
     [appendTurn],
   );
@@ -907,12 +898,7 @@ export function AiDrugMonoV2Screen() {
         if (matched.kind === "start-scenario") {
           playScenario(matched.scenarioId);
         } else if (matched.kind === "patient-context") {
-          // Scripted AI-extraction path: the typed sentence carries the example
-          // values, so the turn opens in the confirm-before-result state.
-          appendTurn({
-            heading: CONNECTED_JOURNEY.patientContextQuestion,
-            kind: "patient-context",
-          });
+          openOncologyDosePrompt();
         } else {
           handleJourneyAction("compare");
         }
@@ -939,7 +925,7 @@ export function AiDrugMonoV2Screen() {
         appendTurn({ kind: "notice", text: trimmed });
       }
     },
-    [appendTurn, handleJourneyAction, playScenario],
+    [appendTurn, handleJourneyAction, openOncologyDosePrompt, playScenario],
   );
 
   const resetToLanding = useCallback(() => {
@@ -1053,7 +1039,7 @@ export function AiDrugMonoV2Screen() {
                     AI drug search V2 walkthrough
                   </h2>
                   <p className="dc-rise mt-3 max-w-[520px] text-center text-[13.5px] leading-[1.65] text-[#5a6e7e] [text-wrap:balance]">
-                    Type a drug in the box below — e.g. “apixaban”, or “metformin
+                    Type a drug in the box below — e.g. “bevacizumab”, or “metformin
                     dosing” — to pull its canonical monograph straight from the POC
                     content, opened at the section you asked for. Or start the
                     complete stakeholder walkthrough below.
@@ -1061,7 +1047,7 @@ export function AiDrugMonoV2Screen() {
 
                   <div className="mt-8 w-full max-w-[560px] space-y-2">
                     {DRUG_INTELLIGENCE_SCENARIOS.filter(
-                      (scenario) => scenario.id === "connected-apixaban",
+                      (scenario) => scenario.id === "connected-bevacizumab",
                     ).map((scenario) => (
                       <button
                         key={scenario.id}
@@ -1118,15 +1104,13 @@ export function AiDrugMonoV2Screen() {
                         <>
                           {item.kind === "exact-answer" ? (
                             <ExactAnswerTurn
-                              onAction={handleJourneyAction}
+                              onCompare={() => handleJourneyAction("compare")}
                               status={item.status}
                               turnIndex={index}
                             />
-                          ) : item.kind === "patient-context" ? (
-                            <PatientContextTurn
+                          ) : item.kind === "dose-calculator" ? (
+                            <OncologyDoseContextTurn
                               autoConfirmed={item.autoConfirmed}
-                              heading={item.heading}
-                              onCompare={() => handleJourneyAction("compare")}
                               values={item.values}
                             />
                           ) : item.kind === "comparison" ? (
@@ -1181,8 +1165,7 @@ export function AiDrugMonoV2Screen() {
             </div>
           </div>
 
-          {/* Fixed composer — the input field itself switches into the
-              clarifying-questions state once the first answer completes. */}
+          {/* Fixed composer with the shared docked oncology-dose prompt. */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
             <div className="mx-auto w-full max-w-[900px] px-4 pb-0 md:px-6">
               <div className="rounded-t-[28px] bg-gradient-to-b from-transparent via-white/82 to-white pb-[max(env(safe-area-inset-bottom),6px)] pt-3 md:pt-4">
@@ -1190,12 +1173,13 @@ export function AiDrugMonoV2Screen() {
                   <div className="pointer-events-auto">
                     <DrugPatientDetailsPrompt
                       key={promptKey}
-                      onConfirm={confirmPatientDetails}
+                      onConfirm={confirmOncologyDoseDetails}
                       onDismiss={() => setPromptOpen(false)}
                       onFreeText={(text) => {
                         setPromptOpen(false);
                         void submitQuestion(text);
                       }}
+                      steps={ONCOLOGY_DOSE_CLARIFY_STEPS}
                     />
                   </div>
                 ) : (
@@ -1214,7 +1198,7 @@ export function AiDrugMonoV2Screen() {
                       // search resolves without a load pause.
                       warmDrugSearch();
                     }}
-                    placeholder="Ask a drug question — e.g. “apixaban” or “metformin dosing”…"
+                    placeholder="Ask a drug question — e.g. “bevacizumab” or “metformin dosing”…"
                     submitButtonClassName="inline-flex h-8 w-8 shrink-0 items-center justify-center"
                     value={draft}
                   />
