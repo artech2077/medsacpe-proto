@@ -1,0 +1,32 @@
+{
+  "bridgeVersion": "3.6",
+  "kind": "google-docs-trusted-read-receipt",
+  "status": "complete",
+  "target": {
+    "documentId": "1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y",
+    "title": "PRD — Interaction Checker Access (Phase 1)",
+    "revisionId": "AIroW35W7DZPwc3Vt85rRwCcT9pBs5Hifnp_KKNa2mmgmyMGA7TWlJyiOsmVrqj_D326OLa634MjGSCvf7afFcyqUKKyHHJKyEGyXv11aPc",
+    "documentUrl": "https://docs.google.com/document/d/1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y",
+    "selectedTabId": "t.0"
+  },
+  "dropdownMetadata": {
+    "status": "unavailable",
+    "resolvedTool": null,
+    "authoritative": false,
+    "count": 0
+  },
+  "controlAwareness": {
+    "hasProtectedControls": false,
+    "authoritativeDropdownCount": 0,
+    "opaqueControlCount": 0,
+    "affectedParagraphCount": 0,
+    "nativeElementCounts": {
+      "dateElement": 1,
+      "inlineObjectElement": 2
+    },
+    "preservationRequired": false,
+    "recommendedBehavior": "No protected controls were detected in the scanned scope."
+  },
+  "warnings": [],
+  "error": null
+}

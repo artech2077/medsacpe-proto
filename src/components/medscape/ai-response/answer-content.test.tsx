@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   renderInlineText,
-  WEIGHT_DOSING_CALCULATOR_URL,
   WeightDosingCalculatorIcon,
 } from "./answer-content";
 
@@ -16,13 +15,10 @@ describe("renderInlineText", () => {
     expect((nodes[1] as { type: unknown }).type).toBe(
       WeightDosingCalculatorIcon,
     );
-    const icon = WeightDosingCalculatorIcon();
-    expect(icon.props["aria-label"]).toBe(
-      "Open weight-based dose calculator in a new tab",
-    );
-    expect(icon.props.href).toBe(WEIGHT_DOSING_CALCULATOR_URL);
-    expect(icon.props.target).toBe("_blank");
-    expect(icon.props.rel).toBe("noopener noreferrer");
-    expect(icon.props.className).toContain("ml-2");
+    const panel = WeightDosingCalculatorIcon();
+    expect(panel.props.title).toBe("Weight-based dose calculator");
+    expect(panel.props.panelTitle).toBe("Weight-based liquid medication dosing");
+    expect(panel.props.className).toContain("ml-2");
+    expect(panel.props.compactTrigger).toBeTruthy();
   });
 });

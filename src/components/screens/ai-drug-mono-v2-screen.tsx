@@ -308,7 +308,6 @@ function ExactAnswerTurn({
           drugName={monograph.drug.name}
           lastViewedDate={MONOGRAPH_UPDATE.lastViewedDate}
           onDismiss={() => logV2Event("monograph_alert_dismissed")}
-          onOpenMonograph={() => openLiveMonograph(monograph)}
           onOpenSection={selectSource}
           sections={MONOGRAPH_UPDATE.sections}
         />
@@ -664,7 +663,6 @@ function MonographUpdateTurn() {
           drugName={monograph.drug.name}
           lastViewedDate={MONOGRAPH_UPDATE.lastViewedDate}
           onDismiss={() => logV2Event("monograph_alert_dismissed")}
-          onOpenMonograph={() => openLiveMonograph(monograph)}
           onOpenSection={openSection}
           sections={MONOGRAPH_UPDATE.sections}
         />

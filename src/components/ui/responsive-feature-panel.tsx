@@ -66,6 +66,8 @@ export const ResponsiveFeatureTrigger = forwardRef<
 type ResponsiveFeaturePanelProps = {
   children: ReactNode;
   className?: string;
+  /** Compact trigger content for actions that appear inside a paragraph or row. */
+  compactTrigger?: ReactNode;
   /** Optional visual identifier shown beside the feature name in the panel header. */
   headerIcon?: ReactNode;
   onOpenChange?: (isOpen: boolean) => void;
@@ -88,6 +90,7 @@ const FOCUSABLE_ELEMENTS =
 export function ResponsiveFeaturePanel({
   children,
   className,
+  compactTrigger,
   headerIcon,
   onOpenChange,
   openLabel = "Expand",
@@ -185,15 +188,30 @@ export function ResponsiveFeaturePanel({
 
   return (
     <>
-      <ResponsiveFeatureTrigger
-        ref={triggerRef}
-        actionLabel={openLabel}
-        className={className}
-        expanded={isOpen}
-        hasPopup="dialog"
-        onClick={openPanel}
-        title={title}
-      />
+      {compactTrigger ? (
+        <button
+          ref={triggerRef}
+          type="button"
+          aria-expanded={isOpen}
+          aria-haspopup="dialog"
+          aria-label={`Open ${title}`}
+          className={className}
+          onClick={openPanel}
+          title={`Open ${title}`}
+        >
+          {compactTrigger}
+        </button>
+      ) : (
+        <ResponsiveFeatureTrigger
+          ref={triggerRef}
+          actionLabel={openLabel}
+          className={className}
+          expanded={isOpen}
+          hasPopup="dialog"
+          onClick={openPanel}
+          title={title}
+        />
+      )}
 
       {isOpen && typeof document !== "undefined"
         ? createPortal(

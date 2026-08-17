@@ -1,0 +1,3068 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Action completed."
+    }
+  ],
+  "structuredContent": {
+    "documentId": "1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y",
+    "title": "PRD — Interaction Checker Access (Phase 1)",
+    "revisionId": "AIroW35W7DZPwc3Vt85rRwCcT9pBs5Hifnp_KKNa2mmgmyMGA7TWlJyiOsmVrqj_D326OLa634MjGSCvf7afFcyqUKKyHHJKyEGyXv11aPc",
+    "suggestionsViewMode": "SUGGESTIONS_INLINE",
+    "url": null,
+    "body": null,
+    "tabs": [
+      {
+        "tabId": "t.0",
+        "title": "Tab 1",
+        "parentTabId": null,
+        "index": 0,
+        "nestingLevel": null,
+        "iconEmoji": null,
+        "body": {
+          "content": [
+            {
+              "endIndex": 1,
+              "sectionBreak": {
+                "sectionStyle": {
+                  "columnSeparatorStyle": "NONE",
+                  "contentDirection": "LEFT_TO_RIGHT",
+                  "sectionType": "CONTINUOUS"
+                }
+              }
+            },
+            {
+              "startIndex": 1,
+              "endIndex": 44,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1,
+                    "endIndex": 44,
+                    "textRun": {
+                      "content": "PRD — Interaction Checker Access (Phase 1)\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.n634c8sqxtlg",
+                  "namedStyleType": "TITLE",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 44,
+              "endIndex": 45,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 44,
+                    "endIndex": 45,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 45,
+              "endIndex": 133,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 45,
+                    "endIndex": 70,
+                    "textRun": {
+                      "content": "Status: WIP v0.1 · Date: ",
+                      "textStyle": {}
+                    }
+                  },
+                  {
+                    "startIndex": 70,
+                    "endIndex": 71,
+                    "dateElement": {
+                      "dateId": "kix.k9qkj6dp14m",
+                      "textStyle": {},
+                      "dateElementProperties": {
+                        "timestamp": "2026-08-13T00:00:00Z",
+                        "locale": "en",
+                        "dateFormat": "DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED",
+                        "timeFormat": "TIME_FORMAT_DISABLED",
+                        "displayText": "Aug 13, 2026"
+                      }
+                    }
+                  },
+                  {
+                    "startIndex": 71,
+                    "endIndex": 133,
+                    "textRun": {
+                      "content": " · Owner: Farouk Bousaaid (PM) · Feature status: Pending lock\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 133,
+              "endIndex": 134,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 133,
+                    "endIndex": 134,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 134,
+              "endIndex": 155,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 134,
+                    "endIndex": 155,
+                    "textRun": {
+                      "content": "1. Problem Statement\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.sx4xa2yhwl2y",
+                  "namedStyleType": "HEADING_1",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 155,
+              "endIndex": 452,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 155,
+                    "endIndex": 452,
+                    "textRun": {
+                      "content": "When a clinician reviews the Interactions accordion in a drug monograph, they can see interaction information but do not have a direct way to open the Medscape Interaction Checker from that context. This creates an unnecessary break between reviewing a drug and checking a medication combination.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 452,
+              "endIndex": 453,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 452,
+                    "endIndex": 453,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 453,
+              "endIndex": 730,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 453,
+                    "endIndex": 730,
+                    "textRun": {
+                      "content": "Phase 1 adds one clear access point: selecting Check interactions in the Interactions accordion opens the existing Medscape Interaction Checker in a sidebar, with the current monograph drug already added to the checker, while keeping the monograph available in the background.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 730,
+              "endIndex": 731,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 730,
+                    "endIndex": 731,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 731,
+              "endIndex": 740,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 731,
+                    "endIndex": 740,
+                    "textRun": {
+                      "content": "2. Goals\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.1qfkq21v7m4g",
+                  "namedStyleType": "HEADING_1",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 740,
+              "endIndex": 841,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 740,
+                    "endIndex": 841,
+                    "textRun": {
+                      "content": "Give clinicians a clear, in-context path from the Interactions accordion to the Interaction Checker.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.6q9yyr9v1kw7",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 841,
+              "endIndex": 909,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 841,
+                    "endIndex": 909,
+                    "textRun": {
+                      "content": "Start the checker with the current monograph drug already included.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.6q9yyr9v1kw7",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 909,
+              "endIndex": 985,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 909,
+                    "endIndex": 985,
+                    "textRun": {
+                      "content": "Preserve the established V2 Interaction Checker experience once it is open.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.6q9yyr9v1kw7",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 985,
+              "endIndex": 987,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 985,
+                    "endIndex": 986,
+                    "inlineObjectElement": {
+                      "inlineObjectId": "kix.9fy1kt4xfl2m",
+                      "textStyle": {}
+                    }
+                  },
+                  {
+                    "startIndex": 986,
+                    "endIndex": 987,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 987,
+              "endIndex": 989,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 987,
+                    "endIndex": 988,
+                    "inlineObjectElement": {
+                      "inlineObjectId": "kix.o92lrlctsbrv",
+                      "textStyle": {}
+                    }
+                  },
+                  {
+                    "startIndex": 988,
+                    "endIndex": 989,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 989,
+              "endIndex": 990,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 989,
+                    "endIndex": 990,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 990,
+              "endIndex": 1018,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 990,
+                    "endIndex": 1018,
+                    "textRun": {
+                      "content": "3. Non-Goals / Out of Scope\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.j087egy8jtkw",
+                  "namedStyleType": "HEADING_1",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 1018,
+              "endIndex": 1187,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1018,
+                    "endIndex": 1187,
+                    "textRun": {
+                      "content": "No change to the Interaction Checker's medication search, results, clinical content, or classifications beyond adding the current monograph drug when the checker opens.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.7da76e7nax2",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 1187,
+              "endIndex": 1260,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1187,
+                    "endIndex": 1260,
+                    "textRun": {
+                      "content": "No change to the interaction details already displayed in the monograph.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.7da76e7nax2",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 1260,
+              "endIndex": 1360,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1260,
+                    "endIndex": 1360,
+                    "textRun": {
+                      "content": "No new or changed access point outside the Check interactions action in the Interactions accordion.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.7da76e7nax2",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 1360,
+              "endIndex": 1426,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1360,
+                    "endIndex": 1426,
+                    "textRun": {
+                      "content": "No redesign of the monograph or the existing Interaction Checker.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.7da76e7nax2",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 1426,
+              "endIndex": 1427,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1426,
+                    "endIndex": 1427,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 1427,
+              "endIndex": 1443,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1427,
+                    "endIndex": 1443,
+                    "textRun": {
+                      "content": "4. User Stories\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.5a557qg7dzog",
+                  "namedStyleType": "HEADING_1",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 1443,
+              "endIndex": 1626,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1443,
+                    "endIndex": 1626,
+                    "textRun": {
+                      "content": "As a clinician reviewing a drug monograph, I want to select Check interactions from the Interactions accordion, so I can check a medication combination without leaving the monograph.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.p8rdvoiuzhp6",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 1626,
+              "endIndex": 1798,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1626,
+                    "endIndex": 1798,
+                    "textRun": {
+                      "content": "As a clinician opening the checker, I want the current monograph drug to be added automatically, so I can begin the interaction check with the drug I am already reviewing.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.p8rdvoiuzhp6",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 1798,
+              "endIndex": 1952,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1798,
+                    "endIndex": 1952,
+                    "textRun": {
+                      "content": "As a clinician using the checker, I want the monograph to remain in place behind the sidebar, so I can return to the same review context when I close it.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.p8rdvoiuzhp6",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 1952,
+              "endIndex": 2119,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 1952,
+                    "endIndex": 2119,
+                    "textRun": {
+                      "content": "As a keyboard or screen-reader user, I want the action and sidebar controls to be clearly labeled and operable, so I can access and dismiss the checker independently.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.p8rdvoiuzhp6",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 2119,
+              "endIndex": 2271,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2119,
+                    "endIndex": 2271,
+                    "textRun": {
+                      "content": "As a clinician when the checker is unavailable, I want to remain able to read the monograph, so an unavailable checker does not block my normal review.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.p8rdvoiuzhp6",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 2271,
+              "endIndex": 2272,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2271,
+                    "endIndex": 2272,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2272,
+              "endIndex": 2288,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2272,
+                    "endIndex": 2288,
+                    "textRun": {
+                      "content": "5. Requirements\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.q532tglhcog9",
+                  "namedStyleType": "HEADING_1",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2288,
+              "endIndex": 2303,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2288,
+                    "endIndex": 2303,
+                    "textRun": {
+                      "content": "Must-Have (P0)\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.ptib02j7omn5",
+                  "namedStyleType": "HEADING_2",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2303,
+              "endIndex": 2347,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2303,
+                    "endIndex": 2347,
+                    "textRun": {
+                      "content": "R1 — Access from the Interactions accordion\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.a4j4ut9f8f82",
+                  "namedStyleType": "HEADING_3",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2347,
+              "endIndex": 2430,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2347,
+                    "endIndex": 2430,
+                    "textRun": {
+                      "content": "☐ The Interactions accordion displays a clearly labeled Check interactions action.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2430,
+              "endIndex": 2552,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2430,
+                    "endIndex": 2552,
+                    "textRun": {
+                      "content": "☐ Selecting Check interactions opens the existing Medscape Interaction Checker in a sidebar beside the current monograph.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2552,
+              "endIndex": 2668,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2552,
+                    "endIndex": 2668,
+                    "textRun": {
+                      "content": "☐ The action can be reached and activated with a keyboard and has an accessible name that communicates its purpose.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2668,
+              "endIndex": 2669,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2668,
+                    "endIndex": 2669,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2669,
+              "endIndex": 2704,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2669,
+                    "endIndex": 2704,
+                    "textRun": {
+                      "content": "R2 — In-context sidebar experience\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.3vmjvy4drwpn",
+                  "namedStyleType": "HEADING_3",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2704,
+              "endIndex": 2846,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2704,
+                    "endIndex": 2846,
+                    "textRun": {
+                      "content": "☐ When the sidebar opens, the drug displayed in the current monograph is already added to the Interaction Checker's selected medication list.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 2846,
+              "endIndex": 3014,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 2846,
+                    "endIndex": 3014,
+                    "textRun": {
+                      "content": "☐ The pre-added current monograph drug remains available to the clinician as a selected medication and can be removed using the checker's existing medication controls.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 3014,
+              "endIndex": 3178,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 3014,
+                    "endIndex": 3178,
+                    "textRun": {
+                      "content": "☐ The clinician can use the established V2 Interaction Checker experience, including adding medications and reviewing the checker's available results and messages.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 3178,
+              "endIndex": 3294,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 3178,
+                    "endIndex": 3294,
+                    "textRun": {
+                      "content": "☐ The current monograph remains visible but inactive behind the open sidebar, and its scroll position is preserved.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 3294,
+              "endIndex": 3471,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 3294,
+                    "endIndex": 3471,
+                    "textRun": {
+                      "content": "☐ The sidebar has a clearly labeled close control. Closing it returns the clinician to the same Interactions accordion context and returns keyboard focus to Check interactions.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 3471,
+              "endIndex": 3593,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 3471,
+                    "endIndex": 3593,
+                    "textRun": {
+                      "content": "☐ On supported narrow viewports, the checker remains usable and can be closed without preventing access to the monograph.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 3593,
+              "endIndex": 3594,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 3593,
+                    "endIndex": 3594,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 3594,
+              "endIndex": 3624,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 3594,
+                    "endIndex": 3624,
+                    "textRun": {
+                      "content": "R3 — Safe availability states\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.n3ku38jibzq",
+                  "namedStyleType": "HEADING_3",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 3624,
+              "endIndex": 3802,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 3624,
+                    "endIndex": 3802,
+                    "textRun": {
+                      "content": "☐ While the checker is opening or loading, the sidebar provides an understandable in-progress state. The clinician can dismiss the sidebar and return to the unchanged monograph.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 3802,
+              "endIndex": 3961,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 3802,
+                    "endIndex": 3961,
+                    "textRun": {
+                      "content": "☐ If the checker cannot be loaded, the sidebar displays its standard unavailable state and can be dismissed so the clinician can continue using the monograph.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 3961,
+              "endIndex": 4101,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 3961,
+                    "endIndex": 4101,
+                    "textRun": {
+                      "content": "☐ This integration does not change the existing checker behavior for empty medication lists, no interactions found, or interaction results.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4101,
+              "endIndex": 4102,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4101,
+                    "endIndex": 4102,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4102,
+              "endIndex": 4120,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4102,
+                    "endIndex": 4120,
+                    "textRun": {
+                      "content": "Nice-to-Have (P1)\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.po58y4ane02n",
+                  "namedStyleType": "HEADING_2",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4120,
+              "endIndex": 4175,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4120,
+                    "endIndex": 4175,
+                    "textRun": {
+                      "content": "No P1 requirements are included in this Phase 1 scope.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4175,
+              "endIndex": 4176,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4175,
+                    "endIndex": 4176,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4176,
+              "endIndex": 4203,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4176,
+                    "endIndex": 4203,
+                    "textRun": {
+                      "content": "Future Considerations (P2)\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.smynlr6a8gxt",
+                  "namedStyleType": "HEADING_2",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4203,
+              "endIndex": 4253,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4203,
+                    "endIndex": 4253,
+                    "textRun": {
+                      "content": "No P2 requirements are included in this document.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4253,
+              "endIndex": 4254,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4253,
+                    "endIndex": 4254,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4254,
+              "endIndex": 4273,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4254,
+                    "endIndex": 4273,
+                    "textRun": {
+                      "content": "6. Success Metrics\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.tr1e8op5w068",
+                  "namedStyleType": "HEADING_1",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4273,
+              "endIndex": 4511,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4273,
+                    "endIndex": 4511,
+                    "textRun": {
+                      "content": "Leading release-quality measures: Verify, before release, that the action opens the sidebar; the sidebar can be closed; the original monograph context is retained; and the path works with keyboard navigation and supported viewport sizes.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4511,
+              "endIndex": 4512,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4511,
+                    "endIndex": 4512,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4512,
+              "endIndex": 4778,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4512,
+                    "endIndex": 4778,
+                    "textRun": {
+                      "content": "Lagging user outcomes: Measure use of Check interactions and successful openings of the checker from the Interactions accordion. PM must approve the baseline, target, measurement period, and definition of a successful opening before launch measurement is evaluated.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4778,
+              "endIndex": 4779,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4778,
+                    "endIndex": 4779,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4779,
+              "endIndex": 4797,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4779,
+                    "endIndex": 4797,
+                    "textRun": {
+                      "content": "7. Open Questions\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.luj4a14u1ds9",
+                  "namedStyleType": "HEADING_1",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 4797,
+              "endIndex": 5072,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 4797,
+                    "endIndex": 5072,
+                    "textRun": {
+                      "content": "1. Question / decision needed: Confirm the approved narrow-viewport presentation for the sidebar and provide the final design reference. This is needed to complete visual acceptance for supported narrow viewports. Owner: PM / Design. Blocking: Yes — before final acceptance.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 5072,
+              "endIndex": 5073,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5072,
+                    "endIndex": 5073,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 5073,
+              "endIndex": 5095,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5073,
+                    "endIndex": 5095,
+                    "textRun": {
+                      "content": "8. Definition of Done\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.4pg0w7fcuioe",
+                  "namedStyleType": "HEADING_1",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 5095,
+              "endIndex": 5151,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5095,
+                    "endIndex": 5151,
+                    "textRun": {
+                      "content": "Phase 1 is complete when all of the following are true:\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 5151,
+              "endIndex": 5272,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5151,
+                    "endIndex": 5272,
+                    "textRun": {
+                      "content": "Check interactions is available from the Interactions accordion and opens the existing Interaction Checker in a sidebar.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.4r1uax3m0web",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 5272,
+              "endIndex": 5367,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5272,
+                    "endIndex": 5367,
+                    "textRun": {
+                      "content": "The current monograph drug is already added to the Interaction Checker when the sidebar opens.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.4r1uax3m0web",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 5367,
+              "endIndex": 5502,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5367,
+                    "endIndex": 5502,
+                    "textRun": {
+                      "content": "The open and close path preserves the clinician's monograph context, including the Interactions accordion context and scroll position.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.4r1uax3m0web",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 5502,
+              "endIndex": 5600,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5502,
+                    "endIndex": 5600,
+                    "textRun": {
+                      "content": "The action and sidebar are operable with a keyboard and understandable with assistive technology.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.4r1uax3m0web",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 5600,
+              "endIndex": 5707,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5600,
+                    "endIndex": 5707,
+                    "textRun": {
+                      "content": "The established checker experience is available without changing its medication-entry or results behavior.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.4r1uax3m0web",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 5707,
+              "endIndex": 5823,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5707,
+                    "endIndex": 5823,
+                    "textRun": {
+                      "content": "Loading and unavailable states allow the sidebar to be dismissed so the clinician can continue using the monograph.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.4r1uax3m0web",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 5823,
+              "endIndex": 5959,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5823,
+                    "endIndex": 5959,
+                    "textRun": {
+                      "content": "The approved narrow-viewport presentation is validated, and the release-quality and user-outcome measurements are ready to be assessed.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  }
+                },
+                "bullet": {
+                  "listId": "kix.4r1uax3m0web",
+                  "textStyle": {
+                    "underline": false
+                  }
+                }
+              }
+            },
+            {
+              "startIndex": 5959,
+              "endIndex": 5960,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5959,
+                    "endIndex": 5960,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 5960,
+              "endIndex": 5972,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5960,
+                    "endIndex": 5972,
+                    "textRun": {
+                      "content": "9. Timeline\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "headingId": "h.e97y5u8ja3wr",
+                  "namedStyleType": "HEADING_1",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 5972,
+              "endIndex": 6044,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 5972,
+                    "endIndex": 6044,
+                    "textRun": {
+                      "content": "No production date is committed while the feature remains Pending lock.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 6044,
+              "endIndex": 6045,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 6044,
+                    "endIndex": 6045,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 6045,
+              "endIndex": 6332,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 6045,
+                    "endIndex": 6332,
+                    "textRun": {
+                      "content": "Recommended sequence: (1) confirm the narrow-viewport presentation; (2) approve the final design reference; (3) add and validate the Interactions accordion access path; (4) verify the open, close, availability, keyboard, and supported-viewport states; (5) confirm measurement readiness.\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            },
+            {
+              "startIndex": 6332,
+              "endIndex": 6333,
+              "paragraph": {
+                "elements": [
+                  {
+                    "startIndex": 6332,
+                    "endIndex": 6333,
+                    "textRun": {
+                      "content": "\n",
+                      "textStyle": {}
+                    }
+                  }
+                ],
+                "paragraphStyle": {
+                  "namedStyleType": "NORMAL_TEXT",
+                  "direction": "LEFT_TO_RIGHT"
+                }
+              }
+            }
+          ]
+        },
+        "headers": null,
+        "footers": null,
+        "footnotes": null,
+        "documentStyle": {
+          "background": {
+            "color": {}
+          },
+          "pageNumberStart": 1,
+          "marginTop": {
+            "magnitude": 72,
+            "unit": "PT"
+          },
+          "marginBottom": {
+            "magnitude": 72,
+            "unit": "PT"
+          },
+          "marginRight": {
+            "magnitude": 72,
+            "unit": "PT"
+          },
+          "marginLeft": {
+            "magnitude": 72,
+            "unit": "PT"
+          },
+          "pageSize": {
+            "height": {
+              "magnitude": 792,
+              "unit": "PT"
+            },
+            "width": {
+              "magnitude": 612,
+              "unit": "PT"
+            }
+          },
+          "marginHeader": {
+            "magnitude": 36,
+            "unit": "PT"
+          },
+          "marginFooter": {
+            "magnitude": 36,
+            "unit": "PT"
+          },
+          "useCustomHeaderFooterMargins": true,
+          "documentFormat": {
+            "documentMode": "PAGES"
+          }
+        },
+        "suggestedDocumentStyleChanges": null,
+        "namedStyles": {
+          "styles": [
+            {
+              "namedStyleType": "NORMAL_TEXT",
+              "textStyle": {
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "strikethrough": false,
+                "smallCaps": false,
+                "backgroundColor": {},
+                "foregroundColor": {
+                  "color": {
+                    "rgbColor": {}
+                  }
+                },
+                "fontSize": {
+                  "magnitude": 11,
+                  "unit": "PT"
+                },
+                "weightedFontFamily": {
+                  "fontFamily": "Arial",
+                  "weight": 400
+                },
+                "baselineOffset": "NONE"
+              },
+              "paragraphStyle": {
+                "namedStyleType": "NORMAL_TEXT",
+                "alignment": "START",
+                "lineSpacing": 115,
+                "direction": "LEFT_TO_RIGHT",
+                "spacingMode": "COLLAPSE_LISTS",
+                "spaceAbove": {
+                  "unit": "PT"
+                },
+                "spaceBelow": {
+                  "unit": "PT"
+                },
+                "borderBetween": {
+                  "color": {},
+                  "width": {
+                    "unit": "PT"
+                  },
+                  "padding": {
+                    "unit": "PT"
+                  },
+                  "dashStyle": "SOLID"
+                },
+                "borderTop": {
+                  "color": {},
+                  "width": {
+                    "unit": "PT"
+                  },
+                  "padding": {
+                    "unit": "PT"
+                  },
+                  "dashStyle": "SOLID"
+                },
+                "borderBottom": {
+                  "color": {},
+                  "width": {
+                    "unit": "PT"
+                  },
+                  "padding": {
+                    "unit": "PT"
+                  },
+                  "dashStyle": "SOLID"
+                },
+                "borderLeft": {
+                  "color": {},
+                  "width": {
+                    "unit": "PT"
+                  },
+                  "padding": {
+                    "unit": "PT"
+                  },
+                  "dashStyle": "SOLID"
+                },
+                "borderRight": {
+                  "color": {},
+                  "width": {
+                    "unit": "PT"
+                  },
+                  "padding": {
+                    "unit": "PT"
+                  },
+                  "dashStyle": "SOLID"
+                },
+                "indentFirstLine": {
+                  "unit": "PT"
+                },
+                "indentStart": {
+                  "unit": "PT"
+                },
+                "indentEnd": {
+                  "unit": "PT"
+                },
+                "keepLinesTogether": false,
+                "keepWithNext": false,
+                "avoidWidowAndOrphan": true,
+                "shading": {
+                  "backgroundColor": {}
+                },
+                "pageBreakBefore": false
+              }
+            },
+            {
+              "namedStyleType": "HEADING_1",
+              "textStyle": {
+                "fontSize": {
+                  "magnitude": 20,
+                  "unit": "PT"
+                }
+              },
+              "paragraphStyle": {
+                "namedStyleType": "NORMAL_TEXT",
+                "direction": "LEFT_TO_RIGHT",
+                "spaceAbove": {
+                  "magnitude": 20,
+                  "unit": "PT"
+                },
+                "spaceBelow": {
+                  "magnitude": 6,
+                  "unit": "PT"
+                },
+                "keepLinesTogether": true,
+                "keepWithNext": true,
+                "pageBreakBefore": false
+              }
+            },
+            {
+              "namedStyleType": "HEADING_2",
+              "textStyle": {
+                "bold": false,
+                "fontSize": {
+                  "magnitude": 16,
+                  "unit": "PT"
+                }
+              },
+              "paragraphStyle": {
+                "namedStyleType": "NORMAL_TEXT",
+                "direction": "LEFT_TO_RIGHT",
+                "spaceAbove": {
+                  "magnitude": 18,
+                  "unit": "PT"
+                },
+                "spaceBelow": {
+                  "magnitude": 6,
+                  "unit": "PT"
+                },
+                "keepLinesTogether": true,
+                "keepWithNext": true,
+                "pageBreakBefore": false
+              }
+            },
+            {
+              "namedStyleType": "HEADING_3",
+              "textStyle": {
+                "bold": false,
+                "foregroundColor": {
+                  "color": {
+                    "rgbColor": {
+                      "red": 0.2627451,
+                      "green": 0.2627451,
+                      "blue": 0.2627451
+                    }
+                  }
+                },
+                "fontSize": {
+                  "magnitude": 14,
+                  "unit": "PT"
+                }
+              },
+              "paragraphStyle": {
+                "namedStyleType": "NORMAL_TEXT",
+                "direction": "LEFT_TO_RIGHT",
+                "spaceAbove": {
+                  "magnitude": 16,
+                  "unit": "PT"
+                },
+                "spaceBelow": {
+                  "magnitude": 4,
+                  "unit": "PT"
+                },
+                "keepLinesTogether": true,
+                "keepWithNext": true,
+                "pageBreakBefore": false
+              }
+            },
+            {
+              "namedStyleType": "HEADING_4",
+              "textStyle": {
+                "foregroundColor": {
+                  "color": {
+                    "rgbColor": {
+                      "red": 0.4,
+                      "green": 0.4,
+                      "blue": 0.4
+                    }
+                  }
+                },
+                "fontSize": {
+                  "magnitude": 12,
+                  "unit": "PT"
+                }
+              },
+              "paragraphStyle": {
+                "namedStyleType": "NORMAL_TEXT",
+                "direction": "LEFT_TO_RIGHT",
+                "spaceAbove": {
+                  "magnitude": 14,
+                  "unit": "PT"
+                },
+                "spaceBelow": {
+                  "magnitude": 4,
+                  "unit": "PT"
+                },
+                "keepLinesTogether": true,
+                "keepWithNext": true,
+                "pageBreakBefore": false
+              }
+            },
+            {
+              "namedStyleType": "HEADING_5",
+              "textStyle": {
+                "foregroundColor": {
+                  "color": {
+                    "rgbColor": {
+                      "red": 0.4,
+                      "green": 0.4,
+                      "blue": 0.4
+                    }
+                  }
+                },
+                "fontSize": {
+                  "magnitude": 11,
+                  "unit": "PT"
+                }
+              },
+              "paragraphStyle": {
+                "namedStyleType": "NORMAL_TEXT",
+                "direction": "LEFT_TO_RIGHT",
+                "spaceAbove": {
+                  "magnitude": 12,
+                  "unit": "PT"
+                },
+                "spaceBelow": {
+                  "magnitude": 4,
+                  "unit": "PT"
+                },
+                "keepLinesTogether": true,
+                "keepWithNext": true,
+                "pageBreakBefore": false
+              }
+            },
+            {
+              "namedStyleType": "HEADING_6",
+              "textStyle": {
+                "italic": true,
+                "foregroundColor": {
+                  "color": {
+                    "rgbColor": {
+                      "red": 0.4,
+                      "green": 0.4,
+                      "blue": 0.4
+                    }
+                  }
+                },
+                "fontSize": {
+                  "magnitude": 11,
+                  "unit": "PT"
+                }
+              },
+              "paragraphStyle": {
+                "namedStyleType": "NORMAL_TEXT",
+                "direction": "LEFT_TO_RIGHT",
+                "spaceAbove": {
+                  "magnitude": 12,
+                  "unit": "PT"
+                },
+                "spaceBelow": {
+                  "magnitude": 4,
+                  "unit": "PT"
+                },
+                "keepLinesTogether": true,
+                "keepWithNext": true,
+                "pageBreakBefore": false
+              }
+            },
+            {
+              "namedStyleType": "TITLE",
+              "textStyle": {
+                "fontSize": {
+                  "magnitude": 26,
+                  "unit": "PT"
+                }
+              },
+              "paragraphStyle": {
+                "namedStyleType": "NORMAL_TEXT",
+                "direction": "LEFT_TO_RIGHT",
+                "spaceAbove": {
+                  "unit": "PT"
+                },
+                "spaceBelow": {
+                  "magnitude": 3,
+                  "unit": "PT"
+                },
+                "keepLinesTogether": true,
+                "keepWithNext": true,
+                "pageBreakBefore": false
+              }
+            },
+            {
+              "namedStyleType": "SUBTITLE",
+              "textStyle": {
+                "italic": false,
+                "foregroundColor": {
+                  "color": {
+                    "rgbColor": {
+                      "red": 0.4,
+                      "green": 0.4,
+                      "blue": 0.4
+                    }
+                  }
+                },
+                "fontSize": {
+                  "magnitude": 15,
+                  "unit": "PT"
+                },
+                "weightedFontFamily": {
+                  "fontFamily": "Arial",
+                  "weight": 400
+                }
+              },
+              "paragraphStyle": {
+                "namedStyleType": "NORMAL_TEXT",
+                "direction": "LEFT_TO_RIGHT",
+                "spaceAbove": {
+                  "unit": "PT"
+                },
+                "spaceBelow": {
+                  "magnitude": 16,
+                  "unit": "PT"
+                },
+                "keepLinesTogether": true,
+                "keepWithNext": true,
+                "pageBreakBefore": false
+              }
+            }
+          ]
+        },
+        "suggestedNamedStylesChanges": null,
+        "lists": {
+          "kix.4r1uax3m0web": {
+            "listProperties": {
+              "nestingLevels": [
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "●",
+                  "glyphFormat": "%0",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "○",
+                  "glyphFormat": "%1",
+                  "indentFirstLine": {
+                    "magnitude": 54,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 72,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "■",
+                  "glyphFormat": "%2",
+                  "indentFirstLine": {
+                    "magnitude": 90,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 108,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "●",
+                  "glyphFormat": "%3",
+                  "indentFirstLine": {
+                    "magnitude": 126,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 144,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "○",
+                  "glyphFormat": "%4",
+                  "indentFirstLine": {
+                    "magnitude": 162,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 180,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "■",
+                  "glyphFormat": "%5",
+                  "indentFirstLine": {
+                    "magnitude": 198,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 216,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "●",
+                  "glyphFormat": "%6",
+                  "indentFirstLine": {
+                    "magnitude": 234,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 252,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "○",
+                  "glyphFormat": "%7",
+                  "indentFirstLine": {
+                    "magnitude": 270,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 288,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "■",
+                  "glyphFormat": "%8",
+                  "indentFirstLine": {
+                    "magnitude": 306,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 324,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                }
+              ]
+            }
+          },
+          "kix.6q9yyr9v1kw7": {
+            "listProperties": {
+              "nestingLevels": [
+                {
+                  "bulletAlignment": "START",
+                  "glyphType": "DECIMAL",
+                  "glyphFormat": "%0.",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphType": "ALPHA",
+                  "glyphFormat": "%1.",
+                  "indentFirstLine": {
+                    "magnitude": 54,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 72,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "END",
+                  "glyphType": "ROMAN",
+                  "glyphFormat": "%2.",
+                  "indentFirstLine": {
+                    "magnitude": 90,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 108,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphType": "DECIMAL",
+                  "glyphFormat": "%3.",
+                  "indentFirstLine": {
+                    "magnitude": 126,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 144,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphType": "ALPHA",
+                  "glyphFormat": "%4.",
+                  "indentFirstLine": {
+                    "magnitude": 162,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 180,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "END",
+                  "glyphType": "ROMAN",
+                  "glyphFormat": "%5.",
+                  "indentFirstLine": {
+                    "magnitude": 198,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 216,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphType": "DECIMAL",
+                  "glyphFormat": "%6.",
+                  "indentFirstLine": {
+                    "magnitude": 234,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 252,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphType": "ALPHA",
+                  "glyphFormat": "%7.",
+                  "indentFirstLine": {
+                    "magnitude": 270,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 288,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "END",
+                  "glyphType": "ROMAN",
+                  "glyphFormat": "%8.",
+                  "indentFirstLine": {
+                    "magnitude": 306,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 324,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                }
+              ]
+            }
+          },
+          "kix.7da76e7nax2": {
+            "listProperties": {
+              "nestingLevels": [
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "●",
+                  "glyphFormat": "%0",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "○",
+                  "glyphFormat": "%1",
+                  "indentFirstLine": {
+                    "magnitude": 54,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 72,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "■",
+                  "glyphFormat": "%2",
+                  "indentFirstLine": {
+                    "magnitude": 90,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 108,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "●",
+                  "glyphFormat": "%3",
+                  "indentFirstLine": {
+                    "magnitude": 126,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 144,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "○",
+                  "glyphFormat": "%4",
+                  "indentFirstLine": {
+                    "magnitude": 162,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 180,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "■",
+                  "glyphFormat": "%5",
+                  "indentFirstLine": {
+                    "magnitude": 198,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 216,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "●",
+                  "glyphFormat": "%6",
+                  "indentFirstLine": {
+                    "magnitude": 234,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 252,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "○",
+                  "glyphFormat": "%7",
+                  "indentFirstLine": {
+                    "magnitude": 270,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 288,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "■",
+                  "glyphFormat": "%8",
+                  "indentFirstLine": {
+                    "magnitude": 306,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 324,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                }
+              ]
+            }
+          },
+          "kix.p8rdvoiuzhp6": {
+            "listProperties": {
+              "nestingLevels": [
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "●",
+                  "glyphFormat": "%0",
+                  "indentFirstLine": {
+                    "magnitude": 18,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 36,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "○",
+                  "glyphFormat": "%1",
+                  "indentFirstLine": {
+                    "magnitude": 54,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 72,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "■",
+                  "glyphFormat": "%2",
+                  "indentFirstLine": {
+                    "magnitude": 90,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 108,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "●",
+                  "glyphFormat": "%3",
+                  "indentFirstLine": {
+                    "magnitude": 126,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 144,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "○",
+                  "glyphFormat": "%4",
+                  "indentFirstLine": {
+                    "magnitude": 162,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 180,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "■",
+                  "glyphFormat": "%5",
+                  "indentFirstLine": {
+                    "magnitude": 198,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 216,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "●",
+                  "glyphFormat": "%6",
+                  "indentFirstLine": {
+                    "magnitude": 234,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 252,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "○",
+                  "glyphFormat": "%7",
+                  "indentFirstLine": {
+                    "magnitude": 270,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 288,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                },
+                {
+                  "bulletAlignment": "START",
+                  "glyphSymbol": "■",
+                  "glyphFormat": "%8",
+                  "indentFirstLine": {
+                    "magnitude": 306,
+                    "unit": "PT"
+                  },
+                  "indentStart": {
+                    "magnitude": 324,
+                    "unit": "PT"
+                  },
+                  "textStyle": {
+                    "underline": false
+                  },
+                  "startNumber": 1
+                }
+              ]
+            }
+          }
+        },
+        "namedRanges": null,
+        "inlineObjects": {
+          "kix.9fy1kt4xfl2m": {
+            "objectId": "kix.9fy1kt4xfl2m",
+            "inlineObjectProperties": {
+              "embeddedObject": {
+                "imageProperties": {
+                  "contentUri": "https://lh7-rt.googleusercontent.com/docsz/AD_4nXfeDXaLKoxvO_HCtX85n-lQFqa7zUknklufkBAcs9JlyDzO58Oekp7GmnJ2XJmJvlyBdEeuA3oyMgOlBsITF7mbEKn9UJEO5Fzz0K11fWsJY9rtLwniTJiPw46Qor00f0s62E7T-xtH504UCKtVo3oke-bKJnIjMSk_sbvyuIE_rxLb1MkX8g=s2048?key=SX9KUm1t1YCg4jBrU-Kcyg",
+                  "cropProperties": {
+                    "offsetTop": 0.036446042,
+                    "offsetBottom": -1.110223e-16
+                  }
+                },
+                "embeddedObjectBorder": {
+                  "color": {
+                    "color": {
+                      "rgbColor": {}
+                    }
+                  },
+                  "width": {
+                    "unit": "PT"
+                  },
+                  "dashStyle": "SOLID",
+                  "propertyState": "NOT_RENDERED"
+                },
+                "size": {
+                  "height": {
+                    "magnitude": 141.64243164062498,
+                    "unit": "PT"
+                  },
+                  "width": {
+                    "magnitude": 468,
+                    "unit": "PT"
+                  }
+                },
+                "marginTop": {
+                  "magnitude": 9,
+                  "unit": "PT"
+                },
+                "marginBottom": {
+                  "magnitude": 9,
+                  "unit": "PT"
+                },
+                "marginRight": {
+                  "magnitude": 9,
+                  "unit": "PT"
+                },
+                "marginLeft": {
+                  "magnitude": 9,
+                  "unit": "PT"
+                }
+              }
+            }
+          },
+          "kix.o92lrlctsbrv": {
+            "objectId": "kix.o92lrlctsbrv",
+            "inlineObjectProperties": {
+              "embeddedObject": {
+                "imageProperties": {
+                  "contentUri": "https://lh7-rt.googleusercontent.com/docsz/AD_4nXcBH5QtX2QNj1tdpDveJymno62fBHucB8eL9k2MLPQYv-xnRdJfwfPxfTw33ltnA5Ym_A9ymjaTelb-TNrvmR33sEnUmPhqcXZl4VohCLhdHz7dHWr9wYKM8htQ7rWZWwMOVTotxsu1rXVvhl_jQOzeSmIebByz1rva11_k--emqyE5I5A=s2048?key=SX9KUm1t1YCg4jBrU-Kcyg",
+                  "cropProperties": {}
+                },
+                "embeddedObjectBorder": {
+                  "color": {
+                    "color": {
+                      "rgbColor": {}
+                    }
+                  },
+                  "width": {
+                    "unit": "PT"
+                  },
+                  "dashStyle": "SOLID",
+                  "propertyState": "NOT_RENDERED"
+                },
+                "size": {
+                  "height": {
+                    "magnitude": 296,
+                    "unit": "PT"
+                  },
+                  "width": {
+                    "magnitude": 468,
+                    "unit": "PT"
+                  }
+                },
+                "marginTop": {
+                  "magnitude": 9,
+                  "unit": "PT"
+                },
+                "marginBottom": {
+                  "magnitude": 9,
+                  "unit": "PT"
+                },
+                "marginRight": {
+                  "magnitude": 9,
+                  "unit": "PT"
+                },
+                "marginLeft": {
+                  "magnitude": 9,
+                  "unit": "PT"
+                }
+              }
+            }
+          }
+        },
+        "positionedObjects": null,
+        "documentId": "1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y",
+        "document_url": "https://docs.google.com/document/d/1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y"
+      }
+    ],
+    "document_url": "https://docs.google.com/document/d/1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y"
+  },
+  "isError": false
+}

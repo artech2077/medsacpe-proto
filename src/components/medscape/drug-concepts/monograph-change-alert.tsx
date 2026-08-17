@@ -15,8 +15,6 @@ type DrugMonographChangeAlertProps = {
   drugName: string;
   lastViewedDate: string;
   onDismiss?: () => void;
-  /** Open the current canonical monograph (no specific anchor). */
-  onOpenMonograph?: () => void;
   /** Jump to the exact updated row in the canonical card/canvas. */
   onOpenSection?: (anchor: string) => void;
   sections: readonly MonographChangeSection[];
@@ -53,7 +51,6 @@ export function DrugMonographChangeAlert({
   drugName,
   lastViewedDate,
   onDismiss,
-  onOpenMonograph,
   onOpenSection,
   sections,
 }: DrugMonographChangeAlertProps) {
@@ -131,17 +128,6 @@ export function DrugMonographChangeAlert({
                   </button>
                 </article>
               ))}
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2 border-t border-[#eef3f8] pt-3">
-              <button
-                type="button"
-                onClick={onOpenMonograph}
-                style={{ touchAction: "manipulation" }}
-                className="inline-flex items-center rounded-full border border-[rgba(6,74,167,0.35)] px-4 py-2 text-[13px] font-bold text-[var(--mscp-color-brand-primary)] transition hover:bg-[#f2f7fe] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
-              >
-                Open current monograph
-              </button>
             </div>
           </div>
         </div>

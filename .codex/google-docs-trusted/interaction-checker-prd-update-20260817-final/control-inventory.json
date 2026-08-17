@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "kind": "google-docs-trusted-read-context",
+  "target": {
+    "documentId": "1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y",
+    "title": "PRD — Interaction Checker Access (Phase 1)",
+    "revisionId": "AIroW35W7DZPwc3Vt85rRwCcT9pBs5Hifnp_KKNa2mmgmyMGA7TWlJyiOsmVrqj_D326OLa634MjGSCvf7afFcyqUKKyHHJKyEGyXv11aPc",
+    "documentUrl": "https://docs.google.com/document/d/1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y",
+    "selectedTabId": "t.0"
+  },
+  "dropdownMetadata": {
+    "status": "unavailable",
+    "resolvedTool": null,
+    "authoritative": false,
+    "count": 0
+  },
+  "derivedControlInventory": {
+    "hasProtectedControls": false,
+    "authoritativeDropdownCount": 0,
+    "opaqueControlCount": 0,
+    "nativeElementCounts": {
+      "dateElement": 1,
+      "inlineObjectElement": 2
+    },
+    "tabsScanned": [
+      "t.0"
+    ],
+    "controls": [],
+    "nativeElements": [
+      {
+        "type": "dateElement",
+        "startIndex": 70,
+        "endIndex": 71,
+        "tabId": "t.0",
+        "segmentId": null,
+        "container": {
+          "kind": "paragraph",
+          "path": "root.tabs[0].body.content[3]",
+          "tabId": "t.0",
+          "segmentId": null,
+          "startIndex": 45,
+          "endIndex": 133,
+          "namedStyleType": "NORMAL_TEXT",
+          "listId": null,
+          "nestingLevel": null,
+          "table": null
+        },
+        "properties": {
+          "timestamp": "2026-08-13T00:00:00Z",
+          "locale": "en",
+          "dateFormat": "DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED",
+          "timeFormat": "TIME_FORMAT_DISABLED",
+          "displayText": "Aug 13, 2026"
+        }
+      },
+      {
+        "type": "inlineObjectElement",
+        "startIndex": 985,
+        "endIndex": 986,
+        "tabId": "t.0",
+        "segmentId": null,
+        "container": {
+          "kind": "paragraph",
+          "path": "root.tabs[0].body.content[14]",
+          "tabId": "t.0",
+          "segmentId": null,
+          "startIndex": 985,
+          "endIndex": 987,
+          "namedStyleType": "NORMAL_TEXT",
+          "listId": null,
+          "nestingLevel": null,
+          "table": null
+        },
+        "properties": {
+          "inlineObjectId": "kix.9fy1kt4xfl2m",
+          "textStyle": {}
+        }
+      },
+      {
+        "type": "inlineObjectElement",
+        "startIndex": 987,
+        "endIndex": 988,
+        "tabId": "t.0",
+        "segmentId": null,
+        "container": {
+          "kind": "paragraph",
+          "path": "root.tabs[0].body.content[15]",
+          "tabId": "t.0",
+          "segmentId": null,
+          "startIndex": 987,
+          "endIndex": 989,
+          "namedStyleType": "NORMAL_TEXT",
+          "listId": null,
+          "nestingLevel": null,
+          "table": null
+        },
+        "properties": {
+          "inlineObjectId": "kix.o92lrlctsbrv",
+          "textStyle": {}
+        }
+      }
+    ]
+  },
+  "editGuidance": {
+    "advisoryOnly": true,
+    "requiresTargetedPreservation": false,
+    "recommendedBehavior": "No protected controls were detected in the scanned scope.",
+    "warnings": []
+  }
+}

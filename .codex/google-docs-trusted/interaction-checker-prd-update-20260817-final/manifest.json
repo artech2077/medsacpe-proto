@@ -1,0 +1,60 @@
+{
+  "bridgeVersion": "3.6",
+  "kind": "google-docs-trusted-read",
+  "status": "complete",
+  "outputDir": "/Users/faroukbousaaid/Documents/Work/Medscape AI/AI drug search/Prototyping/Medscape proto/.codex/google-docs-trusted/interaction-checker-prd-update-20260817-final",
+  "target": {
+    "documentId": "1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y",
+    "title": "PRD — Interaction Checker Access (Phase 1)",
+    "revisionId": "AIroW35W7DZPwc3Vt85rRwCcT9pBs5Hifnp_KKNa2mmgmyMGA7TWlJyiOsmVrqj_D326OLa634MjGSCvf7afFcyqUKKyHHJKyEGyXv11aPc",
+    "documentUrl": "https://docs.google.com/document/d/1ctqDBeTzPKE2bIsNLBxtnI1k8WfLtGsAN8mDz7Mag_Y",
+    "selectedTabId": "t.0"
+  },
+  "dropdownMetadata": {
+    "status": "unavailable",
+    "resolvedTool": null,
+    "authoritative": false,
+    "count": 0
+  },
+  "controlAwareness": {
+    "hasProtectedControls": false,
+    "authoritativeDropdownCount": 0,
+    "opaqueControlCount": 0,
+    "affectedParagraphCount": 0,
+    "nativeElementCounts": {
+      "dateElement": 1,
+      "inlineObjectElement": 2
+    },
+    "preservationRequired": false,
+    "recommendedBehavior": "No protected controls were detected in the scanned scope."
+  },
+  "warnings": [],
+  "files": {
+    "document_result": {
+      "path": "/Users/faroukbousaaid/Documents/Work/Medscape AI/AI drug search/Prototyping/Medscape proto/.codex/google-docs-trusted/interaction-checker-prd-update-20260817-final/document-result.json",
+      "bytes": 100035,
+      "sha256": "218803920780ad6e5f26fdf05d050583317d93cd06f66c16a8127baa02605462"
+    },
+    "control_inventory": {
+      "path": "/Users/faroukbousaaid/Documents/Work/Medscape AI/AI drug search/Prototyping/Medscape proto/.codex/google-docs-trusted/interaction-checker-prd-update-20260817-final/control-inventory.json",
+      "bytes": 3112,
+      "sha256": "876bec626640bd5ade1b0a8bcfff8cc537c863a532e533c6bf329607bb03a0aa"
+    },
+    "document_outline": {
+      "path": "/Users/faroukbousaaid/Documents/Work/Medscape AI/AI drug search/Prototyping/Medscape proto/.codex/google-docs-trusted/interaction-checker-prd-update-20260817-final/document-outline.json",
+      "bytes": 38018,
+      "sha256": "a61891d6170ee1a1b4a95a5bab348aa8d63f4e38c9ab5c47f34d9bd059acfe8b"
+    },
+    "document_text": {
+      "path": "/Users/faroukbousaaid/Documents/Work/Medscape AI/AI drug search/Prototyping/Medscape proto/.codex/google-docs-trusted/interaction-checker-prd-update-20260817-final/document-text.md",
+      "bytes": 10695,
+      "sha256": "208651af5fd33fe6583b8d3214d445d395fa32eb1802fd98845081c5fd209a19"
+    },
+    "receipt": {
+      "path": "/Users/faroukbousaaid/Documents/Work/Medscape AI/AI drug search/Prototyping/Medscape proto/.codex/google-docs-trusted/interaction-checker-prd-update-20260817-final/receipt.json",
+      "bytes": 1041,
+      "sha256": "49eaf1e2560f5d4a84e74d5196992d85a695fa24426c1e49248c9d8bf053d126"
+    }
+  },
+  "error": null
+}

@@ -10,6 +10,8 @@ import {
 } from "react";
 import { AiCloseIcon } from "@/components/medscape/ai-response/iconography";
 import { AiResponseReferenceCard } from "@/components/medscape/ai-response/reference-card";
+import { WeightBasedLiquidMedicationCalculator } from "@/components/medscape/ai-response/weight-based-liquid-medication-calculator";
+import { ResponsiveFeaturePanel } from "@/components/ui/responsive-feature-panel";
 import type { AiAnswerReference } from "@/data/ai-response";
 
 export type AiAnswerBlock =
@@ -36,8 +38,6 @@ type TooltipPosition = {
 const LEADING_KEY_POINTS_PATTERN =
   /^\s*Key Points\s*\n((?:-\s+.*(?:\n|$))*)(?:\n+)*/i;
 const WEIGHT_DOSING_CALCULATOR_TAG = "{calc_weight_dosing}";
-export const WEIGHT_DOSING_CALCULATOR_URL =
-  "https://reference.medscape.com/calculator/895/weight-based-liquid-medication-dosing";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -259,34 +259,38 @@ export function renderInlineText(
 /** Inline visual treatment for the Content API POC's weight-dosing marker. */
 export function WeightDosingCalculatorIcon() {
   return (
-    <a
-      aria-label="Open weight-based dose calculator in a new tab"
-      className="ml-2 inline-flex translate-y-[3px] text-[#0085bd]"
-      href={WEIGHT_DOSING_CALCULATOR_URL}
-      rel="noopener noreferrer"
-      target="_blank"
-      title="Open weight-based dose calculator"
+    <ResponsiveFeaturePanel
+      compactTrigger={<CalculatorGlyph />}
+      className="ml-2 inline-flex translate-y-[3px] text-[#0085bd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0085bd] focus-visible:ring-offset-2"
+      panelTitle="Weight-based liquid medication dosing"
+      title="Weight-based dose calculator"
     >
-      <svg
-        aria-hidden="true"
-        fill="none"
-        height="22"
-        viewBox="0 0 24 34"
-        width="15"
-      >
-        <rect x="1.5" y="1.5" width="21" height="31" rx="2.75" stroke="currentColor" strokeWidth="2.5" />
-        <rect x="5" y="5.5" width="14" height="5.5" rx="0.9" stroke="currentColor" strokeWidth="2" />
-        <circle cx="7" cy="16" r="1.35" fill="currentColor" />
-        <circle cx="12" cy="16" r="1.35" fill="currentColor" />
-        <circle cx="17" cy="16" r="1.35" fill="currentColor" />
-        <circle cx="7" cy="21.5" r="1.35" fill="currentColor" />
-        <circle cx="12" cy="21.5" r="1.35" fill="currentColor" />
-        <circle cx="17" cy="21.5" r="1.35" fill="currentColor" />
-        <circle cx="7" cy="27" r="1.35" fill="currentColor" />
-        <circle cx="12" cy="27" r="1.35" fill="currentColor" />
-        <circle cx="17" cy="27" r="1.35" fill="currentColor" />
-      </svg>
-    </a>
+      <WeightBasedLiquidMedicationCalculator />
+    </ResponsiveFeaturePanel>
+  );
+}
+
+function CalculatorGlyph() {
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      height="22"
+      viewBox="0 0 24 34"
+      width="15"
+    >
+      <rect x="1.5" y="1.5" width="21" height="31" rx="2.75" stroke="currentColor" strokeWidth="2.5" />
+      <rect x="5" y="5.5" width="14" height="5.5" rx="0.9" stroke="currentColor" strokeWidth="2" />
+      <circle cx="7" cy="16" r="1.35" fill="currentColor" />
+      <circle cx="12" cy="16" r="1.35" fill="currentColor" />
+      <circle cx="17" cy="16" r="1.35" fill="currentColor" />
+      <circle cx="7" cy="21.5" r="1.35" fill="currentColor" />
+      <circle cx="12" cy="21.5" r="1.35" fill="currentColor" />
+      <circle cx="17" cy="21.5" r="1.35" fill="currentColor" />
+      <circle cx="7" cy="27" r="1.35" fill="currentColor" />
+      <circle cx="12" cy="27" r="1.35" fill="currentColor" />
+      <circle cx="17" cy="27" r="1.35" fill="currentColor" />
+    </svg>
   );
 }
 
