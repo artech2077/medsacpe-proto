@@ -1,0 +1,5 @@
+
+include:
+  - project: 'WebMD/professional/templates/gitlab-ci.yml-templates'
+    ref: master
+    file: 'medscapeeu/.gitlab-ci-api-new-cluster.yml'
