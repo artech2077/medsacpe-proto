@@ -331,19 +331,6 @@ export function DrugPatientContextPanel({
   presentation = "inline",
   startInResult = false,
 }: DrugPatientContextPanelProps) {
-  if (oncologyDose) {
-    return (
-      <OncologyDoseContextPanel
-        context={oncologyDose}
-        initialValues={initialValues}
-        onConfirm={onConfirm}
-        onOpenSource={onOpenSource}
-        presentation={presentation}
-        startInResult={startInResult}
-      />
-    );
-  }
-
   const [phase, setPhase] = useState<PanelPhase>(startInResult ? "result" : "confirm");
   const [dismissed, setDismissed] = useState(false);
   const [traceOpen, setTraceOpen] = useState(false);
@@ -392,6 +379,19 @@ export function DrugPatientContextPanel({
   );
 
   const missingCriteria = evaluation.knownCount < 2;
+
+  if (oncologyDose) {
+    return (
+      <OncologyDoseContextPanel
+        context={oncologyDose}
+        initialValues={initialValues}
+        onConfirm={onConfirm}
+        onOpenSource={onOpenSource}
+        presentation={presentation}
+        startInResult={startInResult}
+      />
+    );
+  }
 
   if (dismissed) return null;
 
