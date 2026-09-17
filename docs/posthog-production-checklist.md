@@ -41,7 +41,7 @@ After restarting Codex with the PostHog MCP available, create or verify:
 
 ## Verification
 
-- Run `pnpm test`, `pnpm lint`, and `pnpm build`.
+- Run `npm test`, `npm run lint`, and `npm run build`.
 - Use [`docs/analytics-tagging-plan.md`](/Users/faroukbousaaid/Vibes/Medscape proto/docs/analytics-tagging-plan.md) as the detailed event catalog and QA checklist.
 - Use PostHog debug/live events to verify home, gallery, prototype open, prompt suggestion, composer submit, generation first content, generation complete, stop, copy, feedback, follow-up, key-points toggle, scroll-to-latest, ad view, error, and web-vital events.
 - Confirm no custom event includes `user_id`, `email`, `name`, `tester_id`, `tester_role`, or `study_id`.

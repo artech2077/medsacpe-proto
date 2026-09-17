@@ -219,7 +219,7 @@ Prototype flows additionally use these common fields when relevant:
 
 ### Setup
 
-- Start the app with `pnpm dev`.
+- Start the app with `npm run dev`.
 - Open the correct PostHog project and region for the key in `.env.local`.
 - In browser DevTools:
   - Network filter: `posthog`, `/e/`, or `/i/v0/e/`

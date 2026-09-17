@@ -48,7 +48,7 @@ Screen `DrugConceptMobileSheetsScreen`; route `src/app/(prototypes)/drug-concept
 it only. Registry entry per the shared table.
 
 ## 6. Acceptance
-- `pnpm lint` + `pnpm build` pass; tab bar at top with **H active**, all tabs navigate.
+- `npm run lint` + `npm run build` pass; tab bar at top with **H active**, all tabs navigate.
 - On a phone-width frame: reply shows drug + pinned BBW + field-switcher chips; tapping "Renal"
   opens a bottom sheet to renal dosing with a sticky sub-field strip; swipe-down dismisses to the
   thread; interaction-checker chip opens a deterministic two-drug check; one-handed reach, no

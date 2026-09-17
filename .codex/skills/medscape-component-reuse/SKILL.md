@@ -94,8 +94,8 @@ If the answer is "same functionality, same intended UI", do not create a new com
 Run the repo's checks after changes:
 
 ```powershell
-corepack pnpm lint
-corepack pnpm build
+npm run lint
+npm run build
 ```
 
 When a dev server is available, verify affected prototype routes and `/gallery` return successfully. For visual changes, inspect the screen or capture a screenshot when practical.

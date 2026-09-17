@@ -45,7 +45,7 @@ Screen `DrugConceptDashboardCardScreen` in `src/components/screens/`; route
 `src/app/(prototypes)/drug-concept-a/page.tsx` renders it only. Registry entry per the shared table.
 
 ## 6. Acceptance
-- `pnpm lint` + `pnpm build` pass; tab bar at top with **A active**, all tabs navigate.
+- `npm run lint` + `npm run build` pass; tab bar at top with **A active**, all tabs navigate.
 - Typing "apixaban" shows header + BBW + tile grid in ≤1 screen; tap expands a tile in place; a
   renal-context query pre-expands the renal tile. No synthesized text. "Open full monograph" present.
 - All facts come from `drug-monograph.ts`; no duplicate components introduced.

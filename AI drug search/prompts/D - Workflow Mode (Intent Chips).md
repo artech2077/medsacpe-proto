@@ -45,7 +45,7 @@ Screen `DrugConceptWorkflowChipsScreen`; route `src/app/(prototypes)/drug-concep
 renders it only. Registry entry per the shared table.
 
 ## 6. Acceptance
-- `pnpm lint` + `pnpm build` pass; tab bar at top with **D active**, all tabs navigate.
+- `npm run lint` + `npm run build` pass; tab bar at top with **D active**, all tabs navigate.
 - "apixaban" shows a useful default card + chips (no forced gate); tapping "Renal dosing" reorders
   the answer to the renal task in ~1 viewport; `apixaban perioperative` auto-selects the peri-op
   chip; BBW always pinned; full monograph reachable.

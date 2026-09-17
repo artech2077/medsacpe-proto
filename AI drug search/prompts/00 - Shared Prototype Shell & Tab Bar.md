@@ -153,7 +153,7 @@ applies this.
 
 ## 7. Acceptance
 
-- `pnpm lint` and `pnpm build` pass.
+- `npm run lint` and `npm run build` pass.
 - `/` lists all eight concept prototypes; `/gallery` shows `DrugConceptTabBar`.
 - Visiting any concept route shows the **tab bar at the top with that concept active**, and every
   tab navigates to the matching prototype.

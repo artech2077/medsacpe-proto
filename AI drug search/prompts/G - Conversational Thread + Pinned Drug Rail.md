@@ -45,7 +45,7 @@ Screen `DrugConceptPinnedRailScreen`; route `src/app/(prototypes)/drug-concept-g
 only. Registry entry per the shared table.
 
 ## 6. Acceptance
-- `pnpm lint` + `pnpm build` pass; tab bar at top with **G active**, all tabs navigate.
+- `npm run lint` + `npm run build` pass; tab bar at top with **G active**, all tabs navigate.
 - First question yields a cited answer + a populated pinned rail; follow-ups stay in drug context
   without retyping the drug; clicking a claim scrolls/highlights the rail subfield; desktop shows a
   right rail, mobile a sticky collapsible header → sheet; BBW always at rail top.

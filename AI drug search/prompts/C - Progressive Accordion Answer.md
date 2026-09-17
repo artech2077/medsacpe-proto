@@ -40,7 +40,7 @@ Screen `DrugConceptAccordionScreen`; route `src/app/(prototypes)/drug-concept-c/
 only. Registry entry per the shared table.
 
 ## 6. Acceptance
-- `pnpm lint` + `pnpm build` pass; tab bar at top with **C active**, all tabs navigate.
+- `npm run lint` + `npm run build` pass; tab bar at top with **C active**, all tabs navigate.
 - Reply is one compact message; all sections fit ~one screen collapsed; ≤2 taps reach a body; jump
   bar scrolls to a section; renal query auto-expands the renal subfield; BBW always visible.
 - Facts come from `drug-monograph.ts`; no duplicate components introduced.

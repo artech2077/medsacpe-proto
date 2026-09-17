@@ -169,7 +169,7 @@ all driven from the shared array.
 
 ## 9. Acceptance
 
-- `pnpm lint` + `pnpm build` pass; concept tab bar shows nine tabs with **I active** on
+- `npm run lint` + `npm run build` pass; concept tab bar shows nine tabs with **I active** on
   `/drug-concept-i`; all tabs navigate.
 - The scenario picker shows all nine groups; every scenario above plays its scripted pattern; the
   S9 sequence demonstrates in-place card update, second-card add, and the Compare chip; deep links

@@ -46,7 +46,7 @@ Screen `DrugConceptMonographCanvasScreen`; route `src/app/(prototypes)/drug-conc
 renders it only. Registry entry per the shared table.
 
 ## 6. Acceptance
-- `pnpm lint` + `pnpm build` pass; tab bar at top with **B active**, all tabs navigate.
+- `npm run lint` + `npm run build` pass; tab bar at top with **B active**, all tabs navigate.
 - A query yields a one-line pointer + Open monograph; clicking opens the canvas scrolled+highlighted
   to the matching subfield; section nav and search-within work; a follow-up re-points the canvas
   without reloading it. Right rail keeps BBW visible. Mobile shows a full-screen sheet.

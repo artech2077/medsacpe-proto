@@ -50,7 +50,7 @@ Screen `DrugConceptAnswerTabsScreen`; route `src/app/(prototypes)/drug-concept-e
 only. Registry entry per the shared table.
 
 ## 6. Acceptance
-- `pnpm lint` + `pnpm build` pass; concept tab bar at top with **E active**, all tabs navigate.
+- `npm run lint` + `npm run build` pass; concept tab bar at top with **E active**, all tabs navigate.
 - A specific query (`apixaban renal dose at GFR 35`) opens on the Answer tab with a short cited
   answer; citation chips jump to the matching subfield in Drug Information; References tab lists
   sources; BBW pinned in the card; Dosing sub-tab strip tames the long section.

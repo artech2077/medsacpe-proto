@@ -5,13 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-pnpm dev        # Start Next.js dev server on localhost:3000
-pnpm build      # Production build
-pnpm start      # Run production server
-vitest run      # Run all tests once (no watch)
+npm install     # Install dependencies
+npm run dev     # Start Next.js dev server on localhost:3000
+npm run build   # Production build
+npm run start   # Run production server
+npm test        # Run all tests once (no watch)
 ```
 
-Package manager is **pnpm** (enforced via `pnpm-workspace.yaml`).
+Package manager is **npm**, matching the Dockerfile's `RUN npm i --registry=...`. `.npmrc` pins the
+Artifactory registry and sets `legacy-peer-deps=true` — required because npm 10's strict peer
+resolver crashes (`Cannot read properties of null (reading 'edgesOut')`) on Vitest 4's optional
+peer graph (`@vitest/browser-*`, `jsdom`, `happy-dom`, etc.). Don't remove that setting.
 
 ## Architecture
 

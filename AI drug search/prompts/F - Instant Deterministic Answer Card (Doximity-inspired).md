@@ -46,7 +46,7 @@ Screen `DrugConceptInstantCardScreen`; route `src/app/(prototypes)/drug-concept-
 it only. Registry entry per the shared table.
 
 ## 6. Acceptance
-- `pnpm lint` + `pnpm build` pass; tab bar at top with **F active**, all tabs navigate.
+- `npm run lint` + `npm run build` pass; tab bar at top with **F active**, all tabs navigate.
 - "apixaban" instantly shows a deterministic card (BBW + verbatim key fields + source labels), no
   generated text; a contextual query swaps in the matching subfield; "Open full monograph" expands
   structured sections; "Ask AI" adds a clearly-labeled synthesized turn below the card.
