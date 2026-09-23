@@ -42,6 +42,7 @@ import {
 import { ConditionArticleCard } from "@/components/medscape/drug-concepts/condition-article-card";
 import { DrugAnswerSourceChips } from "@/components/medscape/drug-concepts/answer-source-chips";
 import { DrugAnswerLoadingSkeleton } from "@/components/medscape/drug-concepts/answer-loading-skeleton";
+import { DrugMonographHandoffPill } from "@/components/medscape/drug-concepts/monograph-handoff-pill";
 import { AiResponseRelatedArticles } from "@/components/medscape/ai-response/related-articles";
 import { DRUG_CONCEPT_J_RELATED_ARTICLES } from "@/data/drug-concept-j-scenarios";
 import {
@@ -531,6 +532,14 @@ function DrugAnswerLoadingSkeletonPreview() {
   return (
     <div className="max-w-[560px] rounded-[16px] bg-white p-4">
       <DrugAnswerLoadingSkeleton />
+    </div>
+  );
+}
+
+function DrugMonographHandoffPillPreview() {
+  return (
+    <div className="max-w-[420px] rounded-[16px] bg-white p-4">
+      <DrugMonographHandoffPill drugName="Semaglutide" isOpen={false} onToggle={() => undefined} />
     </div>
   );
 }
@@ -1239,6 +1248,20 @@ export const galleryRegistry: GalleryEntry[] = [
     usageNotes: [
       "Render below the canonical card while the AI answer status is 'loading'; swap to the real answer when the timer fires.",
       "Uses .dc-shimmer from globals.css — respects prefers-reduced-motion automatically.",
+      "Pass statusText to override the default 'canonical source above' copy when the AI answer is the primary content (answer-first prototypes).",
+    ],
+  },
+  {
+    category: "navigation",
+    description:
+      "Answer-first pivot (2026-09-22): caption + pill shown below a primary AI answer. Tapping the drug-name pill reveals (or hides) the canonical DrugMonographCardFrame as a secondary reference.",
+    id: "drug-monograph-handoff-pill",
+    preview: DrugMonographHandoffPillPreview,
+    sourcePath: "src/components/medscape/drug-concepts/monograph-handoff-pill.tsx",
+    title: "DrugMonographHandoffPill",
+    usageNotes: [
+      "Controlled component — the parent owns isOpen/onToggle and renders DrugMonographCardFrame conditionally beneath it.",
+      "Used on /ai-drug-mono-v3; V1/V2 keep the monograph-first order and don't use this component.",
     ],
   },
   {

@@ -52,6 +52,9 @@ export const aiResponseAssets = {
     download: "/assets/Download.svg",
     history: "/assets/history.svg",
     followUpQuestions: "/assets/fwp.svg",
+    /** "Ask a follow-up" heading icon (AiResponseAnswerFooter and any screen
+     * that hand-rolls the same heading) — shared across all prototypes. */
+    followUpSparkle: "/assets/follow-up-sparkle.svg",
     like: "/assets/like.svg",
     likeFilled: "/assets/like filled.svg",
     newChat: "/assets/new-chat.svg",

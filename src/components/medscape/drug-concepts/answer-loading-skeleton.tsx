@@ -14,7 +14,13 @@ function ShimmerBar({ className }: { className?: string }) {
   return <span className={`dc-shimmer block rounded-full ${className ?? ""}`} />;
 }
 
-export function DrugAnswerLoadingSkeleton() {
+export function DrugAnswerLoadingSkeleton({
+  statusText = "Generating answer from the canonical source above…",
+}: {
+  /** Override the status line — e.g. when the answer generates before any
+   * canonical content has been shown (answer-first prototypes). */
+  statusText?: string;
+} = {}) {
   return (
     <div className="dc-fade" aria-hidden="true">
       {/* AI-generation status cue */}
@@ -24,7 +30,7 @@ export function DrugAnswerLoadingSkeleton() {
           alt=""
           className="h-4 w-4 object-contain"
         />
-        Generating answer from the canonical source above…
+        {statusText}
       </p>
 
       {/* First section: sub-heading + paragraph lines */}

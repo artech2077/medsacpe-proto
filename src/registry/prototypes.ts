@@ -124,4 +124,13 @@ export const prototypeRegistry: PrototypeDefinition[] = [
     tags: ["medscape-ai", "drug-reference", "drug-concept"],
     title: "AI drug monograph V2 walkthrough",
   },
+  {
+    description:
+      "Answer-first pivot (2026-09-22, not yet reconciled with locked V1/V2 decisions) — the AI-generated answer responds directly to the question and is the primary content; the canonical monograph is a secondary reference opened via a drug-name pill below the answer.",
+    route: "/ai-drug-mono-v3",
+    slug: "ai-drug-mono-v3",
+    status: "active",
+    tags: ["medscape-ai", "drug-reference", "drug-concept"],
+    title: "AI drug mono V3 — answer-first",
+  },
 ];

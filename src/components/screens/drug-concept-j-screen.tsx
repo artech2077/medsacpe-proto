@@ -133,9 +133,12 @@ function AiAnswerSection({
       {followUpQuestions.length > 0 ? (
         <section className="mt-5 border-t border-[#c5ced3] pt-3">
           <div className="mb-3 flex items-center gap-2 text-[#2c353a]">
-            <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5 text-[var(--mscp-color-brand-primary)]" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 2.5c0 0-.8 3-2.5 4.7C5.8 8.9 2.8 9.7 2.8 10s3 .8 4.7 2.5C9.2 14.2 10 17.5 10 17.5s.8-3.3 2.5-5C14.2 10.8 17.2 10 17.2 10s-3-.8-4.7-2.5C10.8 5.5 10 2.5 10 2.5Z" />
-            </svg>
+            <img
+              src={aiResponseAssets.uiIcons.followUpSparkle}
+              alt=""
+              aria-hidden="true"
+              className="h-5 w-5 shrink-0 object-contain"
+            />
             <h2 className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#5a6e7e]">
               Ask a follow-up
             </h2>

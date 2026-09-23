@@ -184,6 +184,11 @@ export function buildAnswerBlocks(answer: string) {
 type AiResponseAnswerContentProps = {
   answer: string;
   className?: string;
+  /** Overrides the marker's displayed text (default: the numeric citation id)
+   * with a fixed label, e.g. "Medscape Drugs" — same inline position and
+   * click-to-open-tooltip behavior, just a smaller text pill instead of a
+   * numbered circle. */
+  citationLabel?: string;
   fullAnswer?: string;
   references?: AiAnswerReference[];
 };
@@ -191,12 +196,15 @@ type AiResponseAnswerContentProps = {
 function AiResponseCitationMarker({
   citationId,
   isActive,
+  label,
   markerKey,
   onClick,
   registerButton,
 }: {
   citationId: number;
   isActive: boolean;
+  /** Displayed instead of citationId when set. */
+  label?: string;
   markerKey: string;
   onClick: (citationId: number, markerKey: string) => void;
   registerButton: (markerKey: string, node: HTMLButtonElement | null) => void;
@@ -205,14 +213,14 @@ function AiResponseCitationMarker({
     <button
       ref={(node) => registerButton(markerKey, node)}
       type="button"
-      aria-label={`Open citation ${citationId}`}
+      aria-label={label ? `Open ${label} citation` : `Open citation ${citationId}`}
       aria-pressed={isActive}
       onClick={() => onClick(citationId, markerKey)}
-      className={`mx-0.5 inline-flex h-5 min-w-5 translate-y-[-1px] items-center justify-center rounded-full px-1.5 text-[13px] leading-none font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
-        isActive ? "bg-[#dfeafb] text-[#161b1d]" : "bg-[#ecf1f9] text-[#161b1d] hover:bg-[#dfeafb]"
-      }`}
+      className={`mx-0.5 inline-flex translate-y-[-1px] items-center justify-center rounded-full leading-none font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(6,74,167,0.22)] focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
+        label ? "h-5 px-2 text-[11px]" : "h-5 min-w-5 px-1.5 text-[13px]"
+      } ${isActive ? "bg-[#dfeafb] text-[#161b1d]" : "bg-[#ecf1f9] text-[#161b1d] hover:bg-[#dfeafb]"}`}
     >
-      {citationId}
+      {label ?? citationId}
     </button>
   );
 }
@@ -296,6 +304,7 @@ function CalculatorGlyph() {
 
 export function AiResponseAnswerContent({
   answer,
+  citationLabel,
   className,
   fullAnswer,
   references = [],
@@ -449,6 +458,7 @@ export function AiResponseAnswerContent({
       key={key}
       citationId={citationId}
       isActive={openCitationId === citationId && openCitationMarkerKey === key}
+      label={citationLabel}
       markerKey={key}
       onClick={(nextCitationId, nextMarkerKey) => {
         if (openCitationId === nextCitationId && openCitationMarkerKey === nextMarkerKey) {
@@ -516,6 +526,7 @@ export function AiResponseAnswerContent({
                           openCitationId === citationId &&
                           openCitationMarkerKey === `auto-list-${index}`
                         }
+                        label={citationLabel}
                         markerKey={`auto-list-${index}`}
                         onClick={(nextCitationId, nextMarkerKey) => {
                           if (
@@ -554,6 +565,7 @@ export function AiResponseAnswerContent({
                   openCitationId === citationId &&
                   openCitationMarkerKey === `auto-paragraph-${index}`
                 }
+                label={citationLabel}
                 markerKey={`auto-paragraph-${index}`}
                 onClick={(nextCitationId, nextMarkerKey) => {
                   if (
