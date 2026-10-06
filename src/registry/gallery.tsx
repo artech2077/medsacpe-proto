@@ -30,9 +30,9 @@ import { InteractionCheckerFeature } from "@/components/medscape/drug-concepts/i
 import { PrototypeNavSidebar } from "@/components/medscape/drug-concepts/prototype-nav-sidebar";
 import { DrugRegimenChecker } from "@/components/medscape/drug-concepts/regimen-checker";
 import { DrugMonographChangeAlert } from "@/components/medscape/drug-concepts/monograph-change-alert";
+import { OZEMPIC_UPDATE } from "@/data/drug-monograph-updates";
 import {
   COMPARISON,
-  MONOGRAPH_UPDATE,
   PEER_CONTEXT,
 } from "@/data/drug-intelligence-scenarios";
 import {
@@ -735,13 +735,7 @@ function DrugRegimenCheckerPreview() {
 function DrugMonographChangeAlertPreview() {
   return (
     <div className="max-w-[720px] rounded-[16px] bg-[#f0f5fb] p-4">
-      <DrugMonographChangeAlert
-        badge={MONOGRAPH_UPDATE.badge}
-        changedSectionsLabel={MONOGRAPH_UPDATE.changedSectionsLabel}
-        drugName="Bevacizumab"
-        lastViewedDate={MONOGRAPH_UPDATE.lastViewedDate}
-        sections={MONOGRAPH_UPDATE.sections}
-      />
+      <DrugMonographChangeAlert {...OZEMPIC_UPDATE} />
     </div>
   );
 }
@@ -1422,14 +1416,16 @@ export const galleryRegistry: GalleryEntry[] = [
   {
     category: "feedback",
     description:
-      "V2 returning-user monograph change alert: a banner ('Updated since you last viewed' + changed-section count) expanding into section titles and their added/removed changes, with links to the exact updated row.",
+      "Drug updates banner with a visible summary and expandable What changed / Why it matters explanations, dated source links, dismissal, and optional monograph navigation. Retains the historical V2 diff data contract.",
     id: "drug-monograph-change-alert",
     preview: DrugMonographChangeAlertPreview,
     sourcePath: "src/components/medscape/drug-concepts/monograph-change-alert.tsx",
     title: "DrugMonographChangeAlert",
     usageNotes: [
-      "Diff sections come from the MONOGRAPH_UPDATE fixture in drug-intelligence-scenarios.ts — current-side lines must match the canonical fixture text.",
-      "Wire onOpenSection to re-anchor the canonical card (or canvas) at the changed subfield; falls back to the section when no row-level mapping exists.",
+      "Presentation options: summary (default), takeaway (clinical implication first, with expandable label details), and editorial (headline visible in the collapsed banner; patient population, label update, clinical implications, and references appear on expansion). V4 Examples includes variations 3 and 5, plus an email-entry example that renders the update as a fully visible answer with inline citations instead of this banner.",
+      "Use DrugMonographUpdateSection with whatChanged, whyItMatters, source, sectionTitle, and anchor; see the source-backed OZEMPIC_UPDATE fixture. V2 MonographChangeSection data remains supported for older explorations.",
+      "Pass summary and updatedDate for explanatory alerts; lastViewedDate is optional and should only appear when viewing history is available.",
+      "Wire onOpenSection to open the matching monograph section. Hide navigation when no callback is supplied. Collapsed details are hidden from keyboard and assistive technology; buttons support expansion and dismissal on mobile and desktop.",
       "In-product alert only: no subscription settings or push/email prompts.",
     ],
   },

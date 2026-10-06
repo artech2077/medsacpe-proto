@@ -18,6 +18,16 @@ export function getPrototypeFamily(prototype: Pick<PrototypeDefinition, "tags">)
 export const prototypeRegistry: PrototypeDefinition[] = [
   {
     description:
+      "AI answer + on-demand drug pill with an explanatory updates banner. Uses Ozempic’s real January 2025 U.S. kidney indication to explain what changed, why it matters, and the dosing implication, with source links. Scripted demo with simulated viewing history.",
+    entryRoute: "/ai-drug-mono-v4?scenario=ozempic-ckd-dosing",
+    route: "/ai-drug-mono-v4",
+    slug: "ai-drug-mono-v4",
+    status: "active",
+    tags: ["medscape-ai", "drug-reference", "drug-concept", "drug-updates"],
+    title: "AI drug mono V4 — AI + pill and drug updates",
+  },
+  {
+    description:
       "Chat reply renders as a rich dashboard card — a compact grid of clinical zone tiles (Dosing, Safety, Interactions, Renal/Hepatic, Adverse). Tap a tile to expand in place. Deterministic; no synthesized prose.",
     route: "/drug-concept-a",
     slug: "drug-concept-a",

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DrugConceptShell } from "@/components/medscape/drug-concepts/concept-shell";
 import { DrugMonographCardFrame } from "@/components/medscape/drug-concepts/comparison-view";
 import { DrugMonographHandoffPill } from "@/components/medscape/drug-concepts/monograph-handoff-pill";
-import { DrugAnswerLoadingSkeleton } from "@/components/medscape/drug-concepts/answer-loading-skeleton";
+import { DrugMonographChangeAlert } from "@/components/medscape/drug-concepts/monograph-change-alert";
 import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
 import { AiResponseChatComposer } from "@/components/medscape/ai-response/chat-composer";
 import { AiResponseAnswerContent } from "@/components/medscape/ai-response/answer-content";
@@ -22,11 +22,11 @@ import { getSubfieldById } from "@/data/drug-monograph";
 import type { DrugMonograph } from "@/data/drug-monograph";
 import { getMonographById } from "@/data/drug-monograph-registry";
 import {
-  DRUG_CONCEPT_J_SCENARIOS,
-  getConceptJScenarioById,
-  matchConceptJScenario,
-  type DrugConceptJScenario,
-} from "@/data/drug-concept-j-scenarios";
+  ANSWER_FIRST_V3,
+  matchAnswerFirstScenario,
+  type AnswerFirstScenario,
+  type DrugAnswerFirstExperience,
+} from "@/data/drug-answer-first-experiences";
 
 // ─── AI drug mono V3 — answer-first pivot ──────────────────────────────────────
 // Explores the 2026-09-22 answer-format pivot (see workspace CLAUDE.md): the
@@ -37,7 +37,7 @@ import {
 // reveal mechanism change. Prototype only: no compliance/citation-fidelity gate
 // exists yet for a live generative answer (see the reconciliation list in
 // CLAUDE.md) — this demonstrates the layout, not a production-ready answer.
-const ANSWER_DELAY_MS = 3000;
+const ANSWER_DELAY_MS = 6000;
 
 function requireMonograph(drugId: string): DrugMonograph {
   const monograph = getMonographById(drugId);
@@ -85,7 +85,7 @@ type ScenarioTurn = {
   id: number;
   kind: "scenario";
   monographOpen: boolean;
-  scenario: DrugConceptJScenario;
+  scenario: AnswerFirstScenario;
   status: "loading" | "complete";
 };
 
@@ -98,23 +98,29 @@ type NoticeTurn = {
 type ThreadTurn = ScenarioTurn | NoticeTurn;
 
 function ScenarioTurnBlock({
+  experience,
   isLast,
   onFollowUpQuestionSelect,
   onToggleMonograph,
+  showUpdates,
   turn,
   turnIndex,
 }: {
+  experience: DrugAnswerFirstExperience;
   isLast: boolean;
   onFollowUpQuestionSelect: (question: string) => void;
   onToggleMonograph: (turnId: number) => void;
+  showUpdates: boolean;
   turn: ScenarioTurn;
   turnIndex: number;
 }) {
   const monographRef = useRef<HTMLDivElement>(null);
   const monograph = requireMonograph(turn.scenario.drugId);
   const answer = monograph.synthesizedAnswers[turn.scenario.answerKey];
-  const references = buildReferences(monograph, turn.scenario.answerKey);
-  const followUpQuestions = isLast ? answer?.followUpQuestions ?? [] : [];
+  const references = turn.scenario.references ?? buildReferences(monograph, turn.scenario.answerKey);
+  const followUpQuestions = isLast ? turn.scenario.followUpQuestions ?? answer?.followUpQuestions ?? [] : [];
+  const updateIsAnswer = turn.scenario.responseKind === "drug-update";
+  const updates = showUpdates && !updateIsAnswer ? experience.updates : undefined;
 
   const handleToggle = useCallback(() => {
     const opening = !turn.monographOpen;
@@ -133,65 +139,87 @@ function ScenarioTurnBlock({
         adSlot="ai_drug_answer_first_top"
         className="mb-5 md:hidden"
         prototypeFamily="drug-concept"
-        prototypeRoute="/ai-drug-mono-v3"
-        prototypeSlug="ai-drug-mono-v3"
-        screenType="ai-drug-mono-v3"
+        prototypeRoute={experience.route}
+        prototypeSlug={experience.slug}
+        screenType={experience.slug}
         turnId={turnIndex + 1}
       />
+      {updates ? (
+        <div className="mb-[var(--space-5)]">
+          <DrugMonographChangeAlert {...updates} presentation={turn.scenario.updatePresentation} />
+        </div>
+      ) : null}
       <h1 className="mb-4 text-[20px] font-extrabold leading-[1.24] tracking-[-0.02em] text-[#161b1d] [text-wrap:balance] md:text-[26px]">
         {turn.scenario.question}
       </h1>
 
-      {/* AI answer — the primary response */}
+      {/* AI answer — the primary response. While loading, no shimmer bars —
+          just the generation status line, plus a 32px placeholder gap above
+          the pill that collapses once the answer replaces this block. */}
       {turn.status === "loading" ? (
-        <DrugAnswerLoadingSkeleton statusText="Answering your question…" />
+        <div>
+          <p className="inline-flex items-center gap-2 text-[12.5px] font-medium text-[#6b7f92]">
+            <img
+              src={aiResponseAssets.logoAssets.promptAnimation}
+              alt=""
+              aria-hidden="true"
+              className="h-4 w-4 object-contain"
+            />
+            Answering your question…
+          </p>
+          <div aria-hidden="true" className="h-8" />
+        </div>
       ) : (
+        <AiResponseAnswerContent
+          answer={turn.scenario.aiAnswer}
+          citationLabel={updateIsAnswer ? turn.scenario.citationLabel : turn.scenario.citationLabel ?? "Medscape Drugs"}
+          references={references}
+          className="!text-[15px] !leading-[1.6] text-[#2e3d4a]"
+        />
+      )}
+
+      {/* Secondary reference — appears immediately when the question is
+          submitted, independent of the AI answer's generation status. */}
+      <DrugMonographHandoffPill
+        className="mt-5"
+        drugName={turn.scenario.pillLabel ?? monograph.drug.name}
+        isOpen={turn.monographOpen}
+        onToggle={handleToggle}
+      />
+
+      {turn.monographOpen ? (
+        <div ref={monographRef} className="mt-3 scroll-mt-4">
+          <DrugMonographCardFrame
+            anchor={turn.scenario.anchor}
+            boxedWarningVariant="navy"
+            expandSubfields={Boolean(experience.updates)}
+            flashAnchor={!experience.updates}
+            flat
+            hideMatchBadges
+            hideSectionSummary
+            hideSubfieldSummary
+            monograph={monograph}
+            onOpenMonograph={() => {
+              if (monograph.drug.referenceUrl) {
+                window.open(monograph.drug.referenceUrl, "_blank", "noopener");
+              }
+            }}
+            promoteSelectedSection={!experience.updates}
+            tabStyle="underline"
+          />
+        </div>
+      ) : null}
+
+      {turn.status === "complete" ? (
         <>
-          <AiResponseAnswerContent
-            answer={turn.scenario.aiAnswer}
-            citationLabel="Medscape Drugs"
-            references={references}
-            className="!text-[15px] !leading-[1.6] text-[#2e3d4a]"
-          />
-
-          {/* Secondary reference — directly under the answer, before actions */}
-          <DrugMonographHandoffPill
-            className="mt-5"
-            drugName={monograph.drug.name}
-            isOpen={turn.monographOpen}
-            onToggle={handleToggle}
-          />
-
-          {turn.monographOpen ? (
-            <div ref={monographRef} className="mt-3 scroll-mt-4">
-              <DrugMonographCardFrame
-                anchor={turn.scenario.anchor}
-                boxedWarningVariant="navy"
-                flashAnchor
-                flat
-                hideMatchBadges
-                hideSectionSummary
-                hideSubfieldSummary
-                monograph={monograph}
-                onOpenMonograph={() => {
-                  if (monograph.drug.referenceUrl) {
-                    window.open(monograph.drug.referenceUrl, "_blank", "noopener");
-                  }
-                }}
-                promoteSelectedSection
-                tabStyle="underline"
-              />
-            </div>
-          ) : null}
-
           <AiResponseAnswerActions
-            answer={turn.scenario.aiAnswer}
+            answer={updateIsAnswer ? `${turn.scenario.question}\n\n${turn.scenario.aiAnswer}` : turn.scenario.aiAnswer}
             analyticsContext={{
               prototypeFamily: "drug-concept",
-              prototypeRoute: "/ai-drug-mono-v3",
-              prototypeSlug: "ai-drug-mono-v3",
+              prototypeRoute: experience.route,
+              prototypeSlug: experience.slug,
               question: turn.scenario.question,
-              screenType: "ai-drug-mono-v3",
+              screenType: experience.slug,
               turnId: turnIndex + 1,
             }}
             className="mt-5 border-t border-[#eef3f8] pt-4"
@@ -218,14 +246,18 @@ function ScenarioTurnBlock({
             </section>
           ) : null}
         </>
-      )}
+      ) : null}
     </article>
   );
 }
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
-export function AiDrugAnswerFirstScreen() {
+export function AiDrugAnswerFirstScreen({
+  experience = ANSWER_FIRST_V3,
+}: {
+  experience?: DrugAnswerFirstExperience;
+}) {
   const composerInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastTurnRef = useRef<HTMLDivElement>(null);
@@ -255,20 +287,21 @@ export function AiDrugAnswerFirstScreen() {
     );
 
   const playScenario = useCallback(
-    (scenarioId: string, updateUrl = true) => {
-      const scenario = getConceptJScenarioById(scenarioId);
+    (scenarioId: string, updateUrl = true, replaceThread = false) => {
+      const scenario = experience.scenarios.find((item) => item.id === scenarioId);
       if (!scenario) return;
       clearTimer();
       const turnId = ++turnIdRef.current;
       setThread((prev) => [
-        ...completeAll(prev),
-        { id: turnId, kind: "scenario", monographOpen: false, scenario, status: "loading" },
+        ...(replaceThread ? [] : completeAll(prev)),
+        { id: turnId, kind: "scenario", monographOpen: false, scenario, status: scenario.responseKind === "drug-update" ? "complete" : "loading" },
       ]);
       if (updateUrl && typeof window !== "undefined") {
         const url = new URL(window.location.href);
         url.searchParams.set("scenario", scenarioId);
         window.history.replaceState(null, "", url.toString());
       }
+      if (scenario.responseKind === "drug-update") return;
       loadTimerRef.current = setTimeout(() => {
         setThread((prev) =>
           prev.map((item) =>
@@ -279,7 +312,7 @@ export function AiDrugAnswerFirstScreen() {
         );
       }, ANSWER_DELAY_MS);
     },
-    [clearTimer],
+    [clearTimer, experience],
   );
 
   const threadLength = thread.length;
@@ -292,8 +325,11 @@ export function AiDrugAnswerFirstScreen() {
   }, [threadLength]);
 
   useEffect(() => {
-    const id = new URLSearchParams(window.location.search).get("scenario");
-    if (id) playScenario(id, false);
+    const requestedId = new URLSearchParams(window.location.search).get("scenario");
+    const id = experience.scenarios.some((item) => item.id === requestedId)
+      ? requestedId
+      : experience.defaultScenarioId;
+    if (id) playScenario(id, false, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -301,7 +337,7 @@ export function AiDrugAnswerFirstScreen() {
     (text: string) => {
       const trimmed = text.trim();
       if (!trimmed) return;
-      const matched = matchConceptJScenario(trimmed);
+      const matched = matchAnswerFirstScenario(trimmed, experience.scenarios);
       if (matched) {
         playScenario(matched.id);
       } else {
@@ -310,7 +346,7 @@ export function AiDrugAnswerFirstScreen() {
         setThread((prev) => [...completeAll(prev), { id: turnId, kind: "notice", text: trimmed }]);
       }
     },
-    [playScenario, clearTimer],
+    [playScenario, clearTimer, experience],
   );
 
   const resetToBrowser = useCallback(() => {
@@ -424,19 +460,17 @@ export function AiDrugAnswerFirstScreen() {
               {thread.length === 0 ? (
                 <div className="flex flex-col items-center py-10 md:py-14">
                   <div className="dc-fade mb-3 rounded-full bg-[rgba(6,74,167,0.06)] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--mscp-color-brand-primary)]">
-                    AI drug mono V3 · Answer-first
+                    {experience.label}
                   </div>
                   <h2 className="dc-rise mt-2 max-w-[440px] text-center text-[22px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#161b1d] [text-wrap:balance] md:text-[28px]">
-                    A direct answer first, the monograph on demand
+                    {experience.title}
                   </h2>
                   <p className="dc-rise mt-3 max-w-[480px] text-center text-[13.5px] leading-[1.65] text-[#5a6e7e] [text-wrap:balance]">
-                    The AI-generated answer responds to your exact question. The canonical
-                    Medscape monograph it&rsquo;s grounded in is one tap away — tap the drug pill
-                    below the answer to open it.
+                    {experience.description}
                   </p>
 
                   <div className="mt-8 w-full max-w-[560px] space-y-2">
-                    {DRUG_CONCEPT_J_SCENARIOS.map((scenario) => (
+                    {experience.scenarios.map((scenario) => (
                       <button
                         key={scenario.id}
                         type="button"
@@ -448,7 +482,7 @@ export function AiDrugAnswerFirstScreen() {
                           {scenario.group}
                         </span>
                         <span className="min-w-0 flex-1 text-[14px] font-semibold leading-snug text-[#1c2227]">
-                          {scenario.question}
+                          {scenario.exampleTitle ?? scenario.question}
                         </span>
                         <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4 shrink-0 text-[#9aa9b8] transition group-hover:translate-x-0.5 group-hover:text-[var(--mscp-color-brand-primary)]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M3 8h10M9 4l4 4-4 4" />
@@ -464,9 +498,9 @@ export function AiDrugAnswerFirstScreen() {
                       adPlacement="before-question"
                       adSlot="ai_drug_answer_first_top"
                       prototypeFamily="drug-concept"
-                      prototypeRoute="/ai-drug-mono-v3"
-                      prototypeSlug="ai-drug-mono-v3"
-                      screenType="ai-drug-mono-v3"
+                      prototypeRoute={experience.route}
+                      prototypeSlug={experience.slug}
+                      screenType={experience.slug}
                     />
                   </div>
                   <div className="space-y-0">
@@ -484,7 +518,9 @@ export function AiDrugAnswerFirstScreen() {
                         >
                           {item.kind === "scenario" ? (
                             <ScenarioTurnBlock
+                              experience={experience}
                               isLast={isLast}
+                              showUpdates={index === thread.findIndex((turn) => turn.kind === "scenario" && turn.scenario.drugId === experience.updates?.drugId)}
                               onFollowUpQuestionSelect={submitQuestion}
                               onToggleMonograph={toggleMonograph}
                               turn={item}
@@ -525,7 +561,7 @@ export function AiDrugAnswerFirstScreen() {
                   iconClassName="h-8 w-8"
                   inputClassName="h-8 flex-1 border-0 bg-transparent text-[16px] leading-[20px] text-[#1b2b3a] outline-none placeholder:text-[#93a2ae]"
                   inputRef={composerInputRef}
-                  analyticsSourceSurface="ai_drug_mono_v3"
+                  analyticsSourceSurface={experience.slug.replaceAll("-", "_")}
                   isGenerating={isGenerating}
                   onStopGeneration={handleStopGeneration}
                   onSubmit={handleComposerSubmit}
