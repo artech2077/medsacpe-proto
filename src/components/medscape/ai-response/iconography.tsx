@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { aiResponseAssets, type PromptSectionId } from "@/data/ai-response";
 
 export function AiMenuIcon({ invert = false }: { invert?: boolean }) {
