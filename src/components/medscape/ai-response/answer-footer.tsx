@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { AiResponseAnswerActions } from "@/components/medscape/ai-response/answer-actions";
