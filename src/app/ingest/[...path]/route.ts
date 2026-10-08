@@ -52,10 +52,14 @@ function buildForwardedHeaders(request: NextRequest) {
 
 async function proxyPostHogRequest(request: NextRequest, context: RouteContext) {
   const { path } = await context.params;
-  const target = resolvePostHogProxyTarget(
-    `/${path.join("/")}`,
-    request.nextUrl.search,
-  );
+  let target: URL;
+
+  try {
+    target = resolvePostHogProxyTarget(`/${path.join("/")}`, request.nextUrl.search);
+  } catch {
+    return new NextResponse(null, { status: 400 });
+  }
+
   const headers = buildForwardedHeaders(request);
   const init: RequestInit = {
     method: request.method,
