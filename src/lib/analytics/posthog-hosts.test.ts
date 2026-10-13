@@ -45,6 +45,18 @@ describe("posthog host resolution", () => {
     ).toBe("https://us-assets.i.posthog.com/static/array.js");
   });
 
+  it("allows the endpoints posthog-js uses", () => {
+    for (const path of ["/e/", "/i/v0/e/", "/flags/", "/s/", "/array/phc_x/config", "/api/surveys/"]) {
+      expect(() => resolvePostHogProxyTarget(path, "", {})).not.toThrow();
+    }
+  });
+
+  it("refuses other PostHog paths, including dot-segment tricks", () => {
+    for (const path of ["/api/projects", "/static/../api/projects", "/./api/users/@me", "/events"]) {
+      expect(() => resolvePostHogProxyTarget(path, "", {})).toThrow();
+    }
+  });
+
   it("falls back to the PostHog UI host", () => {
     expect(resolvePostHogUiHost({})).toBe("https://us.posthog.com");
   });

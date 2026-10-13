@@ -52,18 +52,51 @@ export function resolvePostHogAssetsHost(env: PostHogEnv = process.env) {
   return ingestHost;
 }
 
+// Endpoints posthog-js calls from the browser. Everything else (e.g. /api/projects)
+// is refused so the proxy cannot be used as a general relay to PostHog.
+const POSTHOG_PROXY_ALLOWED_PREFIXES = [
+  "/e",
+  "/i/v0/e",
+  "/capture",
+  "/batch",
+  "/engage",
+  "/decide",
+  "/flags",
+  "/s",
+  "/static",
+  "/array",
+  "/api/surveys",
+  "/api/web_experiments",
+  "/api/product_tours",
+  "/api/early_access_features",
+];
+
+export function isAllowedPostHogProxyPath(pathname: string) {
+  return POSTHOG_PROXY_ALLOWED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 export function resolvePostHogProxyTarget(
   path: string,
   search = "",
   env: PostHogEnv = process.env,
 ) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
   const baseHost =
     normalizedPath.startsWith("/static/") || normalizedPath.startsWith("/array/")
       ? resolvePostHogAssetsHost(env)
       : resolvePostHogIngestHost(env);
 
-  return new URL(`${baseHost}${normalizedPath}${search}`);
+  const target = new URL(`${baseHost}${normalizedPath}${search}`);
+
+  // Check the normalized pathname so dot segments cannot slip past the allowlist.
+  if (!isAllowedPostHogProxyPath(target.pathname)) {
+    throw new Error("PostHog proxy path is not allowed");
+  }
+
+  return target;
 }
 
 export { LOCAL_POSTHOG_PROXY_PATH };

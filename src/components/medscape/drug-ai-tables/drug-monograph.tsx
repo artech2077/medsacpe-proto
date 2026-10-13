@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { MedscapeCurrentAdBlock } from "@/components/medscape/ai-current/ad-block";
 import {
   drugAiTablesContentSections,

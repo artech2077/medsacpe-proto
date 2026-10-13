@@ -74,7 +74,6 @@ export function ScrollDownFAB({ scrollRef }: ScrollDownFABProps) {
           : "pointer-events-none translate-y-1 opacity-0"
       }`}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={aiResponseAssets.composerIcons.scrollDown}
         alt=""

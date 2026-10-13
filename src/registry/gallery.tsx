@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import type { ComponentType } from "react";
 import { DrugAnswerTabs } from "@/components/medscape/drug-concepts/answer-tabs";
 import { DrugConceptTabBar } from "@/components/medscape/drug-concepts/concept-tab-bar";

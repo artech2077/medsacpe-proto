@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import { aiResponseAssets } from "@/data/ai-response";
 
 export function CurrentHamburgerIcon() {

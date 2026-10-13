@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 import { useEffect, useRef, useState } from "react";
 import { captureAnalyticsEvent } from "@/lib/analytics/posthog";
 
