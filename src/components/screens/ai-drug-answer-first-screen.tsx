@@ -45,6 +45,13 @@ function requireMonograph(drugId: string): DrugMonograph {
   return monograph;
 }
 
+// A scenario's own update wins; otherwise the experience-level update applies
+// to scenarios about the same drug.
+function resolveUpdate(scenario: AnswerFirstScenario, experience: DrugAnswerFirstExperience) {
+  if (scenario.update) return scenario.update;
+  return experience.updates?.drugId === scenario.drugId ? experience.updates : undefined;
+}
+
 function buildReferences(monograph: DrugMonograph, answerKey: string): AiAnswerReference[] {
   const answer = monograph.synthesizedAnswers[answerKey];
   if (!answer) return [];
@@ -120,7 +127,7 @@ function ScenarioTurnBlock({
   const references = turn.scenario.references ?? buildReferences(monograph, turn.scenario.answerKey);
   const followUpQuestions = isLast ? turn.scenario.followUpQuestions ?? answer?.followUpQuestions ?? [] : [];
   const updateIsAnswer = turn.scenario.responseKind === "drug-update";
-  const updates = showUpdates && !updateIsAnswer ? experience.updates : undefined;
+  const updates = showUpdates && !updateIsAnswer ? resolveUpdate(turn.scenario, experience) : undefined;
 
   const handleToggle = useCallback(() => {
     const opening = !turn.monographOpen;
@@ -384,14 +391,14 @@ export function AiDrugAnswerFirstScreen({
     <DrugConceptShell activeConcept="J" hideTabBar>
       <div className="relative flex min-h-0 min-w-0 flex-1">
         <section className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-          <PrototypeNavSidebar isOpen={navOpen} onClose={() => setNavOpen(false)} />
+          {experience.share ? null : <PrototypeNavSidebar isOpen={navOpen} onClose={() => setNavOpen(false)} />}
           {/* Header */}
           <div className="z-20 shrink-0 bg-white">
             <AiMobileTopRail
               railClassName="bg-white px-3 pb-1 pt-2 md:hidden"
               contentClassName="relative flex min-h-[44px] items-center justify-between gap-2"
               left={
-                <button
+                experience.share ? null : <button
                   type="button"
                   aria-label="Open prototypes menu"
                   aria-expanded={navOpen}
@@ -402,7 +409,7 @@ export function AiDrugAnswerFirstScreen({
                 </button>
               }
               center={
-                thread.length > 0 ? (
+                thread.length > 0 && !experience.share ? (
                   <ExamplesPill onClick={resetToBrowser} />
                 ) : (
                   <img
@@ -423,7 +430,7 @@ export function AiDrugAnswerFirstScreen({
 
             <div className="hidden md:block">
               <div className="relative flex min-h-[48px] items-center justify-between gap-2 px-5 pt-2">
-                <button
+                {experience.share ? null : <button
                   type="button"
                   aria-label="Open prototypes menu"
                   aria-expanded={navOpen}
@@ -431,8 +438,8 @@ export function AiDrugAnswerFirstScreen({
                   className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-full text-[#687680] transition hover:bg-[#f1f5f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mscp-color-brand-primary)]"
                 >
                   <AiMenuIcon />
-                </button>
-                {thread.length > 0 ? (
+                </button>}
+                {thread.length > 0 && !experience.share ? (
                   <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                     <ExamplesPill onClick={resetToBrowser} />
                   </div>
@@ -520,7 +527,13 @@ export function AiDrugAnswerFirstScreen({
                             <ScenarioTurnBlock
                               experience={experience}
                               isLast={isLast}
-                              showUpdates={index === thread.findIndex((turn) => turn.kind === "scenario" && turn.scenario.drugId === experience.updates?.drugId)}
+                              showUpdates={(() => {
+                                // Show each drug's update once: on the first turn that resolves to it.
+                                const update = resolveUpdate(item.scenario, experience);
+                                return Boolean(update) && index === thread.findIndex(
+                                  (turn) => turn.kind === "scenario" && resolveUpdate(turn.scenario, experience)?.drugId === update?.drugId,
+                                );
+                              })()}
                               onFollowUpQuestionSelect={submitQuestion}
                               onToggleMonograph={toggleMonograph}
                               turn={item}
@@ -532,9 +545,9 @@ export function AiDrugAnswerFirstScreen({
                                 {item.text}
                               </h1>
                               <p className="rounded-[12px] border border-[#e6edf4] bg-[#f8fafc] px-4 py-3 text-[13.5px] leading-[1.6] text-[#5a6e7e]">
-                                This prototype is scripted — it plays preset questions rather than
-                                answering live. Tap Examples in the header to browse the available
-                                questions.
+                                {experience.share
+                                  ? "This prototype is scripted — it plays a preset question rather than answering live."
+                                  : "This prototype is scripted — it plays preset questions rather than answering live. Tap Examples in the header to browse the available questions."}
                               </p>
                             </article>
                           )}

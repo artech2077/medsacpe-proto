@@ -4,9 +4,26 @@
     {
       "name": "dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 53965,
       "autoPort": true
+    },
+    {
+      "name": "share-check",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "SHARE_ONLY_PATHS=/share/mounjaro-update",
+        "SHARE_OWNER_KEY=local-share-check-key",
+        "npx",
+        "next",
+        "start",
+        "-p",
+        "3107"
+      ],
+      "port": 3107
     }
   ]
 }

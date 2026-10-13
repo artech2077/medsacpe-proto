@@ -5,10 +5,10 @@ Direct example: `/ai-drug-mono-v4?scenario=ozempic-ckd-dosing`.
 
 Additional Examples:
 - Variation 3, **Clinical takeaway first**: `/ai-drug-mono-v4?scenario=ozempic-update-takeaway`. Leads with the practical dose implication; “What changed in the label” expands the original explanation and sources.
-- Variation 5, **Editorial update brief**: `/ai-drug-mono-v4?scenario=ozempic-update-editorial`. Collapsed by default with its formal clinical title in the banner. Expands into Indicated Patient Population, U.S. Prescribing Information Update, Clinical Implications, and Supporting References. The body copy is unchanged.
+- Variation 5, **Editorial update brief · Mounjaro**: `/ai-drug-mono-v4?scenario=mounjaro-update-editorial`. Uses its own Mounjaro (tirzepatide) update: the FDA approval of NDA 215866 S-044/S-045, signed 08/27/2026. It covers the new cardiovascular risk reduction indication and the 2.5 mg dose for ongoing glycemic control. Collapsed by default with its formal clinical title in the banner, and expands into Indicated Patient Population, U.S. Prescribing Information Update, Clinical Implications, and Supporting References. Question: "Can I keep a patient with type 2 diabetes on Mounjaro 2.5 mg once weekly?" The answer cites the Mounjaro label, the approval letter, and the Zepbound label, and the pill opens the tirzepatide monograph. Content is limited to the verified FDA passages in `older-verified-updates.csv`. The Zepbound rows were not used, because those changes do not extend to Mounjaro. ⚠️ The shared tirzepatide monograph fixture still says the 2.5 mg dose is not effective for glycemic control, so it contradicts the update during the simulated review-pending window.
 - **Drug update as the answer — email link**: `/ai-drug-mono-v4?scenario=ozempic-update-email`. Simulates an incoming email link. The editorial update is displayed as a fully visible answer using the shared answer renderer, with a clinical headline and inline reference citations. There is no update banner, disclosure control, separate dosing answer, or generation delay. The drug pill, copy/feedback actions, and follow-up questions remain available. No email is sent; the link is the local prototype destination.
 
-Both variations use the same Ozempic answer, date, clinical facts, and drug pill. No monograph section links appear in either update card.
+Variation 3 and the default example share the Ozempic answer, date, clinical facts, and drug pill; Variation 5 carries its own scenario-level update (`AnswerFirstScenario.update`). No monograph section links appear in either update card.
 
 Product question: can a returning clinician understand a drug update and its clinical relevance alongside a direct AI answer, while keeping the full monograph accessible through the drug pill?
 
@@ -29,7 +29,7 @@ Product question: can a returning clinician understand a drug update and its cli
 ## Fixtures and evidence
 
 Typed configuration and answer: `src/data/drug-answer-first-experiences.ts`.
-Update and sources: `src/data/drug-monograph-updates.ts`.
+Update and sources: `src/data/drug-monograph-updates.ts` (`OZEMPIC_UPDATE`, `MOUNJARO_UPDATE`).
 Existing Medscape semaglutide fixture: `src/data/drug-monograph-diabetes.ts`.
 
 - [January 28, 2025 approval announcement and FLOW trial evidence](https://www.ozempic.com/content/dam/diabetes-patient/ozempic/pdfs/Ozempic_CKD_sNDA_Press_Release_January_28_2025.pdf)
@@ -53,3 +53,13 @@ Built using `prototype-generation` from `pm-operating-system` 0.6.0 and the work
 - V3 and `/gallery`: HTTP 200. V3 deep link renders one answer without the new update banner.
 - Browser: checked expansion/collapse, source URLs, pill open/close, dismissal, and follow-up playback. One initial question and one banner render in V4.
 - Mobile at 390 × 844: document width 390px, banner width 343px; no horizontal page overflow.
+
+## Sharing the Mounjaro example with a user
+
+Share page: `/share/mounjaro-update`. It opens straight into the Mounjaro update, question, answer, and pill. It has no prototype menu, no Examples switcher, and no follow-up chips. The tirzepatide dosing follow-up was removed because that answer predates the update and contradicts it. It is configured by `SHARE_MOUNJARO_UPDATE` and is not listed in `prototypeRegistry`, so it never appears in the internal prototype menu.
+
+To make it the only reachable page, set `SHARE_ONLY_PATHS=/share/mounjaro-update` in the Vercel project's environment variables, then redeploy. Push the same code to GitHub (Vercel) and GitLab (company deployment). The setting, not the code, decides which deployment is restricted. `src/proxy.ts` redirects every other page (`/`, `/gallery`, V1–V4, concepts) to the share page with a 307. Analytics (`/ingest`) and `/health` keep working. The company deployment has no such setting, so every page stays open there.
+
+Owner access: also set `SHARE_OWNER_KEY` in Vercel to a long random value. Open `/owner-access`, enter the key once, and that browser can reach every page for 180 days (cookie `proto_owner_access`). Clear the site's cookies to lock it again. Changing the key signs out every unlocked browser. Without `SHARE_OWNER_KEY`, `/owner-access` returns 404. A local production build confirmed the redirects, the rejection of a wrong key, and the unlock.
+
+Limit: this blocks pages, not code. The shared screen's JavaScript still bundles the V4 scenario data, so a technical user reading the page source could find other scenario text.

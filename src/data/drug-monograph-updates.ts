@@ -80,3 +80,58 @@ export const OZEMPIC_UPDATE: DrugMonographUpdate = {
     },
   ] satisfies DrugMonographUpdateSection[],
 };
+
+// Mounjaro (tirzepatide) — FDA approval letter for NDA 215866 S-044 and S-045,
+// signed 08/27/2026. Content limited to the verified FDA passages in
+// older-verified-updates.csv; clinical relevance is editorial interpretation.
+export const MOUNJARO_APPROVAL_LETTER_URL =
+  "https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2026/215866Orig1s044%2C215866Orig1s045ltr.pdf";
+export const MOUNJARO_LABEL_URL =
+  "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/215866s044s045lbl.pdf";
+export const ZEPBOUND_LABEL_URL =
+  "https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/217806s041lbl.pdf";
+
+export const MOUNJARO_UPDATE: DrugMonographUpdate = {
+  badge: "Mounjaro drug update",
+  changedSectionsLabel: "Indication & dosing",
+  drugName: "Mounjaro",
+  drugId: "tirzepatide",
+  updatedDate: "Aug 27, 2026 · U.S. label",
+  summary:
+    "Mounjaro gained a cardiovascular risk reduction indication for high-risk adults with type 2 diabetes, and the 2.5 mg weekly dose can now be used for ongoing glycemic control.",
+  clinicalTakeaway:
+    "Mounjaro 2.5 mg once weekly is no longer initiation-only; it can be continued for glycemic control in type 2 diabetes.",
+  editorial: {
+    headline: "Mounjaro (tirzepatide): New Cardiovascular Indication and 2.5 mg Maintenance Option in Type 2 Diabetes",
+    audienceTitle: "Indicated Patient Population",
+    changeTitle: "U.S. Prescribing Information Update",
+    clinicalRelevanceTitle: "Clinical Implications",
+    sourcesTitle: "Supporting References",
+    audience:
+      "Adults with type 2 diabetes at high risk for major adverse cardiovascular events, and patients with type 2 diabetes treated with Mounjaro. The label also covers patients 10 years and older, with age-specific maximum doses.",
+    whatChanged:
+      "The August 2026 U.S. label (S-044 and S-045) added an indication to reduce the risk of cardiovascular death, nonfatal myocardial infarction, or nonfatal stroke in high-risk adults with type 2 diabetes. It also states that the 2.5 mg once-weekly dose can be used for ongoing glycemic control. The same supplement revised the diabetic retinopathy warning information.",
+    clinicalRelevance:
+      "Cardiovascular risk reduction now has a labeled role for Mounjaro in high-risk adults with type 2 diabetes. An ongoing 2.5 mg weekly regimen is no longer outside the label’s dosing intent. These changes apply to Mounjaro only: they do not give Zepbound a cardiovascular indication, and the Zepbound label still describes 2.5 mg as an initiation dose.",
+  },
+  sections: [
+    {
+      anchor: "dosing.t2dm",
+      sectionTitle: "Cardiovascular risk reduction indication",
+      whatChanged:
+        "The FDA approved Mounjaro to reduce the risk of major adverse cardiovascular events (CV death, nonfatal myocardial infarction, or nonfatal stroke) in adults with type 2 diabetes who are at high risk for these events.",
+      whyItMatters:
+        "Adds an FDA-approved cardiovascular risk reduction use to a diabetes product. It does not establish that Zepbound has this indication.",
+      source: { label: "FDA approval letter · NDA 215866 S-044 & S-045", url: MOUNJARO_APPROVAL_LETTER_URL },
+    },
+    {
+      anchor: "dosing.t2dm",
+      sectionTitle: "2.5 mg dose for ongoing glycemic control",
+      whatChanged:
+        "The 2.5 mg once-weekly dose can now be used for ongoing glycemic control in type 2 diabetes. The prior label described it only as a starting dose not intended for glycemic control.",
+      whyItMatters:
+        "When reviewing an ongoing 2.5 mg Mounjaro regimen, do not apply the older statement that it is solely an initiation dose. Zepbound still describes 2.5 mg as initiation-only.",
+      source: { label: "FDA prescribing information · Mounjaro (Aug 2026)", url: MOUNJARO_LABEL_URL },
+    },
+  ] satisfies DrugMonographUpdateSection[],
+};
