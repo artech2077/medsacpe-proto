@@ -91,7 +91,8 @@ function ExamplesPill({ onClick }: { onClick: () => void }) {
 type ScenarioTurn = {
   id: number;
   kind: "scenario";
-  monographOpen: boolean;
+  /** Drug whose monograph is open below the pill: the answer's drug or an alternative. */
+  openDrugId: string | null;
   scenario: AnswerFirstScenario;
   status: "loading" | "complete";
 };
@@ -116,7 +117,7 @@ function ScenarioTurnBlock({
   experience: DrugAnswerFirstExperience;
   isLast: boolean;
   onFollowUpQuestionSelect: (question: string) => void;
-  onToggleMonograph: (turnId: number) => void;
+  onToggleMonograph: (turnId: number, drugId: string) => void;
   showUpdates: boolean;
   turn: ScenarioTurn;
   turnIndex: number;
@@ -129,15 +130,20 @@ function ScenarioTurnBlock({
   const updateIsAnswer = turn.scenario.responseKind === "drug-update";
   const updates = showUpdates && !updateIsAnswer ? resolveUpdate(turn.scenario, experience) : undefined;
 
-  const handleToggle = useCallback(() => {
-    const opening = !turn.monographOpen;
-    onToggleMonograph(turn.id);
+  const alternatives = turn.scenario.alternatives ?? [];
+  const openAlternative = alternatives.find((alternative) => alternative.drugId === turn.openDrugId);
+  const openMonograph = turn.openDrugId ? requireMonograph(turn.openDrugId) : undefined;
+  const pillLabel = turn.scenario.pillLabel ?? monograph.drug.name;
+
+  const handleToggle = useCallback((drugId: string) => {
+    const opening = turn.openDrugId !== drugId;
+    onToggleMonograph(turn.id, drugId);
     if (opening) {
       requestAnimationFrame(() =>
         monographRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
       );
     }
-  }, [onToggleMonograph, turn.id, turn.monographOpen]);
+  }, [onToggleMonograph, turn.id, turn.openDrugId]);
 
   return (
     <article className="mx-auto max-w-[720px]">
@@ -188,16 +194,21 @@ function ScenarioTurnBlock({
       {/* Secondary reference — appears immediately when the question is
           submitted, independent of the AI answer's generation status. */}
       <DrugMonographHandoffPill
+        alternatives={alternatives.map((alternative) => ({ id: alternative.drugId, label: alternative.label }))}
         className="mt-5"
-        drugName={turn.scenario.pillLabel ?? monograph.drug.name}
-        isOpen={turn.monographOpen}
-        onToggle={handleToggle}
+        drugName={pillLabel}
+        isOpen={turn.openDrugId === turn.scenario.drugId}
+        onAlternativeToggle={handleToggle}
+        onToggle={() => handleToggle(turn.scenario.drugId)}
+        openAlternativeId={openAlternative?.drugId ?? null}
       />
 
-      {turn.monographOpen ? (
-        <div ref={monographRef} className="mt-3 scroll-mt-4">
+      {openMonograph ? (
+        // Desktop keeps a ~164px sticky ad above the thread; stop the scroll below it.
+        <div ref={monographRef} className="mt-3 scroll-mt-4 md:scroll-mt-[180px]">
           <DrugMonographCardFrame
-            anchor={turn.scenario.anchor}
+            key={openMonograph.drug.id}
+            anchor={openAlternative?.anchor ?? turn.scenario.anchor}
             boxedWarningVariant="navy"
             expandSubfields={Boolean(experience.updates)}
             flashAnchor={!experience.updates}
@@ -205,10 +216,10 @@ function ScenarioTurnBlock({
             hideMatchBadges
             hideSectionSummary
             hideSubfieldSummary
-            monograph={monograph}
+            monograph={openMonograph}
             onOpenMonograph={() => {
-              if (monograph.drug.referenceUrl) {
-                window.open(monograph.drug.referenceUrl, "_blank", "noopener");
+              if (openMonograph.drug.referenceUrl) {
+                window.open(openMonograph.drug.referenceUrl, "_blank", "noopener");
               }
             }}
             promoteSelectedSection={!experience.updates}
@@ -301,7 +312,7 @@ export function AiDrugAnswerFirstScreen({
       const turnId = ++turnIdRef.current;
       setThread((prev) => [
         ...(replaceThread ? [] : completeAll(prev)),
-        { id: turnId, kind: "scenario", monographOpen: false, scenario, status: scenario.responseKind === "drug-update" ? "complete" : "loading" },
+        { id: turnId, kind: "scenario", openDrugId: null, scenario, status: scenario.responseKind === "drug-update" ? "complete" : "loading" },
       ]);
       if (updateUrl && typeof window !== "undefined") {
         const url = new URL(window.location.href);
@@ -377,11 +388,12 @@ export function AiDrugAnswerFirstScreen({
     setThread((prev) => completeAll(prev));
   }, [clearTimer]);
 
-  const toggleMonograph = useCallback((turnId: number) => {
+  // One monograph open per turn: tapping another drug swaps it, tapping the open one closes it.
+  const toggleMonograph = useCallback((turnId: number, drugId: string) => {
     setThread((prev) =>
       prev.map((item) =>
         item.kind === "scenario" && item.id === turnId
-          ? { ...item, monographOpen: !item.monographOpen }
+          ? { ...item, openDrugId: item.openDrugId === drugId ? null : drugId }
           : item,
       ),
     );

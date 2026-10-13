@@ -540,6 +540,17 @@ function DrugMonographHandoffPillPreview() {
   return (
     <div className="max-w-[420px] rounded-[16px] bg-white p-4">
       <DrugMonographHandoffPill drugName="Semaglutide" isOpen={false} onToggle={() => undefined} />
+      <DrugMonographHandoffPill
+        alternatives={[
+          { id: "semaglutide", label: "Ozempic (semaglutide)" },
+          { id: "liraglutide", label: "Victoza (liraglutide)" },
+        ]}
+        className="mt-5"
+        drugName="Mounjaro (tirzepatide)"
+        isOpen={false}
+        onAlternativeToggle={() => undefined}
+        onToggle={() => undefined}
+      />
     </div>
   );
 }
@@ -1255,7 +1266,8 @@ export const galleryRegistry: GalleryEntry[] = [
     title: "DrugMonographHandoffPill",
     usageNotes: [
       "Controlled component — the parent owns isOpen/onToggle and renders DrugMonographCardFrame conditionally beneath it.",
-      "Used on /ai-drug-mono-v3; V1/V2 keep the monograph-first order and don't use this component.",
+      "Used on /ai-drug-mono-v3, /ai-drug-mono-v4 and /share/mounjaro-update; V1/V2 keep the monograph-first order and don't use this component.",
+      "Optional alternatives (id + label) render beside the pill as a labeled group of neutral gray chips (same height as the pill), so they never read as the answer's drug. Wire onAlternativeToggle/openAlternativeId to open the alternative's monograph.",
     ],
   },
   {

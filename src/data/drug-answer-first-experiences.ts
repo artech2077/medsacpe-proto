@@ -11,7 +11,16 @@ import {
   type DrugUpdatePresentation,
 } from "./drug-monograph-updates";
 
+// A drug shown beside the pill as an alternative to the answer's drug. It is
+// not a source for the answer; tapping it opens its own monograph.
+export type AnswerFirstAlternative = {
+  anchor: string;
+  drugId: string;
+  label: string;
+};
+
 export type AnswerFirstScenario = DrugConceptJScenario & {
+  alternatives?: AnswerFirstAlternative[];
   citationLabel?: string;
   followUpQuestions?: string[];
   pillLabel?: string;
@@ -97,6 +106,10 @@ const mounjaroUpdateScenario: AnswerFirstScenario = {
   anchor: "dosing.t2dm",
   answerKey: "t2dm-dose",
   pillLabel: "Mounjaro (tirzepatide)",
+  alternatives: [
+    { drugId: "semaglutide", label: "Ozempic (semaglutide)", anchor: "dosing.t2dm_sc" },
+    { drugId: "liraglutide", label: "Victoza (liraglutide)", anchor: "dosing.t2dm_victoza" },
+  ],
   // One chip label covers all citations; all three sources are FDA documents.
   citationLabel: "FDA",
   updatePresentation: "editorial",
